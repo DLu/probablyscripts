@@ -1,0 +1,13 @@
+#!/usr/bin/perl
+
+use strict;
+
+my @lines = split(/\n/, `svn st`);
+for my $line (@lines){
+    $line =~ /(.)\s+(.*)\Z/;
+    print "$line\n";
+    if($1 eq "M"){
+    	print `tkdiff $2`;
+    }
+}
+
