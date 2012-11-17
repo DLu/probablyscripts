@@ -198,6 +198,21 @@ class Page:
                         chunks += self.get_chunks(x, start_y, w, y + h - start_y)
                         self.data[ (y,h) ] [ (x,w) ] = chunks
 
+    def insert_column_break(self, cx, cy):
+        for y, h in self.data:
+            if cy >= y and cy < y + h:
+                cols = []
+                for x,w in self.data[(y,h)]:
+                    if cx >= x and cx < x + w:
+                        cols.append( (x, cx-x) )
+                        cols.append( (cx, x+w-cx) )
+                    else:
+                        cols.append( (x, w) )
+                J = {}
+                for col in cols:
+                    J[ col ] = self.get_chunks(col[0], y, col[1], h)
+                self.data[ (y, h) ] = J
+
     def close(self):
         self.file.close()
 
@@ -319,6 +334,9 @@ class Viewer:
                     elif event.key == K_3:
                         print "Kill Row mode enabled"
                         self.mode = 3
+                    elif event.key == K_4:
+                        print "Insert column mode enabled"
+                        self.mode = 4
                     elif event.key == K_0:
                         print "Standard Mode enabled"
                         self.mode = 0
@@ -335,6 +353,8 @@ class Viewer:
                             page.insert_break_point(x,y)
                         elif self.mode == 3:
                             page.kill_row(y)
+                        elif self.mode == 4:
+                            page.insert_column_break(x,y)
                     self.reload_page()
             time.sleep(.1)
         
