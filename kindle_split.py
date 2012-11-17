@@ -5,6 +5,7 @@ import sys, os.path
 import pygame
 from pygame.locals import *
 import tempfile
+import collections
 from subprocess import call
 from pyPdf import PdfFileWriter, PdfFileReader #python-pypdf
 from pyPdf.generic import NameObject, createStringObject
@@ -31,6 +32,7 @@ class Page:
         self.image.write(self.file.name)
         self.pimage = pygame.image.load(self.file.name)
         self.data = {}
+        self.break_points = collections.defaultdict(list)
         self.analyze_rows()
     
     def size(self):
@@ -39,8 +41,10 @@ class Page:
     def getPct(self, x, y, dn = pow(2,16)-1):
         return self.image.pixelColor(x,y).intensity()/dn
 
-    def is_row_white(self, y, hjump=JUMP):
-        for x in range(0, self.image.columns(), hjump):
+    def is_row_white(self, y, hjump=JUMP, start=0, end=None):
+        if end is None:
+            end = self.image.columns()
+        for x in range(start, end, hjump):
             p = self.getPct(x,y)
             if p < 1.0:
                 return False
@@ -100,8 +104,8 @@ class Page:
 
     def get_sections(self):
         sections = []
-        for (start, height), J in self.data.iteritems():
-            for (left, width), chunks in J.iteritems():
+        for (start, height), J in sorted(self.data.iteritems()):
+            for (left, width), chunks in sorted(J.iteritems()):
                 for (top, short_height) in chunks:
                     sections.append( (left, top, width, short_height) )
         return sections
@@ -128,6 +132,17 @@ class Page:
         for (start, height) in rows:
             self.analyze_row(start, height)
 
+    def kill_row(self, y):
+        rows = []
+        for (start, height) in sorted(self.data.keys()):
+            if y >= start and y < start + height:
+                continue
+            else:
+                rows.append( (start, height) ) 
+        self.data = {}
+        for (start, height) in rows:
+            self.analyze_row(start, height)
+
     def analyze_row(self, start, height):
         cols = self.image.columns()
         if self.has_columns(start, height):
@@ -137,41 +152,51 @@ class Page:
 
         J = {}
         for col in col_list:
-            J[ col ] = self.get_chunks(start, height, col[0], col[1])
-            #J[ col ] = self.get_section(col[0], start, col[1], height)
+            J[ col ] = self.get_chunks(col[0], start, col[1], height)
         self.data[ (start, height) ] = J
 
-    def get_chunks(self, y, h, x, w):
+    def should_split(self, w, h):
         ratio = w/float(h)
-        n = 1
-        while n * ratio < .75:
-            n += 1
-        if not SPLIT_BY_ASPECT or n<=1:
-            return [(y, h)]
+        return ratio < .75
 
-        all_sections = []
-        h0 = y+h/2
-        split = None
-        for hp in range(h/4):
-            for m in [1, -1]:
-                split = h0 + m * hp
+    def get_chunks(self, x, y, w, h):
+        if not SPLIT_BY_ASPECT or not self.should_split(w,h):
+            return [(y,h)]
 
-                for x0 in range(x, x+w):
-                    if self.getPct(x0, split) <= .9:
-                        split = None
-                        break
-                if split is not None:
+        center_height = y+h/2
+        chosen_split_y = None
+
+        for delta_y in range(h/4):
+            for sign in [1, -1]:
+                split_y = center_height + sign * delta_y
+                is_white = self.is_row_white(split_y, start=x, end=x+w)
+                if is_white:
+                    chosen_split_y = split_y
                     break
-            if split is not None:
-                break
-        if split is None:
-            all_sections.append((y,h))
-            return all_sections
-        rel = split - y
-        all_sections.append((y,rel))
-        all_sections.append((split,h-rel))
 
-        return all_sections
+            if chosen_split_y is not None:
+                break
+
+        if chosen_split_y is None:
+            return [(y,h)]
+
+        first_h = chosen_split_y - y
+        return self.get_chunks(x,y,w,first_h) + self.get_chunks(x, chosen_split_y, w, h - first_h)
+
+    def insert_break_point(self, cx, cy):
+        for y, h in self.data:
+            if cy >= y and cy < y + h:
+                for x,w in self.data[(y,h)]:
+                    if cx >= x and cx < x + w:
+                        break_points = self.break_points[(x,y,w,h)]
+                        break_points.append(cy)
+                        start_y = y
+                        chunks = []
+                        for by in sorted(break_points):
+                            chunks += self.get_chunks(x, start_y, w, by - start_y)
+                            start_y = by
+                        chunks += self.get_chunks(x, start_y, w, y + h - start_y)
+                        self.data[ (y,h) ] [ (x,w) ] = chunks
 
     def close(self):
         self.file.close()
@@ -288,6 +313,15 @@ class Viewer:
                     elif event.key == K_1:
                         print "Delete white mode enabled"
                         self.mode = 1
+                    elif event.key == K_2:
+                        print "Reposition splits mode enabled"
+                        self.mode = 2
+                    elif event.key == K_3:
+                        print "Kill Row mode enabled"
+                        self.mode = 3
+                    elif event.key == K_0:
+                        print "Standard Mode enabled"
+                        self.mode = 0
                 if event.type == MOUSEBUTTONDOWN:  
                     (x,y) = event.pos
                     page = self.document.pages[ self.page_no ]
@@ -297,6 +331,10 @@ class Viewer:
                     if event.button == 1:
                         if self.mode == 1:
                             page.delete_white_row(y)
+                        elif self.mode == 2:
+                            page.insert_break_point(x,y)
+                        elif self.mode == 3:
+                            page.kill_row(y)
                     self.reload_page()
             time.sleep(.1)
         
