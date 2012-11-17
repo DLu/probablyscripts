@@ -3,18 +3,19 @@ from pyPdf import PdfFileWriter, PdfFileReader #python-pypdf
 from PythonMagick import * # python-pythonmagick
 import sys, os.path
 import pygame
+from pygame.locals import *
 import tempfile
 from subprocess import call
 from pyPdf import PdfFileWriter, PdfFileReader #python-pypdf
 from pyPdf.generic import NameObject, createStringObject
-PAGES = None # [5]
+PAGES =  None
 W = 850
 H = 1100
 MIN_SIZE = 50
-WHITE_LIMIT = 20
-JUMP=7
+WHITE_LIMIT = 10
+JUMP=2
 SPLIT_BY_ASPECT = True
-GUI = False
+GUI = True
 
 import time
 starttime = time.time()
@@ -29,7 +30,8 @@ class Page:
         self.file = tempfile.NamedTemporaryFile(suffix='.png')
         self.image.write(self.file.name)
         self.pimage = pygame.image.load(self.file.name)
-        self.sections = None
+        self.data = {}
+        self.analyze_rows()
     
     def size(self):
         return self.w, self.h
@@ -37,24 +39,21 @@ class Page:
     def getPct(self, x, y, dn = pow(2,16)-1):
         return self.image.pixelColor(x,y).intensity()/dn
 
-    def get_row_pattern(self, white_limit=WHITE_LIMIT, jump=JUMP):
+    def is_row_white(self, y, hjump=JUMP):
+        for x in range(0, self.image.columns(), hjump):
+            p = self.getPct(x,y)
+            if p < 1.0:
+                return False
+        return True
+
+    def get_row_pattern(self, white_limit=WHITE_LIMIT, hjump=20, vjump=JUMP):
         mode = None
         streak = 0
         start = 0
         sections = []
 
-        for y in range(0, self.image.rows(), jump):
-            white = True
-
-            for x in range(0, self.image.columns(), jump):
-                p = self.getPct(x, y)
-                #if y==0:
-                #    print p,
-                if p < 1.0:
-                    white = False
-                    break
-            #if y==0:
-            #    print
+        for y in range(0, self.image.rows(), vjump):
+            white = self.is_row_white(y, hjump)
 
             if mode is None:
                 if white:
@@ -64,25 +63,25 @@ class Page:
                 streak = 1
             elif mode == 0:
                 if white:
-                    streak += jump
+                    streak += vjump
                 else:
                     mode = 1
-                    streak = jump
-                    start = y - jump
+                    streak = vjump
+                    start = y - vjump
             elif mode > 0:
                 if white:
                     mode = -streak
                     streak = 0
                 else:
-                    streak += jump
+                    streak += vjump
             else:
                 if white:
-                    streak += jump
+                    streak += vjump
                     if streak > white_limit:
-                        sections.append((start, -mode+jump*2))
+                        sections.append((start, -mode+vjump*2))
                         mode = 0
                 else:
-                    streak = (-mode) + streak + jump * 2
+                    streak = (-mode) + streak + vjump * 2
                     mode = 1
 
             #print y, mode, streak, white
@@ -99,50 +98,80 @@ class Page:
                     return False
         return True
 
-    def get_section(self, x, y, w, h):
+    def get_sections(self):
+        sections = []
+        for (start, height), J in self.data.iteritems():
+            for (left, width), chunks in J.iteritems():
+                for (top, short_height) in chunks:
+                    sections.append( (left, top, width, short_height) )
+        return sections
+
+    def analyze_rows(self):
+        for (start, height) in self.get_row_pattern():
+            self.analyze_row(start, height)
+
+    def delete_white_row(self, y):
+        rows = []
+        found = False
+        for (start, height) in sorted(self.data.keys()):
+            if y < start and not found:
+                found = True
+                if len(rows)==0:
+                    continue
+                (ls, lh) = rows[-1]
+                rows = rows[:-1]
+                nb = start + height
+                rows.append( (ls, nb - ls))
+            else:
+                rows.append( (start, height) ) 
+        self.data = {}
+        for (start, height) in rows:
+            self.analyze_row(start, height)
+
+    def analyze_row(self, start, height):
+        cols = self.image.columns()
+        if self.has_columns(start, height):
+            col_list = [ (0, cols/2), (cols/2, cols/2) ]
+        else:
+            col_list = [ (0, cols) ]
+
+        J = {}
+        for col in col_list:
+            J[ col ] = self.get_chunks(start, height, col[0], col[1])
+            #J[ col ] = self.get_section(col[0], start, col[1], height)
+        self.data[ (start, height) ] = J
+
+    def get_chunks(self, y, h, x, w):
         ratio = w/float(h)
         n = 1
         while n * ratio < .75:
             n += 1
-        all_sections = []
-        if SPLIT_BY_ASPECT and n>1:
-            h0 = y+h/2
-            split = None
-            for hp in range(h/4):
-                for m in [1, -1]:
-                    split = h0 + m * hp
+        if not SPLIT_BY_ASPECT or n<=1:
+            return [(y, h)]
 
-                    for x0 in range(x, x+w):
-                        if self.getPct(x0, split) <= .9:
-                            split = None
-                            break
-                    if split is not None:
+        all_sections = []
+        h0 = y+h/2
+        split = None
+        for hp in range(h/4):
+            for m in [1, -1]:
+                split = h0 + m * hp
+
+                for x0 in range(x, x+w):
+                    if self.getPct(x0, split) <= .9:
+                        split = None
                         break
                 if split is not None:
                     break
-            if split is None:
-                all_sections.append((x,y,w,h))
-                return
-            rel = split - y
-            all_sections.append((x,y,w,rel))
-            all_sections.append((x,split,w,h-rel))
-        else:
-            all_sections.append((x,y,w,h))
+            if split is not None:
+                break
+        if split is None:
+            all_sections.append((y,h))
+            return all_sections
+        rel = split - y
+        all_sections.append((y,rel))
+        all_sections.append((split,h-rel))
+
         return all_sections
-
-    def get_sections(self):
-        if self.sections:
-            return self.sections
-        self.sections = []
-        for (start, height) in self.get_row_pattern():
-            cols = self.image.columns()
-            if self.has_columns(start, height):
-                self.sections += self.get_section(0, start, cols/2, height)
-                self.sections += self.get_section(cols/2, start, cols/2, height)
-            else:
-                self.sections += self.get_section(0, start, cols, height)
-
-        return self.sections
 
     def close(self):
         self.file.close()
@@ -225,6 +254,7 @@ class Viewer:
         pygame.init()
         self.screen = pygame.display.set_mode((W,H))
         self.page_no = 0
+        self.mode = 0
         self.reload_page()
 
     def reload_page(self):
@@ -248,6 +278,26 @@ class Viewer:
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT: return
+                if event.type == KEYDOWN:
+                    if event.key == K_LEFT and self.page_no > 0:
+                        self.page_no -= 1
+                        self.reload_page()
+                    elif event.key == K_RIGHT and self.page_no + 1 < len(self.document.pages):
+                        self.page_no += 1
+                        self.reload_page()
+                    elif event.key == K_1:
+                        print "Delete white mode enabled"
+                        self.mode = 1
+                if event.type == MOUSEBUTTONDOWN:  
+                    (x,y) = event.pos
+                    page = self.document.pages[ self.page_no ]
+                    (w,h) = page.size()
+                    x = x * w / W
+                    y = y * h / H
+                    if event.button == 1:
+                        if self.mode == 1:
+                            page.delete_white_row(y)
+                    self.reload_page()
             time.sleep(.1)
         
 if __name__ == '__main__':
