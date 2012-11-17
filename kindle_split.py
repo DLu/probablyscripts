@@ -1,4 +1,7 @@
 #!/usr/bin/python
+import warnings
+warnings.simplefilter("ignore", DeprecationWarning)
+
 from pyPdf import PdfFileWriter, PdfFileReader #python-pypdf
 from PythonMagick import * # python-pythonmagick
 import sys, os.path
@@ -6,22 +9,21 @@ import pygame
 from pygame.locals import *
 import tempfile
 import collections
-from subprocess import call
+import subprocess 
+import time
 from pyPdf import PdfFileWriter, PdfFileReader #python-pypdf
 from pyPdf.generic import NameObject, createStringObject
-PAGES =  None
+PAGES =  [1]
 W = 850
 H = 1100
-MIN_SIZE = 50
 WHITE_LIMIT = 10
 JUMP=2
 SPLIT_BY_ASPECT = True
 GUI = True
 
-import time
-starttime = time.time()
-def mark(s):
-    print "%s\t%6.2f"%(s, time.time()-starttime)
+def execute(command):
+    subprocess.Popen(command, \
+      stderr=subprocess.STDOUT, stdout=subprocess.PIPE).communicate()[0]
 
 class Page:
     def __init__(self, image):
@@ -229,19 +231,25 @@ class Document:
         self.info = input1.getDocumentInfo()
         n = input1.getNumPages()
         self.pages = []
-        mypages = range(n)
+        self.mypages = range(n)
         if PAGES is not None:
-            mypages = PAGES
-        for i in mypages:
+            self.mypages = PAGES
+        for i in self.mypages:
+            sys.stdout.write("\rReading page %d of %d"%(i+1, n))
+            sys.stdout.flush()
             im = Image()
             im.density('%d'%density)
             im.read('%s[%d]'%(filename, i))
             self.pages.append(Page(im))
+        sys.stdout.write("\n")
+        sys.stdout.flush()
 
     def save(self, filename):
         temps = []
-        for (i,page) in enumerate(self.pages):
-            for section in page.get_sections():
+        for (i,page) in zip(self.mypages, self.pages):
+            for j, section in enumerate(page.get_sections()):
+                sys.stdout.write("\rWriting Image for page %d/%d, section %d/%d     "%(i+1, len(self.pages), j+1, len(page.get_sections())))
+                sys.stdout.flush()
                 sectionfile = tempfile.NamedTemporaryFile(suffix='.png')
                 temps.append(sectionfile)
 
@@ -252,18 +260,14 @@ class Document:
                 y = int(y*density / 72)
                 w = int(w*density / 72)
                 h = int(h*density / 72)
-                call(["convert", "-density", str(density), pagefn, "-crop", '%dx%d%+d%+d'%(w,h,x,y), '-trim',  '+repage', '-trim', sectionfile.name])
+                execute(["convert", "-density", str(density), pagefn, "-crop", '%dx%d%+d%+d'%(w,h,x,y), '-trim',  '+repage', '-trim', sectionfile.name])
+        sys.stdout.write("\n")
+        sys.stdout.flush()
 
-        sections = []
-        for temp in temps:
-            image = Image(temp.name)
-            if image.size().height()>MIN_SIZE:
-                sections.append(temp)
-            else:
-                temp.close()
+        sections = temps
 
         midfile = 'x.pdf'
-        call(["convert"] + [f.name for f in sections] + [midfile])
+        execute(["convert"] + [f.name for f in sections] + [midfile])
         for f in sections:
             f.close()
 
@@ -281,7 +285,7 @@ class Document:
         outputStream = file(outfile, "wb")
         output.write(outputStream)
         outputStream.close()
-        call(['rm', midfile])
+        execute(['rm', midfile])
 
     def preprocess(self):
         for page in self.pages:
@@ -376,15 +380,10 @@ if __name__ == '__main__':
         print "Usage: kindle_split input.pdf [output.pdf]"%sys.argv[0]
         sys.exit(1)
 
-    mark('Start')
     d = Document(infile)
-    mark('Read in')
     d.preprocess()
-    mark("Initial Sections Done")
     if GUI:
         v = Viewer(d)
         v.spin()
-    mark("Done Editing")
     d.save(outfile)
-    mark("Saved")
     d.close()
