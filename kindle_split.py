@@ -31,6 +31,9 @@ class Page:
         self.file = tempfile.NamedTemporaryFile(suffix='.png')
         self.image.write(self.file.name)
         self.pimage = pygame.image.load(self.file.name)
+        self.reset()
+
+    def reset(self):
         self.data = {}
         self.break_points = collections.defaultdict(list)
         self.analyze_rows()
@@ -340,6 +343,11 @@ class Viewer:
                     elif event.key == K_0:
                         print "Standard Mode enabled"
                         self.mode = 0
+                    elif event.key == K_r:
+                        print "RESET PAGE"
+                        self.document.pages[ self.page_no ].reset()
+                        self.reload_page()
+
                 if event.type == MOUSEBUTTONDOWN:  
                     (x,y) = event.pos
                     page = self.document.pages[ self.page_no ]
