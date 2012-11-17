@@ -13,7 +13,7 @@ import subprocess
 import time
 from pyPdf import PdfFileWriter, PdfFileReader #python-pypdf
 from pyPdf.generic import NameObject, createStringObject
-PAGES =  [1]
+PAGES =  None
 W = 850
 H = 1100
 WHITE_LIMIT = 10
@@ -131,6 +131,18 @@ class Page:
                 rows = rows[:-1]
                 nb = start + height
                 rows.append( (ls, nb - ls))
+            else:
+                rows.append( (start, height) ) 
+        self.data = {}
+        for (start, height) in rows:
+            self.analyze_row(start, height)
+
+    def insert_white_row(self, y):
+        rows = []
+        for (start, height) in sorted(self.data.keys()):
+            if y >= start and y <= start + height:
+                rows.append( (start, y - start) )
+                rows.append( (y, start + height - y) )
             else:
                 rows.append( (start, height) ) 
         self.data = {}
@@ -344,6 +356,9 @@ class Viewer:
                     elif event.key == K_4:
                         print "Insert column mode enabled"
                         self.mode = 4
+                    elif event.key == K_5:
+                        print "Insert row mode enabled"
+                        self.mode = 5
                     elif event.key == K_0:
                         print "Standard Mode enabled"
                         self.mode = 0
@@ -367,6 +382,8 @@ class Viewer:
                             page.kill_row(y)
                         elif self.mode == 4:
                             page.insert_column_break(x,y)
+                        elif self.mode == 5:
+                            page.insert_white_row(y)
                     self.reload_page()
             time.sleep(.1)
         
