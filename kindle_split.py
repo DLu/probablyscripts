@@ -36,6 +36,7 @@ class Page:
         self.reset()
 
     def reset(self):
+        self.left = 0
         self.data = {}
         self.break_points = collections.defaultdict(list)
         self.analyze_rows()
@@ -46,7 +47,9 @@ class Page:
     def getPct(self, x, y, dn = pow(2,16)-1):
         return self.image.pixelColor(x,y).intensity()/dn
 
-    def is_row_white(self, y, hjump=JUMP, start=0, end=None):
+    def is_row_white(self, y, hjump=JUMP, start=None, end=None):
+        if start is None:
+            start = self.left
         if end is None:
             end = self.image.columns()
         for x in range(start, end, hjump):
@@ -99,10 +102,10 @@ class Page:
         return sections
 
     def has_columns(self, start, height, centersize = 10, jump=5):
-        w = self.image.columns()
+        w = self.image.columns() - self.left
         mid = w/2
         for y in range(start, start+height, jump):
-            for x in range(mid-centersize/2, mid+centersize/2+1, jump):
+            for x in range(self.left + mid-centersize/2, self.left + mid+centersize/2+1, jump):
                 if self.getPct(x, y) != 1:
                     return False
         return True
@@ -161,11 +164,11 @@ class Page:
             self.analyze_row(start, height)
 
     def analyze_row(self, start, height):
-        cols = self.image.columns()
+        cols = self.image.columns() - self.left
         if self.has_columns(start, height):
-            col_list = [ (0, cols/2), (cols/2, cols/2) ]
+            col_list = [ (self.left, cols/2), (self.left + cols/2, cols/2) ]
         else:
-            col_list = [ (0, cols) ]
+            col_list = [ (self.left, cols) ]
 
         J = {}
         for col in col_list:
@@ -229,6 +232,11 @@ class Page:
                 for col in cols:
                     J[ col ] = self.get_chunks(col[0], y, col[1], h)
                 self.data[ (y, h) ] = J
+
+    def set_left(self, x):
+        self.data = {}
+        self.left = x
+        self.analyze_rows()
 
     def close(self):
         self.file.close()
@@ -359,6 +367,9 @@ class Viewer:
                     elif event.key == K_5:
                         print "Insert row mode enabled"
                         self.mode = 5
+                    elif event.key == K_6:
+                        print "Set left mode enabled"
+                        self.mode = 6
                     elif event.key == K_0:
                         print "Standard Mode enabled"
                         self.mode = 0
@@ -384,6 +395,8 @@ class Viewer:
                             page.insert_column_break(x,y)
                         elif self.mode == 5:
                             page.insert_white_row(y)
+                        elif self.mode == 6:
+                            page.set_left(x)
                     self.reload_page()
             time.sleep(.1)
         
