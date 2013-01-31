@@ -1,5 +1,7 @@
-\section{Costs Defined Everywhere}
-The previous discussion of constant valued obstacles resulted in just a few cases because the costs were bounded to some limited area. However, if costs are defined everywhere, then the space of possible paths increases exponentially, especially if the value of f(x,y) has no particular form. For purposes of generality, let us consider a subset of possible functions, drawing on the general convention that being closer to the center of an obstacle is bad. Let us also reduce the functional space by decreeing that the function should be symmetrical. Thus we can define $f(x,y)$ to be in our subset $\Psi$ when it is a non-increasing symmetric function from 0, or more formally, 
+\section{Smoothly Varying Costs}
+The obstacle-avoiding route shown in Figure 2 is only one example among a family of possible routes of equal cost. A smoothly-varying obstacle breaks this degeneracy and determines a finite number of optimal paths.
+
+Let us also reduce the functional space by decreeing that the function should be symmetrical. Thus we can define $f(x,y)$ to be in our subset $\Psi$ when it is a non-increasing symmetric function from 0, or more formally, 
 \begin{align*}
 \Psi = \{ f(x,y) : & f(x,y)=f(-x,y)\\
  & f(x,y)=f(y,x) \\
