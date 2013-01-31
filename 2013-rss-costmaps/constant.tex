@@ -1,4 +1,4 @@
-\section{Constant Value}
+\section{Step Obstacles}
 Some non-lethal obstacles are defined by a flat step cost, such as the interaction areas of \citet{fraichard:anthronav} or the perimeter of the parking lot in \citet{likhachev:costmaps}. In this trivial case, the marginal cost is
 \begin{equation}
    \displaystyle
@@ -23,12 +23,12 @@ We will plan a path from $(n, 0)$ to $(-n, 0)$, computing the cost by summing th
 C(p) = \sum\limits_p P + f(x, y)
 \end{equation}
 
-For a rectangular step obstacle placed at the origin, there are two feasible paths as shown in Figure \ref{fig:constant}. The direct path costs
+For a rectangular step obstacle placed at the origin with dimensions $w\times h$, there are essentially two feasible paths, illustrated in Figure \ref{fig:constant}. The direct path costs
 \begin{equation}
 C(p_1) = 2nP + wA
 \end{equation}
 
-where $P$ is the baseline cost per step and $w$ is the width of the obstacle. The shortest path around the obstacle costs
+The shortest path around the obstacle costs
 
 \begin{equation}
 C(p_2) = (2n + h)P.
