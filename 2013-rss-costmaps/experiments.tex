@@ -11,6 +11,12 @@ Given the estimates and approximations that were needed to mathematically explai
 
 For the constant non-lethal obstacle, we found that the derived paths followed the exact pattern set up by our inequality. For instance, a $5\times5$ constant valued obstacle ($w=5$) required traversing six extra cells to go around ($d=6$) and when the path constant was fifty ($P=50$), the amplitude required to force the algorithm to chose a path that went through the obstacle was $A<60$, i.e. the solution to equation (1). All amplitudes less than 60 resulted in the straight path, and all greater than 60 resulted in the path that goes around. When $A=60$, the two paths have equal cost, but only one  is returned.
 
+\begin{figure}
+\includegraphics[width=\columnwidth]{graphix/SomePaths.png}
+\caption{Paths around a Gaussian with Varying Path Constant - As $P$ decreases from (A) to (D), the path gets further and further away from the nonlethal obstacle, reflecting the length of the path becoming less important.}
+\label{fig:somepaths}
+\end{figure}
+
 For the Gaussian non-lethal obstacle, the results of the simulation are a bit more complex. We know that there are certain values of parameters that result in specific behaviors, which we can see from Figure \ref{fig:colormaps}. For instance, according to equation (2), if $P/A$ is too high, there will be no solution and the optimal path will be at $\yhat=0$. We can see this in all four graphs of Figure \ref{fig:colormaps}, in that there are black areas (representing $\yhat=0$) for the large values of P and small values of A. We can also see in Figure \ref{fig:gap} that P and A have a linear relationship, which means that as long as the ration of $P:A$ remains constant, the value of $\yhat$ will remain constant as well (given a particular variance). 
 
 The relationship between variance and $\yhat$ is a bit more complicated, which is logical given equation (2). For any given finite positive value of $\yhat$ we can decrease the variance to get a smaller $\yhat$. This can be seen in Figure \ref{fig:gvp} for instance, where you can pick any colored point and move to a lesser variance (to the left) and get a lower $\yhat$. However, how much decreasing the variance will decrease $\yhat$ depends on the other variables. 
