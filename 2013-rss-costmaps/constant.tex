@@ -1,14 +1,15 @@
 \section{Constant Value}
-Some non-lethal obstacles are defined by constant values, such as the interaction areas of \citet{fraichard:anthronav} or the perimeter of the parking lot in \citet{likhachev:costmaps}. This corresponds with 
-\begin{displaymath}
+Some non-lethal obstacles are defined by a flat step cost, such as the interaction areas of \citet{fraichard:anthronav} or the perimeter of the parking lot in \citet{likhachev:costmaps}. In this trivial case, the marginal cost is
+\begin{equation}
+   \displaystyle
    f(x, y) = \left\{
      \begin{array}{lr}
        A & : (x,y) \in Q\\
        0 & : (x,y) \notin Q
      \end{array}
    \right.
-\end{displaymath}
-that is to say, some constant value $A$ if the cell is in some subset of cells in the costmap. 
+\end{equation}
+Each step traversing the obstacle costs a premium $A$. 
 
 \begin{figure}[!t]
 \includegraphics[width=\columnwidth]{graphix/Constant.png}
@@ -16,24 +17,30 @@ that is to say, some constant value $A$ if the cell is in some subset of cells i
 \label{fig:constant}
 \end{figure}
 
-If the subset of cells corresponds to all of the cells in some bounding box between the start and goal, then there are essentially only two feasible paths as seen in Figure \ref{fig:constant}. The first (solid red in the figure) is the straight path through the obstacle which has a cost of 
-\[ \Phi(p_1) = 2nP + \sum_{x=x_0}^{x_1} f(x, 0) \]
-or, if we define the width of the obstacle to be $w$, 
-\[ \Phi(p_1) = 2nP + wA \]
+We will plan a path from $(n, 0)$ to $(-n, 0)$, computing the cost by summing the baseline cost-per-step $P$ and the marginal cost-per-step $f$ over each step.
 
-The other path (shown in a dotted black line in the figure) avoids the obstacle entirely, taking the shortest path around the obstacle, which is longer than $p_1$ by some constant $d$. Thus, the cost is
-\[ \Phi(p_2) = (2n + d)P \]
+\begin{equation}
+C(p) = \sum\limits_p P + f(x, y)
+\end{equation}
 
-Which of these two paths is the path less traveled depends on the values of $P$, $wA$ and $d$. To find when we take $p_1$, we consider the inequality 
-\begin{align}
-\Phi(p_1) < & \Phi(p_2)\notag\\
-2nP + wA < & (2n + d)P \notag\\
-wA < & dP 
-\end{align}
+For a rectangular step obstacle placed at the origin, there are two feasible paths as shown in Figure \ref{fig:constant}. The direct path costs
+\begin{equation}
+C(p_1) = 2nP + wA
+\end{equation}
 
-Hence, we can force a planner to chose the straight path ($p_1$) by lowering the constant cost, decreasing the distance the path is within the obstacle, or by increasing the path constant or the length of the alternative path. This follows our intuition in this simple case, but we now also have a formula for computing proper parameters depending on the desired behavior, such that we can set up parameters where the switch between the two paths happens when the second path is precisely 15 cells longer, for example. 
+where $P$ is the baseline cost per step and $w$ is the width of the obstacle. The shortest path around the obstacle costs
 
-There are other scenarios you could construct with constant valued obstacles, and many of them follow the same sort of logic shown here but with more cases and mildly more complex math. The authors encourage others to work through the math as the specific scenarios arise. 
+\begin{equation}
+C(p_2) = (2n + h)P.
+\end{equation}
+
+The direct path is cheaper when the aspect ratio of the obstacle  is greater than the fractional cost penalty:
+
+\begin{equation}
+\frac{h}{w} > \frac{A}{P}.
+\end{equation}
+
+This result is intuitive. If an obstacle is thin or short, walk through it.
 
 
 
