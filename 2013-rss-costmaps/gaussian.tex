@@ -18,44 +18,40 @@ Our goal is to show why there are certain parameters that result in one of the t
 \item Minimum path cost is infinitely far away. 
 \end{enumerate}
 
-The strategy will be to estimate the relative cost of the path and then show where the local extrema are with calculus. We are forced to estimate such a cost because there is no easy way to analytically solve for a closed form of the sum over an arbitrary interval of a Gaussian. 
-
-First, let's express the cost for the optimal path for a function in $\Psi$.\footnote{This works for other functions in the class as well, not just Gaussians.}
+The cost of a bracket path in terms of the model parameters and some choice of $\yhat$ is 
 \begin{align*}
-\Phi(p_{\yhat}) =&\Phi(segment_1) + \Phi(segment_2) + \Phi(segment_3) \\
-\Phi(p_{\yhat}) =&\Big[\yhat P + \sum\limits_{i=0}^{\yhat-1} f(-n, i) \Big] +
+C(p_{\yhat}) =& C(\text{segment 1}) + C(\text{segment 2}) + C(\text{segment 3}) \\
+=&\Big[\yhat P + \sum\limits_{i=0}^{\yhat-1} f(-n, i) \Big] +
          \Big[2nP + \sum\limits_{x=-n}^{n}    f(x,\yhat) \Big]\\
      &+\Big[\yhat P + \sum\limits_{i=0}^{\yhat-1} f(n, i) \Big] \\
-\Phi(p_{\yhat}) =&(2n+2\yhat)P \\ &+\sum\limits_{i=0}^{\yhat-1} \Big[ f(-n, i) + f(n, i) \Big] + \sum\limits_{x=-n}^{n} \Big[f(x,\yhat) \Big]
+=&(2n+2\yhat)P \\ &+\sum\limits_{i=0}^{\yhat-1} \Big[ f(-n, i) + f(n, i) \Big] + \sum\limits_{x=-n}^{n} \Big[f(x,\yhat) \Big].
 \end{align*}
 
-Now let us assume that $n$ is large enough such that the cost of segments 1 and 3 are negligible compared to $P$. We can then simplify the equation to:
-\[
-\Phi(p_{\yhat}) \approx (2n+2\yhat)P +  \sum\limits_{x=-n}^{n} f(x,\yhat)
-\]
+Now let us assume that we begin far from the obstacle, so $n \gg \sigma$; in this limit, the cost of segments 1 and 3 are very small compared to segment 2.
+\begin{equation}
+C(p_{\yhat}) \approx (2n+2\yhat)P +  \sum\limits_{x=-n}^{n} f(x,\yhat)
+\end{equation}
 
-Since we only care about the cost of each path in relation to other paths, let us calculate the relative cost ($RC$) of moving along the shortest path (with $\yhat=0$) and some other path where $\yhat>=0$. 
+We are only concerned with the cost of each path in relation to other paths, so we will express the cost of some $p_{\yhat}$ relative to the cost of the direct path like so. 
 \begin{align*}
-RC(\yhat) =& \Phi(\yhat)-\Phi(0) \\
-\approx& \Big[(2n+2\yhat)P +  \sum\limits_{x=-n}^{n} f(x,\yhat) \Big] \\
+\Delta C(\yhat) =& C(\yhat)-C(0) \\
+=& \Big[(2n+2\yhat)P +  \sum\limits_{x=-n}^{n} f(x,\yhat) \Big] \\
  & - \Big[(2n+2(0))P +  \sum\limits_{x=-n}^{n} f(x,0) \Big] \\
-\approx& 2P\yhat + \sum\limits_{x=-n}^{n} \Big[ f(x,\yhat)-f(x,0) \Big]
+=& 2P\yhat + \sum\limits_{x=-n}^{n} \Big[ f(x,\yhat)-f(x,0) \Big]
 \end{align*}
-If this quantity is negative, that means the minimum value does not occur at $\yhat=0$. Otherwise, the minimum cost path is the bracket shape where $\yhat=0$.
+When $\Delta C < 0$ for some $\yhat$, the direct path is not optimal.
 
-To get more specific, consider this relative cost function when the costmap function is not just in $\Psi$ but specifically is Gaussian. 
+With a Gaussian obstacle as $f$,
 \begin{align*}
-RC_G(\yhat) \approx 2P\yhat + \sum\limits_{x=-n}^{n} \Big[ &A\exp\left(-\frac{x^2}{2\sigma^2}\right)\exp\left(-\frac{\yhat^2}{2\sigma^2}\right) -\\
-                                                           &A\exp\left(-\frac{x^2}{2\sigma^2}\right) \Big] 
+\Delta C(\yhat) =& 2P\yhat + \sum\limits_{x=-n}^{n} \left[A\exp\left(-\frac{x^2 + y^2}{2\sigma^2}\right) - A\exp\left(-\frac{x^2}{2\sigma^2}\right) \right]
 \end{align*}
 
-We are faced with the sum over an interval of a Gaussian. Since $n$ is large, we can say that the costs are negligible for the cells where $x>n$, so we use the following approximation. 
-\begin{align*}
-        \sum\limits_{x=-n}^{n} A&\exp\left(-\frac{x^2}{2\sigma^2}\right)\exp\left(-\frac{y^2}{2\sigma^2}\right) \\
-&\approx \sum\limits_{x=-\infty}^{\infty} A\exp\left(-\frac{x^2}{2\sigma^2}\right)\exp\left(-\frac{y^2}{2\sigma^2}\right)  \\
-&= A\exp\left(-\frac{y^2}{2\sigma^2}\right)\sigma\sqrt{2\pi} \\
-&= A\sigma\sqrt{2\pi}\exp\left(-\frac{y^2}{2\sigma^2}\right)
-\end{align*}
+We have already assumed $n \gg \sigma$, so we can approximate the sum over $x \in [-n, n]$ as the sum over all $x$, which has a simple solution. The tails of the Gaussian contribute negligibly.
+
+\begin
+\begin{equation}
+\Delta C(\yhat) = A\sigma\sqrt{2\pi}\exp\left(-\frac{y^2}{2\sigma^2}\right)
+\end{equation}
 
 Thus we can now approximate our relative cost. 
 \[
