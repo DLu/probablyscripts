@@ -15,7 +15,7 @@ If we prioritize the shortest possible path (as most planners do), we end up wit
 
 A more formal statement of the problem includes the following elements. First, a grid of discretized cells lying in a two dimensional plane, denoted by $x$ and $y$. Each cell has a non-negative cost, denoted by $C(x,y)$, where all cells with $C(x,y)\ge L$ are considered to be lethal, and the rest are non-lethal.  Given starting and goal cells (from the non-lethal subset), find a path from one to the other moving through only non-lethal cells that minimizes the length and total cost. 
 
-In the case of a 4-connected grid, one efficient way of calculating such a path is
+In the case of a 4-connected grid, one way of calculating such a path is
 
 \[ \min_{\forall \mathrm{path} p} C(p) = \min_{\forall \mathrm{path} p} \sum\limits_{(x,y) \in p}^{} \Big[ f(x,y) + P \Big] \]
 
