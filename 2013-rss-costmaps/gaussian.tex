@@ -21,11 +21,10 @@ The cost of a bracket path in terms of the model parameters and some choice of $
 C(p_{\yhat}) =& C(\text{segment 1}) + C(\text{segment 2}) + C(\text{segment 3}) \\
 =&\Big[\yhat P + \sum\limits_{i=0}^{\yhat-1} f(-n, i) \Big] +
          \Big[2nP + \sum\limits_{x=-n}^{n}    f(x,\yhat) \Big]\\
-     &+\Big[\yhat P + \sum\limits_{i=0}^{\yhat-1} f(n, i) \Big] \\
-=&(2n+2\yhat)P \\ &+\sum\limits_{i=0}^{\yhat-1} \Big[ f(-n, i) + f(n, i) \Big] + \sum\limits_{x=-n}^{n} \Big[f(x,\yhat) \Big].
+     &+\Big[\yhat P + \sum\limits_{i=0}^{\yhat-1} f(n, i) \Big].
 \end{align*}
 
-Now let us assume that we begin far from the obstacle, so $n \gg \sigma$; in this limit, the cost of segments 1 and 3 are very small compared to segment 2.
+Now let us assume that we begin far from the obstacle, so $n \gg \sigma$; in this limit, the cost due to the obstacle on segments 1 and 3 is very small compared to the baseline cost and the cost along segment 2.
 \begin{equation}
 C(p_{\yhat}) \approx (2n+2\yhat)P +  \sum\limits_{x=-n}^{n} f(x,\yhat)
 \end{equation}
@@ -41,26 +40,26 @@ We are only concerned with the cost of each path in relation to other paths, so 
 When $\Delta C < 0$ for some $\yhat$, the direct path is not optimal.
 
 With a Gaussian obstacle as $f$,
-\begin{align*}
-\Delta C(\yhat) =& 2P\yhat + \sum\limits_{x=-n}^{n} \left[A\exp\left(-\frac{x^2 + y^2}{2\sigma^2}\right) - A\exp\left(-\frac{x^2}{2\sigma^2}\right) \right]
-\end{align*}
+\begin{equation}
+\Delta C(\yhat) = 2P\yhat + \sum\limits_{x=-n}^{n} \left[A\exp\left(-\frac{x^2 + \yhat^2}{2\sigma^2}\right) - A\exp\left(-\frac{x^2}{2\sigma^2}\right) \right]
+\end{equation}
 
 We have already assumed $n \gg \sigma$, so we can approximate the sum over $x \in [-n, n]$ as the sum over all $x$, which has a simple solution. The tails of the Gaussian contribute negligibly.
 
 \begin{equation}
-\Delta C(\yhat) = A\sigma\sqrt{2\pi}\exp\left(-\frac{y^2}{2\sigma^2}\right)
+\sum\limits_{x=-n}^{n} \rightarrow \text{Future Dan will sort this out.}
 \end{equation}
 
-Thus we can now approximate our relative cost. 
-\[
-RC(\yhat) \approx 2P\yhat + A\sigma\sqrt{2\pi} \exp\Big(\frac{-\yhat^2}{2\sigma^2}\Big) - \exp(0) ) \\
-\]
+Finally, we have a closed-form expression for the cost of bracket path $p_{\yhat}$ compared to the direct path.
+\begin{equation}
+\Delta C(\yhat) = 2P\yhat + A\sigma\sqrt{2\pi}\left[\exp\left(-\frac{\yhat^2}{2\sigma^2}\right) - 1\right]
+\end{equation}
 
-We'd like to find the local extrema. To do this, we take the derivative and set it to 0. 
+Now, we locate the $\yhat$ that minimize $\Delta C$.
 \begin{align}
-RC'(\yhat) \approx& 2P + A\sigma\sqrt{2\pi}             \exp\Big( \frac{-\yhat^2}{2\sigma^2} \Big) \frac{-\yhat}{\sigma^2}\notag\\
-0  \approx& 2P - A\sqrt{2\pi}        \frac{\yhat}{\sigma} \exp\Big( \frac{-\yhat^2}{2\sigma^2} \Big) \notag\\
-  \frac{P}{A} \approx& \sqrt{\frac{\pi}{2}} \frac{\yhat}{\sigma} \exp\bigg( \frac{-1}{2} \Big(\frac{\yhat}{\sigma} \Big)^2 \bigg) 
+\frac{d\Delta C}{d\yhat} = 
+&2P - \frac{\yhat A\sqrt{2\pi}}{\sigma} \exp\left(-\frac{\yhat^2}{2\sigma^2} \right) = 0 \\
+  \frac{P}{A} =& \sqrt{\frac{\pi}{2}} \frac{\yhat}{\sigma} \exp\left(-\frac{\yhat^2}{2\sigma^2} \right)
 \end{align}
 \begin{figure}
 \centering
@@ -69,7 +68,7 @@ RC'(\yhat) \approx& 2P + A\sigma\sqrt{2\pi}             \exp\Big( \frac{-\yhat^2
 \label{fig:lambert}
 \end{figure}
 
-This equation is related to the Lambert W-function, which is rather unwieldy, and therefore has an unknown number of solutions. As seen in Figure \ref{fig:lambert}, there could be 0, 1 or 2 solutions, depending on the value of $\frac{P}{A}$. This means that the Relative Cost has critical points at those solutions and the limits. From this, there are several key observations we can make. 
+To find the cheapest path, we must be solve for $\yhat$ and plug it into $\Delta C(\yhat)$. The solution for $\yhat$ is related to the Lambert W-function, which is cannot be written in closed form.  Further, depending on the cost ratio $P/A$, it can admit 0, 1 or 2 solutions. This means that the Relative Cost has critical points at those solutions and the limits. From this, there are several key observations we can make. 
 \begin{enumerate}
 \item Two critical points are necessary for there to be a finite $\yhat>0$, as seen in Figure \ref{fig:twosolutions}. 
 \item It is not sufficient to have two critical points to cause a finite $\yhat>0$, since the minimum may not have a negative value, meaning that the optimal path will be at $\yhat=0$. Similar scenario occurs when there is only one critical point as in Figure \ref{fig:inflection}. 
