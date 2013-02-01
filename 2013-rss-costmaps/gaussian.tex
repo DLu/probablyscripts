@@ -72,7 +72,7 @@ Now, we locate the $\yhat$ that minimize $\Delta C$.
 The solution for $\yhat$ is related to the Lambert W-function, which is cannot be written in closed form.  Depending on the cost ratio $P/A$, it admits 0, 1 or 2 solutions, illustrated in Figure \ref{fig:lambert}. We can make several observations. See Figure \ref{fig:globfig}.
 \begin{enumerate}
 \item Eq. \ref{eq:PA} peaks when $\yhat/\sigma = 1$, attaining $P/A=\sqrt{\pi/2e}$. If we set $P$ and $A$ such that $P/A > \sqrt{\pi/2e} \approx 0.760$, there is no solution to Eq. \ref{eq:PA}, and the only minimum of $\Delta C$ occurs on the boundary at $\yhat=0$. The direct path is optimal.
-\item The inflection point that forms $P/A = \sqrt{\pi/2e}$ grows into a local minimum as $P/A$ is dialed down. Below $P/A \approx 0.56553$, which was determined numerically, the local minimum becomes the global minimum. The obstacle is avoided.
+\item The inflection point that forms at $P/A = \sqrt{\pi/2e}$ grows into a local minimum as $P/A$ is dialed down. Below $P/A \approx 0.56553$, which was determined numerically, the local minimum becomes the global minimum. The obstacle is avoided.
 \item When $P=0$, $\Delta C$ has a minimum at infinity. We require a finite baseline cost to keep the solution from running to $y \rightarrow \infty$ before traversing $x$.
 \end{enumerate}
 
