@@ -22,8 +22,10 @@ Non-lethal path planning involves finding the path from a start to a goal while 
 One major factor that shapes the paths is the connectivity of the cells in the costmap, as seen in Figure \ref{fig:connectedness}. In the most general case, the paths can be at any angle, which can result in the shortest paths but takes longer to calculate. It's easier to calculate the optimum path if you only consider the cell's immediate neighbors. Moving to any of the cell's eight neighbors (the Moore neighborhood) allows for horizontal, vertical and diagonal moves. Moving to one of the cell's four immediate neighbors (the von Neumann neighborhood) results in only horizontal and vertical movement. Since the first two options would require scaling each cell's costs to be proportional to the distance traveled in the cell, and to make the math more tractable for this initial analysis, we are limiting ourselves to only consider paths in the 4-connected graph. 
 
 A formal statement of the problem includes the following elements. First, we define a grid of discretized cells lying in a two dimensional plane, denoted by $x$ and $y$. Each cell has a non-negative cost, denoted by $f(x,y)$, where all cells with $f(x,y)\ge L$ are considered to be lethal, and the rest are non-lethal or free. Thus, we are trying to find the following:
-
-\[ \min_{\forall \mathrm{path} p} C(p) = \min_{\forall \mathrm{path} p} \sum\limits_{(x,y) \in p}^{} \Big[ f(x,y) + P \Big] \]
+\begin{equation}
+   \displaystyle
+ \min_{\forall \mathrm{path} p} C(p) = \min_{\forall \mathrm{path} p} \sum\limits_{(x,y) \in p}^{} \Big[ f(x,y) + P \Big] 
+ \end{equation}
 where $C(p)$ represents the combination of the path length and summation of $f(x,y)$, and $P$ is the path constant. This ensures that we are minimizing both the costmap cost plus the constant value for each cell entered.
 
 For purposes of this paper, let us further refine the problem to reduce the number of cases we must consider. First, let us consider paths that go from $(-n, 0)$ to $(n, 0)$. This means that the costmap will be aligned to the primary direction of travel (i.e. the shortest path passes through $2n$ cells. If they were unaligned, the paths would be substantially different in shape, and would require analysis beyond the scope of this paper. 

@@ -34,13 +34,15 @@ The shortest path around the obstacle costs
 C(p_2) = (2n + h)P.
 \end{equation}
 
-The direct path is cheaper when the aspect ratio of the obstacle  is greater than the fractional cost penalty:
+The direct path is cheaper when the aspect ratio of the obstacle  is less than the ratio of cost magnitudes:
 
 \begin{equation}
-\frac{h}{w} > \frac{A}{P}.
+\frac{w}{h} < \frac{P}{A}.
 \end{equation}
 
-This result is intuitive. If an obstacle is thin or insubstantial, walk through it. To prohibit that behavior, we can model the size and set the cost accordingly.
+This result is intuitive. If an obstacle is thin (small $w$) or the distance around the obstacle is quite large ($h$ is high), or going through the obstacle incurs a very small cost (low $A$), walk through the obstacle. 
+
+To achieve the desired behavior, we can model the size and set the cost accordingly. This relationship can be adjusted accordingly for flat valued obstacles of different shapes. 
 
 
 
