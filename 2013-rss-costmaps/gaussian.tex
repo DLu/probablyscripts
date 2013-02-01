@@ -1,6 +1,6 @@
 \subsection{Typical Behavior}
 
-The previous section asserted that, whatever the model parameters, optimal paths conform to a bracket shape. One might suppose that increasing the width of the obstacle $\sigma$ or the relative cost $A/P$ causes $\yhat$ to increase commensurately, giving the obstacle a wider and wider berth. This dependence is observed for large $\yhat$, but when parameters are tuned to draw the optimal path closer to the origin, it undergoes a discontinuous jump from a finite bracket to the direct path ($\yhat=0$). As an example, consider the path in Figure \ref{fig:gaussian}. When $A/P=?/55$, a long walk around is cheap compared to treading on the origin, and the closest approach $\yhat$=16. (In this simulation, the other parameters were fixed arbitrarily at $n=?$ and $\sigma$=?.) However, when the baseline cost is dialed back such that $A/P=?/56$, the path jumps discontinuously through the origin ($\yhat=0$). Intermediate paths are not cost-effective: at a certain point, what we save by avoiding the dead center is not worth the extra steps.
+The previous section asserted that, whatever the model parameters, optimal paths conform to a bracket shape. One might suppose that increasing the width of the obstacle $\sigma$ or the relative cost $A/P$ causes $\yhat$ to increase gradually, giving the obstacle a wider and wider berth. This dependence is observed for large $\yhat$, but when parameters are tuned to draw the optimal path closer to the origin, it undergoes a discontinuous jump from a finite bracket to the direct path ($\yhat=0$). As an example, consider the path in Figure \ref{fig:gaussian}. When $A/P=98/55$, a long walk around is cheap compared to treading on the origin, and the closest approach $\yhat=0.16\sigma$. However, when the baseline cost is dialed back such that $A/P=98/56$, the path jumps discontinuously through the origin ($\yhat=0$). Intermediate paths are not cost-effective: at a certain point, what we save by avoiding the dead center is not worth the extra steps.
 
 \begin{figure}
 \includegraphics[width=\columnwidth]{graphix/Gaussian.png}
@@ -69,34 +69,31 @@ Now, we locate the $\yhat$ that minimize $\Delta C$.
 \label{fig:lambert}
 \end{figure}
 
-The solution for $\yhat$ is related to the Lambert W-function, which is cannot be written in closed form.  Depending on the cost ratio $P/A$, it can admit 0, 1 or 2 solutions, illustrated in Figure \ref{fig:lambert}. We can make several observations.
+The solution for $\yhat$ is related to the Lambert W-function, which is cannot be written in closed form.  Depending on the cost ratio $P/A$, it admits 0, 1 or 2 solutions, illustrated in Figure \ref{fig:lambert}. We can make several observations. See Figure \ref{fig:globfig}.
 \begin{enumerate}
 \item Eq. \ref{eq:PA} peaks when $\yhat/\sigma = 1$, attaining $P/A=\sqrt{\pi/2e}$. If we set $P$ and $A$ such that $P/A > \sqrt{\pi/2e} \approx 0.760$, there is no solution to Eq. \ref{eq:PA}, and the only minimum of $\Delta C$ occurs on the boundary at $\yhat=0$. The direct path is optimal.
+\item The inflection point that forms $P/A = \sqrt{\pi/2e}$ grows into a local minimum as $P/A$ is dialed down. Below $P/A \approx 0.56553$, which was determined numerically, the local minimum becomes the global minimum. The obstacle is avoided.
 \item When $P=0$, $\Delta C$ has a minimum at infinity. We require a finite baseline cost to keep the solution from running to $y \rightarrow \infty$ before traversing $x$.
-\end{enumerate}
-\begin{enumerate}
-\item Two critical points are necessary for there to be a finite $\yhat>0$, as seen in Figure \ref{fig:twosolutions}. 
-\item It is not sufficient to have two critical points to cause a finite $\yhat>0$, since the minimum may not have a negative value, meaning that the optimal path will be at $\yhat=0$. Similar scenario occurs when there is only one critical point as in Figure \ref{fig:inflection}. 
-\item If there are no critical points as in Figures \ref{fig:zero} and \ref{fig:infinity}, then the extrema must be at the limits. If $P>0$, you end up with a positive slope like in Figure \ref{fig:zero} and the optimal minimum cost path is at $\yhat=0$. If $P=0$, then you get a negative slope and the minimum value is at $\yhat=\infty$. This follows the intuition where if $P$ is very high, then the straight path is optimal, and if $P=0$, the path length does not matter and the path can be arbitrarily far away. 
 \end{enumerate}
 
 \begin{figure}[t]
 \centering
-\subfloat[Two Critical Points: $\yhat>0$]{
-\includegraphics[width=0.4\columnwidth]{graphix/twosolutions.png}
-\label{fig:twosolutions}}
+
+\subfloat[$P/A = \sqrt{\pi/2e}$: The direct path $\yhat=0$ minimizes $\Delta C$. A plateu is forming.]{
+\includegraphics[width=0.4\columnwidth]{graphix/Dan_1.png}
+\label{fig:Dan_1}}
 \qquad
-\subfloat[One Critical Point: $\yhat=0$]{
-\includegraphics[width=0.4\columnwidth]{graphix/inflection.png}
-\label{fig:inflection}}\\
-\subfloat[No Critical Points: $\yhat=0$]{
-\includegraphics[width=0.4\columnwidth]{graphix/zero.png}
-\label{fig:zero}}
+\subfloat[$P/A = 0.56552$: A new global minimum is established at $\yhat > 0$.]{
+\includegraphics[width=0.4\columnwidth]{graphix/Dan_3.png}
+\label{fig:Dan_3}}\\
+\subfloat[$P/A < 0.56552$. $\yhat$ moves farther from the origin, and the minimum grows deeper.]{
+\includegraphics[width=0.4\columnwidth]{graphix/Dan_2.png}
+\label{fig:Dan_4}}
 \qquad
-\subfloat[No Critical Points, $P=0$: $\yhat=\infty$]{
-\includegraphics[width=0.4\columnwidth]{graphix/infinity.png}
-\label{fig:infinity}}
-\caption{Gaussian Relative Costs (y-axis) over different passing distances. Minimum cost/optimal path marked with a star. In (a), the optimum passing distance is at a finite $\yhat>0$. In (b) and (c) the optimum is at $\yhat=0$. In (d), the optimum is as far away as possible. }
+\subfloat[$P=0$, and the global minimum is at $\yhat \rightarrow \infty$.]{
+\includegraphics[width=0.4\columnwidth]{graphix/Dan_2.png}
+\label{fig:Dan_2}}
+\caption{Cost $\Delta C$ relative to the cost of the direct path, as a function of ratio of the baseline cost-per-step $P$ and the amplitude $A$ of a Gaussian obstacle.}
 \label{fig:globfig}
 \end{figure}
 
