@@ -1,15 +1,11 @@
-\section{Gaussian}
+\section{Theoretical Results}
 
 \subsection{Typical Behavior}
-Two dimensional Gaussian distributions are frequently used when describing non-lethal obstacles, probably owing partially to the Central Limit Theorem\cite{rosenblatt1956}. For reference, the function $f$ is defined as 
-\[ f(x,y) = A \exp\left(- \frac{x^2+y^2}{2\sigma^2} \right) = A\exp\left(-\frac{x^2}{2\sigma^2}\right)\exp\left(-\frac{y^2}{2\sigma^2}\right) \]
-assuming the variance in both directions is equal and the obstacle is at $(0,0)$. A Gaussian of this form is in the set $\Psi$. 
-
 As discussed in the previous section, the optimum path will either take a straight line or a bracket shape. One might assume that as the variance $\sigma$ increases or the path constant $P$ decreases, the value of $\yhat$ also increases (i.e. taking wider paths around the obstacle), which is true for the most part. However, as you change the paths to try to get paths closer to the obstacle, there is a massive drop in $\yhat$ to $0$. Consider the path in Figure \ref{fig:gaussian}. With low values of $P$, $\yhat$ can be infinitely large. When $P=55$ you get a $\yhat$ of 16 (with a certain set of parameters). However, when $P=55$, the path goes straight through the obstacle ($\yhat=0$). With Gaussian distributions, with their nicely differentiable functions, one would expect the resulting path space to be roughly continuous. However, it is not. 
 
 \begin{figure}
 \includegraphics[width=\columnwidth]{graphix/Gaussian.png}
-\caption{Gaussian Cost Function - Straight path is optimal when $P=56$, the bracket path when $P=55$. }
+\caption{A Gaussian obstacle with $\sigma/n=?$. The direct path is optimal when $A/P < ?$. }
 \label{fig:gaussian}
 \end{figure}
 
