@@ -1,5 +1,3 @@
-\section{Gaussian}
-
 \subsection{Typical Behavior}
 
 The previous section asserted that, whatever the model parameters, optimal paths conform to a bracket shape. One might suppose that increasing the width of the obstacle $\sigma$ or the relative cost $A/P$ causes $\yhat$ to increase commensurately, giving the obstacle a wider and wider berth. This dependence is observed for large $\yhat$, but when parameters are tuned to draw the optimal path closer to the origin, it undergoes a discontinuous jump from a finite bracket to the direct path ($\yhat=0$). As an example, consider the path in Figure \ref{fig:gaussian}. When $A/P=?/55$, a long walk around is cheap compared to treading on the origin, and the closest approach $\yhat$=16. (In this simulation, the other parameters were fixed arbitrarily at $n=?$ and $\sigma$=?.) However, when the baseline cost is dialed back such that $A/P=?/56$, the path jumps discontinuously through the origin ($\yhat=0$). Intermediate paths are not cost-effective: at a certain point, what we save by avoiding the dead center is not worth the extra steps.
@@ -39,6 +37,7 @@ We are only concerned with the cost of each path in relation to other paths, so 
  & - \Big[(2n+2(0))P +  \sum\limits_{x=-n}^{n} f(x,0) \Big] \\
 =& 2P\yhat + \sum\limits_{x=-n}^{n} \Big[ f(x,\yhat)-f(x,0) \Big]
 \end{align*}
+
 When $\Delta C < 0$ for some $\yhat$, the direct path is not optimal.
 
 With a Gaussian obstacle as $f$,
@@ -55,19 +54,19 @@ We have already assumed $n \gg \sigma$, so we can approximate the sum over $x \i
 
 Thus we can now approximate our relative cost. 
 \[
-RC_G(\yhat) \approx 2P\yhat + A\sigma\sqrt{2\pi} \exp\Big(\frac{-\yhat^2}{2\sigma^2}\Big) - \exp(0) ) \\
+RC(\yhat) \approx 2P\yhat + A\sigma\sqrt{2\pi} \exp\Big(\frac{-\yhat^2}{2\sigma^2}\Big) - \exp(0) ) \\
 \]
 
 We'd like to find the local extrema. To do this, we take the derivative and set it to 0. 
 \begin{align}
-RC'_G(\yhat) \approx& 2P + A\sigma\sqrt{2\pi}             \exp\Big( \frac{-\yhat^2}{2\sigma^2} \Big) \frac{-\yhat}{\sigma^2}\notag\\
-0  \approx& 2P - \frac{A\sqrt{2\pi}}{\sigma}        \yhat \exp\Big( \frac{-\yhat^2}{2\sigma^2} \Big) \notag\\
-  \frac{P}{A} \approx& \sqrt{\frac{\pi}{2\sigma^2}} \yhat \exp\Big( \frac{-\yhat^2}{2\sigma^2} \Big) 
+RC'(\yhat) \approx& 2P + A\sigma\sqrt{2\pi}             \exp\Big( \frac{-\yhat^2}{2\sigma^2} \Big) \frac{-\yhat}{\sigma^2}\notag\\
+0  \approx& 2P - A\sqrt{2\pi}        \frac{\yhat}{\sigma} \exp\Big( \frac{-\yhat^2}{2\sigma^2} \Big) \notag\\
+  \frac{P}{A} \approx& \sqrt{\frac{\pi}{2}} \frac{\yhat}{\sigma} \exp\bigg( \frac{-1}{2} \Big(\frac{\yhat}{\sigma} \Big)^2 \bigg) 
 \end{align}
 \begin{figure}
 \centering
 \includegraphics[width=0.4\columnwidth]{graphix/lambert.png}
-\caption{Plot of $\yhat \exp(-\yhat^2)$, with lines marking values where the equation has no solutions (top line), one solution (middle line) or two solutions (bottom line).}
+\caption{Plot of $x \exp(-x^2)$, with lines marking values where the equation has no solutions (top line), one solution (middle line) or two solutions (bottom line).}
 \label{fig:lambert}
 \end{figure}
 
