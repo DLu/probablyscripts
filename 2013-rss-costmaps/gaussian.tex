@@ -8,7 +8,7 @@ The previous section asserted that, whatever the model parameters, optimal paths
 \label{fig:gaussian}
 \end{figure}
 
-\subsection{Mathematical Explanation}
+\subsection{Theory}
 Our goal is to show why there are certain parameters that result in one of the three behaviors discussed. 
 \begin{enumerate}
 \item Minimum path cost is at $\yhat=0$
@@ -71,7 +71,7 @@ Now, we locate the $\yhat$ that minimize $\Delta C$.
 
 The solution for $\yhat$ is related to the Lambert W-function, which is cannot be written in closed form.  Depending on the cost ratio $P/A$, it can admit 0, 1 or 2 solutions, illustrated in Figure \ref{fig:lambert}. We can make several observations.
 \begin{enumerate}
-\item Eq. \ref{eq:PA} peaks when $\yhat/\sigma = 1$, attaining $P/A=\sqrt{\pi/2e}$. If we set $P$ and $A$ such that $P/A > \sqrt{\pi/2e} \approx 0.578$, there is no solution to Eq. \ref{eq:PA}, and the only minimum of $\Delta C$ occurs on the boundary at $\yhat=0$. The direct path is optimal.
+\item Eq. \ref{eq:PA} peaks when $\yhat/\sigma = 1$, attaining $P/A=\sqrt{\pi/2e}$. If we set $P$ and $A$ such that $P/A > \sqrt{\pi/2e} \approx 0.760$, there is no solution to Eq. \ref{eq:PA}, and the only minimum of $\Delta C$ occurs on the boundary at $\yhat=0$. The direct path is optimal.
 \item When $P=0$, $\Delta C$ has a minimum at infinity. We require a finite baseline cost to keep the solution from running to $y \rightarrow \infty$ before traversing $x$.
 \end{enumerate}
 \begin{enumerate}
