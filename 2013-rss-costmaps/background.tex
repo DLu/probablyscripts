@@ -1,13 +1,16 @@
 \section{Related Work}
-Avoiding a person while navigating in a hallway was one of the original formulations of the problem. Early works like \citet{yoda1997} took a single person into consideration, but assumed a static behavior. Later work by \citet{christensen2004} realized that a more complex world model was needed for such a task and integrated the distance to multiple people and conversation formations into the navigation algorithm. 
+Methods for avoiding a person while navigating in a hallway have existed for some time. Early works like \citet{yoda1997} took a single person into consideration, but assumed a static behavior. Later work by \citet{christensen2004} realized that a more complex world model was needed for such a task and integrated the distance to multiple people and conversation formations into the navigation algorithm. 
 \citet{christensen2005} further explored robots navigating around people with explicit consideration of the proxemic zones found in the work of \citet{hall1969}. However, all of these approaches controlled navigation directly with a velocity controller, limiting long term planning and ways the constraints could be formulated. 
 
-Most uses of non-lethal obstacles in costmaps have been for representing a person's personal space. \citet{dautenhahn:serveseated} %2006 sisbot 
+Most uses of soft constraints in costmaps have been for representing a person's personal space. \citet{dautenhahn:serveseated} %2006 sisbot 
 constructed recommendations for planning motions where humans would be comfortable based on live HRI trials, taking proximity, visibility and hidden zones into consideration. These were formulated into a costmap system by \citet{sisbot2007}, creating a Gaussian based ``human aware motion planner.'' 
-\citet{kirby:companion} used an algorithm that in addition to minimizing path distance and avoiding obstacles, modeled proxemics and behaviors like passing on the right into the costmap, also using Gaussians. Non-lethal costmap values have also been used in autonomous vehicles; \citet{likhachev:costmaps} used large constant valued areas to favor driving on the right side of the road and to avoid curves. 
+\citet{kirby:companion} used an algorithm that in addition to minimizing path distance and avoiding obstacles, modeled proxemics and behaviors like passing on the right into the costmap, also using Gaussians. 
+
 Work by \citet{svenstrup2009}\cite{svenstrup2010} created even more complicated models of personal space, integrating a mixture of four different constraints modeled as Gaussians.  expanded this work to maneuver among a field of multiple people while moving toward a goal. 
 
 Among the latest work in this field, \citet{sisbot2011} have expanded their original model to a three dimensional costmap in order to control positioning during hand off tasks, taking safety, visibility and the human's arm comfort into consideration. \citet{fraichard:anthronav} have also created a complex model that included proxemic, visibility and motion models as Gaussians, and ``interaction areas'' as constants. 
+
+Soft constraints are occasionally used for other fields like autonomous vehicles. \citet{likhachev:costmaps} used large constant valued areas to favor driving on the right side of the road and to avoid curbs. 
 
 Most of the obstacles added to the costmaps follow Gaussian distributions or constant values (with the minor exception of the representation of the intimate personal space in the work by \citet{fraichard:anthronav}). Little to no discussion is given about how the authors of the previous works found the parameters that worked best with their system. 
 

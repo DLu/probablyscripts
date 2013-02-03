@@ -1,6 +1,6 @@
-\section{Discussion}
-\subsection{Practical Parameter Tuning}
-\subsection{Future Work}
+\section{Discussion and Future Work}
+There is a lot of weird behavior with non-lethal obstacles that is not always expected. In general, increasing the variance on a Gaussian increases $\yhat$, but eventually that breaks down and it jumps back to 0. This is a very unituitive behavior. One must be clearly aware of the $P$:$A$ ratio as well, lest none of the non-lethal obstacles appear to have any effect. This particular pitfall was something the authors experienced when first experimenting with Gaussians. 
+
 There are numerous possible continuations of this work. To start, measuring the closest point on the path to the obstacle (i.e. $\yhat$) is not the only measure of the quality of a path. Path length has a direct impact on the efficiency of the robot and the person. The other metric of the quality of a path that we are considering investigating is the \emph{average} distance from the path to the obstacle. The two paths in Figure \ref{fig:bracket} are roughly equivalent in their closest path distance, but the average distance is much different. Whether that is good or not is not even determined yet for many scenarios. 
 
 There is also room to explore the many assumptions our setup used, such as the cell connectivity (8 vs. 4) and the alignment of the start and end points with the grid axes. There are further practical issues in terms of implementing the non-lethal obstacles, such as the limited precision of the grid values. We assumed that numbers could be arbitrarily small, when in reality, at least in the ROS example, the grid values are actually stored as \texttt{unsigned char}s. What effect does the discretization of the cost values have? Furthermore, the runtime will be affected by the number of cells that get updated for a given obstacle, ergo increasing the variance unboundingly may require too many cells to be updated each cycle. 
@@ -9,5 +9,5 @@ There are also many other functions besides Gaussians that could fit into this f
 
 %Discussion of interaction of lethal and nonlethal (can go near a person if you have to) (you shall not pass)
 
-optimally suboptimal
+%optimally suboptimal
 

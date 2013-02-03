@@ -11,9 +11,9 @@ Some non-lethal obstacles are defined by a flat cost, such as the interaction ar
 \end{equation}
 Each move traversing a cell in the obstacle set has a costs of $A$. 
 
-\begin{figure}[!t]
+\begin{figure}[b]
 \includegraphics[width=\columnwidth]{graphix/Constant.png}
-\caption{Two Paths with a Constant Non-lethal obstacle}
+\caption{Two Paths with a Flat obstacle - The direct path (solid line) travels straight through the obstacle. The other path avoids the obstacle, but needs to travel an additional distance $d$.}
 \label{fig:constant}
 \end{figure}
 
@@ -28,7 +28,7 @@ For a rectangular step obstacle placed at the origin with dimensions $w\times h$
 C(p_1) = 2nP + wA
 \end{equation}
 
-The shortest path around the obstacle costs
+The best path around the obstacle costs
 
 \begin{equation}
 C(p_2) = (2n + h)P.
