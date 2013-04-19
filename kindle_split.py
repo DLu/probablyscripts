@@ -54,7 +54,7 @@ class Page:
             end = self.image.columns()
         for x in range(start, end, hjump):
             p = self.getPct(x,y)
-            if p < 1.0:
+            if abs(p - 1.0) > 1e-10:
                 return False
         return True
 
@@ -325,6 +325,7 @@ class Viewer:
         self.reload_page()
 
     def reload_page(self):
+        pygame.draw.rect(self.screen, (255,255,255), (0,0,W,H), 0)
         page = self.document.pages[self.page_no]
         image = page.pimage
         scaled = pygame.transform.scale(image, (W, H))
