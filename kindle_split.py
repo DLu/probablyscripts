@@ -13,6 +13,8 @@ import subprocess
 import time
 from pyPdf import PdfFileWriter, PdfFileReader #python-pypdf
 from pyPdf.generic import NameObject, createStringObject
+import distutils.spawn
+
 PAGES =  None
 W = 850
 H = 1100
@@ -20,6 +22,18 @@ WHITE_LIMIT = 10
 JUMP=2
 SPLIT_BY_ASPECT = True
 GUI = True
+
+ModeDef = collections.namedtuple('ModeDef', ['doc', 'mode'], verbose=False)
+
+KEYMAP = {
+	K_1: ModeDef("Delete white mode", 1),
+	K_2: ModeDef("Reposition splits mode", 2),
+	K_3: ModeDef("Kill row mode", 3),
+	K_4: ModeDef("Insert column mode", 4),
+	K_5: ModeDef("Insert row mode", 5),
+	K_6: ModeDef("Set left mode", 6),
+	K_0: ModeDef("Standard mode", 0),
+}
 
 def execute(command):
     subprocess.Popen(command, \
@@ -342,6 +356,14 @@ class Viewer:
     def to_viewer(self, (w, h), x, y):
         return x * W / w, y * H / h
 
+    def update_mode(self, key):
+        self.mode = KEYMAP[key].mode
+        print KEYMAP[key].doc, "enabled"
+
+    def print_doc(self):
+        for doc, mode in KEYMAP.values():
+            print "[%s]: %s" % (mode, doc)
+
     def spin(self):
         while True:
             for event in pygame.event.get():
@@ -353,27 +375,8 @@ class Viewer:
                     elif event.key == K_RIGHT and self.page_no + 1 < len(self.document.pages):
                         self.page_no += 1
                         self.reload_page()
-                    elif event.key == K_1:
-                        print "Delete white mode enabled"
-                        self.mode = 1
-                    elif event.key == K_2:
-                        print "Reposition splits mode enabled"
-                        self.mode = 2
-                    elif event.key == K_3:
-                        print "Kill Row mode enabled"
-                        self.mode = 3
-                    elif event.key == K_4:
-                        print "Insert column mode enabled"
-                        self.mode = 4
-                    elif event.key == K_5:
-                        print "Insert row mode enabled"
-                        self.mode = 5
-                    elif event.key == K_6:
-                        print "Set left mode enabled"
-                        self.mode = 6
-                    elif event.key == K_0:
-                        print "Standard Mode enabled"
-                        self.mode = 0
+                    elif event.key in KEYMAP:
+                        self.update_mode(event.key)
                     elif event.key == K_r:
                         print "RESET PAGE"
                         self.document.pages[ self.page_no ].reset()
@@ -407,6 +410,9 @@ if __name__ == '__main__':
         outfile = os.path.splitext(infile)[0] + "_.pdf"
     elif len(sys.argv)==3:
         (infile, outfile) = sys.argv[1:3]
+    elif distutils.spawn.find_executable('convert') is None:
+    	print "Cannot find 'convert' utility. Please make sure ImageMagick is installed."
+    	sys.exit(1)
     else:
         print "Usage: kindle_split input.pdf [output.pdf]"%sys.argv[0]
         sys.exit(1)
@@ -415,6 +421,7 @@ if __name__ == '__main__':
     d.preprocess()
     if GUI:
         v = Viewer(d)
+        v.print_doc()
         v.spin()
     d.save(outfile)
     d.close()
