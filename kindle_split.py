@@ -13,6 +13,7 @@ import subprocess
 import time
 from pyPdf import PdfFileWriter, PdfFileReader #python-pypdf
 from pyPdf.generic import NameObject, createStringObject
+import distutils.spawn
 PAGES =  None
 W = 850
 H = 1100
@@ -407,6 +408,9 @@ if __name__ == '__main__':
         outfile = os.path.splitext(infile)[0] + "_.pdf"
     elif len(sys.argv)==3:
         (infile, outfile) = sys.argv[1:3]
+    elif distutils.spawn.find_executable('convert') is None:
+    	print "Cannot find 'convert' utility. Please make sure ImageMagick is installed."
+    	sys.exit(1)
     else:
         print "Usage: kindle_split input.pdf [output.pdf]"%sys.argv[0]
         sys.exit(1)
