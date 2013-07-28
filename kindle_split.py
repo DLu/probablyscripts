@@ -22,6 +22,7 @@ WHITE_LIMIT = 10
 JUMP=2
 SPLIT_BY_ASPECT = True
 GUI = True
+RATIO = 0.75
 
 ModeDef = collections.namedtuple('ModeDef', ['doc', 'mode'], verbose=False)
 
@@ -191,7 +192,7 @@ class Page:
 
     def should_split(self, w, h):
         ratio = w/float(h)
-        return ratio < .75
+        return ratio < RATIO
 
     def get_chunks(self, x, y, w, h):
         if not SPLIT_BY_ASPECT or not self.should_split(w,h):
