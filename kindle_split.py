@@ -411,6 +411,8 @@ if __name__ == '__main__':
         outfile = os.path.splitext(infile)[0] + "_.pdf"
     elif len(sys.argv)==3:
         (infile, outfile) = sys.argv[1:3]
+        if os.path.isdir(outfile):
+            outfile = outfile + '/' + os.path.split(infile)[1]
     elif distutils.spawn.find_executable('convert') is None:
     	print "Cannot find 'convert' utility. Please make sure ImageMagick is installed."
     	sys.exit(1)
