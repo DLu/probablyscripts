@@ -18,7 +18,7 @@ import distutils.spawn
 PAGES =  None
 W = 850
 H = 1100
-WHITE_LIMIT = 10
+WHITE_LIMIT = 8
 JUMP=2
 SPLIT_BY_ASPECT = True
 GUI = True
@@ -73,7 +73,7 @@ class Page:
                 return False
         return True
 
-    def get_row_pattern(self, white_limit=WHITE_LIMIT, hjump=20, vjump=JUMP):
+    def get_row_pattern(self, white_limit=WHITE_LIMIT, hjump=3, vjump=JUMP):
         mode = None
         streak = 0
         start = 0
