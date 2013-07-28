@@ -121,7 +121,7 @@ class Page:
         mid = w/2
         for y in range(start, start+height, jump):
             for x in range(self.left + mid-centersize/2, self.left + mid+centersize/2+1, jump):
-                if self.getPct(x, y) != 1:
+                if abs(self.getPct(x, y) - 1.0) > .001:
                     return False
         return True
 
