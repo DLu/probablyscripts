@@ -8,13 +8,23 @@ class Video:
         self.thumbnail = entry.media.thumbnail[0].url
         self.uploader = entry.author[0].name.text
         self.date = entry.published.text
-        link = entry.link[0].href
-        i = link.index('v=')
-        i2 = link.index('&', i)
-        self.key = link[i+2:i2]
+        for link in entry.link:
+            href = link.href
+            if not 'v=' in href:
+                continue
+            i = href.index('v=')
+            i2 = href.index('&', i)
+            self.key = href[i+2:i2]
+            break
         
     def get_embed_code(self):
         return '<iframe width="560" height="315" src="http://www.youtube.com/embed/%s" frameborder="0" allowfullscreen></iframe>' % self.key
+
+    def __repr__(self):
+        return "%s [%s]" % (self.title, self.uploader)
+
+    def __lt__(self, other):
+             return self.date < other.date
 
 class Youtube:
     def __init__(self, email, password, key):
@@ -39,7 +49,7 @@ class Youtube:
             feed = self.yt_service.GetYouTubeVideoFeed(url)
             c = 0
             for entry in feed.entry:
-                date = entry.published.text 
+                date = entry.updated.text 
                 for a in entry.link:
                     if 'upload' in a.href:
                         entries.append((date, a.href))
