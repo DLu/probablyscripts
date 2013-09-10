@@ -16,6 +16,9 @@ class Video:
             i2 = href.index('&', i)
             self.key = href[i+2:i2]
             break
+
+    def get_link(self):
+        return 'http://www.youtube.com/watch?v=%s'%self.key
         
     def get_embed_code(self):
         return '<iframe width="560" height="315" src="http://www.youtube.com/embed/%s" frameborder="0" allowfullscreen></iframe>' % self.key
@@ -54,7 +57,7 @@ class Youtube:
                     if 'upload' in a.href:
                         entries.append((date, a.href))
                         break
-                if len(entries)>=limit:
+                if limit is not None and len(entries)>=limit:
                     return entries
                 c+=1
             if c==0:
