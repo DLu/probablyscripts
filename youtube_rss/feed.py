@@ -2,7 +2,7 @@ from youtubeapi import *
 import yaml
 import sys
 
-MAX_RSS_SIZE = 100
+MAX_RSS_SIZE = 200
 
 data = yaml.load(open('.private'))
 
@@ -31,7 +31,7 @@ else:
     for video in sorted(all_vids, reverse=True)[:MAX_RSS_SIZE]:
         feed.add_item(title=video.title, link=video.get_link(), description=video.description)
 
-    f = open('feed.rss', 'w')
+    f = open('/home/dlu/public_html/youtubefeed.rss', 'w')
     s = feed.writeString('utf-8')
     f.write( s )
     f.close()
