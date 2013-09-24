@@ -57,11 +57,14 @@ if lines is None:
     exit(0)
 write_hosts(lines)
 
-if toggle:
+if args.toggle:
     exit(0)              
 
 print "Sleeping"
-sleep(seconds)
+try:
+    sleep(seconds)
+except:
+    None
 
 print "Reverting"
 lines = toggle(lines, args.hostname)
