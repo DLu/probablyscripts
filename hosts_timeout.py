@@ -44,6 +44,7 @@ def toggle(lines, domain):
 parser = argparse.ArgumentParser()
 parser.add_argument('hostname')
 parser.add_argument('minutes', default=5, type=int, nargs="?")
+parser.add_argument('--toggle', action='store_true')
 args = parser.parse_args()
 
 seconds = args.minutes * 60
@@ -54,7 +55,10 @@ lines = toggle(lines, args.hostname)
 if lines is None:
     print "Can't find %s!"%args.hostname
     exit(0)
-write_hosts(lines)                
+write_hosts(lines)
+
+if toggle:
+    exit(0)              
 
 print "Sleeping"
 sleep(seconds)
