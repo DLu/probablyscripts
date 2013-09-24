@@ -19,6 +19,7 @@ def write_hosts(lines):
 
 def toggle(lines, domain):
     newlines = []
+    found = False
 
     for line in lines:
         if '\t' not in line:
@@ -27,6 +28,7 @@ def toggle(lines, domain):
             
         ip, domains = line.split('\t')
         if domain in domains:
+            found = True
             if ip[0]=='#':
                 newlines.append( line[1:] )
             else:
@@ -34,7 +36,10 @@ def toggle(lines, domain):
         else:
             newlines.append(line)
 
-    return newlines
+    if found:
+        return newlines
+    else:
+        return None
 
 parser = argparse.ArgumentParser()
 parser.add_argument('hostname')
@@ -46,6 +51,9 @@ seconds = args.minutes * 60
 print "Initiating Change" 
 lines = read_hosts()
 lines = toggle(lines, args.hostname)
+if lines is None:
+    print "Can't find %s!"%args.hostname
+    exit(0)
 write_hosts(lines)                
 
 print "Sleeping"
