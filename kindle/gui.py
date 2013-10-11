@@ -18,8 +18,8 @@ KEYMAP = {
 }
 
 class Viewer:
-    def __init__(self, document):
-        self.document = document
+    def __init__(self, splitter):
+        self.splitter = splitter
         pygame.init()
         self.screen = pygame.display.set_mode((W,H))
         self.page_no = 0
@@ -28,8 +28,8 @@ class Viewer:
 
     def reload_page(self):
         pygame.draw.rect(self.screen, (255,255,255), (0,0,W,H), 0)
-        page = self.document.pages[self.page_no]
-        image = page.pimage
+        page = self.splitter.pages[self.page_no]
+        image = page.page.pimage
         scaled = pygame.transform.scale(image, (W, H))
         self.screen.blit(scaled, (0,0))
         for section in page.get_sections():
@@ -60,19 +60,19 @@ class Viewer:
                     if event.key == K_LEFT and self.page_no > 0:
                         self.page_no -= 1
                         self.reload_page()
-                    elif event.key == K_RIGHT and self.page_no + 1 < len(self.document.pages):
+                    elif event.key == K_RIGHT and self.page_no + 1 < len(self.splitter.pages):
                         self.page_no += 1
                         self.reload_page()
                     elif event.key in KEYMAP:
                         self.update_mode(event.key)
                     elif event.key == K_r:
                         print "RESET PAGE"
-                        self.document.pages[ self.page_no ].reset()
+                        self.splitter.pages[ self.page_no ].reset()
                         self.reload_page()
 
                 if event.type == MOUSEBUTTONDOWN:  
                     (x,y) = event.pos
-                    page = self.document.pages[ self.page_no ]
+                    page = self.splitter.pages[ self.page_no ]
                     (w,h) = page.size()
                     x = x * w / W
                     y = y * h / H
