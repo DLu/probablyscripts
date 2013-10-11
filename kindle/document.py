@@ -6,7 +6,6 @@ import pygame
 import tempfile
 import sys
 
-PAGES = None
 RES1 = 72
 RES2 = 300
 
@@ -39,18 +38,19 @@ class Page:
         return subimage
 
 class Document:
-    def __init__(self, filename, density=RES1):
+    def __init__(self, filename, pages=None, density=RES1):
         self.original = filename
-        self.read(filename, density)
+        self.read(filename, pages, density)
 
-    def read(self, filename, density):
+    def read(self, filename, pages, density):
         input1 = PdfFileReader(file(filename))
         self.info = input1.getDocumentInfo()
         n = input1.getNumPages()
         self.pages = []
-        self.mypages = range(n)
-        if PAGES is not None:
-            self.mypages = PAGES
+        if pages is None:
+            self.mypages = range(n)
+        else:
+            self.mypages = pages
         for i in self.mypages:
             sys.stdout.write("\rReading page %d of %d"%(i+1, n))
             sys.stdout.flush()

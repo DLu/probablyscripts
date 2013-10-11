@@ -7,31 +7,34 @@ from kindle.splitter import *
 from kindle.gui import Viewer
 
 import sys, os.path
+import argparse
 import distutils.spawn
-
-GUI = True
         
 if __name__ == '__main__':
-    if len(sys.argv)==2:
-        infile = sys.argv[1]
-        outfile = os.path.splitext(infile)[0] + "_.pdf"
-    elif len(sys.argv)==3:
-        (infile, outfile) = sys.argv[1:3]
-        if os.path.isdir(outfile):
-            outfile = outfile + '/' + os.path.split(infile)[1]
-    elif distutils.spawn.find_executable('convert') is None:
+
+    if distutils.spawn.find_executable('convert') is None:
     	print "Cannot find 'convert' utility. Please make sure ImageMagick is installed."
     	sys.exit(1)
-    else:
-        print "Usage: kindle_split input.pdf [output.pdf]"%sys.argv[0]
-        sys.exit(1)
 
-    d = Document(infile)
+    parser = argparse.ArgumentParser(description='Split a PDF document up into smaller pieces')
+    parser.add_argument('infile', metavar='document')
+    parser.add_argument('outfile', metavar='output_document', nargs="?")
+    parser.add_argument('--no-gui', dest='gui', action='store_false', default=True, help="Run in command line only")
+    parser.add_argument('-p', '--pages', type=int, nargs="*")
+
+    args = parser.parse_args()
+
+    if not args.outfile:
+        args.outfile = os.path.splitext(args.infile)[0] + "_.pdf"
+    elif os.path.isdir(args.outfile):
+        outfile = outfile + '/' + os.path.split(infile)[1]
+
+    d = Document(args.infile, args.pages)
     splitter = Splitter(d)
 
-    if GUI:
+    if args.gui:
         v = Viewer(splitter)
         v.print_doc()
         v.spin()
-    splitter.save(outfile)
+    splitter.save(args.outfile)
 
