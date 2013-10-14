@@ -9,7 +9,6 @@ RATIO = 0.75
 class SplitPage:
     def __init__(self, page):
         self.page = page
-        self.image = self.page.image
         self.reset()
 
     def reset(self):
@@ -21,16 +20,13 @@ class SplitPage:
     def size(self):
         return self.page.w, self.page.h
 
-    def getPct(self, x, y, dn = pow(2,16)-1):
-        return self.image.pixelColor(x,y).intensity()/dn
-
     def is_row_white(self, y, hjump=JUMP, start=None, end=None):
         if start is None:
             start = self.left
         if end is None:
-            end = self.image.columns()
+            end = self.page.w
         for x in range(start, end, hjump):
-            p = self.getPct(x,y)
+            p = self.page.get_intensity(x,y)
             if abs(p - 1.0) > 1e-10:
                 return False
         return True
@@ -41,7 +37,7 @@ class SplitPage:
         start = 0
         sections = []
 
-        for y in range(0, self.image.rows(), vjump):
+        for y in range(0, self.page.h, vjump):
             white = self.is_row_white(y, hjump)
 
             if mode is None:
@@ -79,11 +75,11 @@ class SplitPage:
         return sections
 
     def has_columns(self, start, height, centersize = 10, jump=5):
-        w = self.image.columns() - self.left
+        w = self.page.w - self.left
         mid = w/2
         for y in range(start, start+height, jump):
             for x in range(self.left + mid-centersize/2, self.left + mid+centersize/2+1, jump):
-                if abs(self.getPct(x, y) - 1.0) > .001:
+                if abs(self.page.get_intensity(x, y) - 1.0) > .001:
                     return False
         return True
 
@@ -141,7 +137,7 @@ class SplitPage:
             self.analyze_row(start, height)
 
     def analyze_row(self, start, height):
-        cols = self.image.columns() - self.left
+        cols = self.page.w - self.left
         if self.has_columns(start, height):
             col_list = [ (self.left, cols/2), (self.left + cols/2, cols/2) ]
         else:
