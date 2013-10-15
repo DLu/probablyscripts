@@ -26,9 +26,12 @@ class Viewer:
         self.mode = 0
         self.reload_page()
 
+    def get_current_page(self):
+        return self.splitter.pages[self.page_no]
+
     def reload_page(self):
         pygame.draw.rect(self.screen, (255,255,255), (0,0,W,H), 0)
-        page = self.splitter.pages[self.page_no]
+        page = self.get_current_page()
         image = page.page.pimage
         scaled = pygame.transform.scale(image, (W, H))
         self.screen.blit(scaled, (0,0))
@@ -67,12 +70,12 @@ class Viewer:
                         self.update_mode(event.key)
                     elif event.key == K_r:
                         print "RESET PAGE"
-                        self.splitter.pages[ self.page_no ].reset()
+                        self.get_current_page().reset()
                         self.reload_page()
 
                 if event.type == MOUSEBUTTONDOWN:  
                     (x,y) = event.pos
-                    page = self.splitter.pages[ self.page_no ]
+                    page = self.get_current_page()
                     (w,h) = page.size()
                     x = x * w / W
                     y = y * h / H
