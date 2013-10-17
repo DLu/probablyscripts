@@ -25,11 +25,9 @@ class SplitPage:
             start = self.left
         if end is None:
             end = self.page.w
-        for x in range(start, end, hjump):
-            p = self.page.get_intensity(x,y)
-            if abs(p - 1.0) > 1e-10:
-                return False
-        return True
+        intensity = self.page.get_average_intensity(start, y, end-1, y)
+
+        return intensity < .01
 
     def get_row_pattern(self, white_limit=WHITE_LIMIT, hjump=3, vjump=JUMP):
         mode = None
