@@ -35,12 +35,19 @@ class Page:
 
     def subimage_to_file(self, x, y, w, h, new_density=RES2):
         subimage = tempfile.NamedTemporaryFile(suffix='.png')
-        factor = float(new_density) / self.density
+
+        if '.png' in self.base_filename:
+            factor = 1.0
+            density = []
+        else:
+            factor = float(new_density) / self.density
+            density = ["-density", str(new_density)]
+
         x = int(x*factor)
         y = int(y*factor)
         w = int(w*factor)
         h = int(h*factor)
-        execute(["convert", "-density", str(new_density), self.base_filename, "-crop", '%dx%d%+d%+d'%(w,h,x,y), '-trim', '+repage', '-trim', subimage.name])
+        execute(["convert"] + density + [self.base_filename, "-crop", '%dx%d%+d%+d'%(w,h,x,y), '-trim', '+repage', '-trim', subimage.name])
         return subimage
 
     def calculate_addition_matrix(self):
@@ -83,7 +90,11 @@ class Page:
 class Document:
     def __init__(self, filename, pages=None, density=RES1):
         self.original = filename
-        self.read(filename, pages, density)
+
+        if 'pdf' in filename:
+            self.read(filename, pages, density)
+        else:
+            self.read_image(filename, density)
 
     def read(self, filename, pages, density):
         input1 = PdfFileReader(file(filename))
@@ -101,3 +112,8 @@ class Document:
         sys.stdout.write("\n")
         sys.stdout.flush()
 
+    def read_image(self, filename, density):
+        self.info = {}
+        self.pages = []
+        self.mypages = [0]
+        self.pages.append(Page(filename, density))
