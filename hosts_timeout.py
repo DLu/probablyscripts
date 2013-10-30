@@ -1,8 +1,9 @@
 #!/usr/bin/python
 
 import sys
-from time import sleep
+from time import sleep, time
 import argparse
+import collections
 
 HOSTS = '/etc/hosts'
 #HOSTS = 'hosts'
@@ -41,6 +42,50 @@ def toggle(lines, domain):
     else:
         return None
 
+def today():
+    return "today"
+
+def clock_in(lines, hostname, elapsed):
+    if lines[-1][0] == '#':
+        date, data = lines[-1][1:].split('|')
+        date = date.strip()
+        data = collections.defaultdict(float, eval(data))
+        if date!=today():
+            report(data, True)
+            date = today()
+            data = collections.defaultdict(float)                    
+        insert = False
+    else:
+        date = today()
+        data = collections.defaultdict(float)
+        insert = True
+    
+    
+    data[hostname] += elapsed
+    
+    line = '# %s | %s'%(date, str(dict(data)))
+    report(data)
+    if insert:
+        lines.append(line)
+    else:
+        lines[-1] = line
+    return lines
+    
+def report(data, yesterday=False):
+    if yesterday:
+        s = "Yesterday's Report"
+    else:
+        s = "Today's Report"
+        
+    print '===== %17s ====='%s 
+    
+    for host, t in sorted(data.items(), key=lambda a: a[1], reverse=True):
+        s = int(t)%60
+        m = int(t/60)%60
+        h = int(t/3600)
+        print "%-20s %02d:%02d:%02d"%(host, h, m, s)
+    
+
 parser = argparse.ArgumentParser()
 parser.add_argument('hostname')
 parser.add_argument('minutes', default=5, type=int, nargs="?")
@@ -61,12 +106,18 @@ if args.toggle:
     exit(0)              
 
 print "Sleeping"
+start = time()
 try:
     sleep(seconds)
 except:
     None
 
+elapsed = time() - start
+
 print "Reverting"
 lines = toggle(lines, args.hostname)
+
+lines = clock_in(lines, args.hostname, elapsed)
+
 write_hosts(lines)
 
