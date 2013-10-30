@@ -103,14 +103,20 @@ if lines is None:
 write_hosts(lines)
 
 if args.toggle:
-    exit(0)              
-
-print "Sleeping"
+    exit(0)
+                 
 start = time()
-try:
-    sleep(seconds)
-except:
-    None
+    
+while seconds > 0:
+    print "Sleeping"
+    try:
+        sleep(seconds)
+    except:
+        break
+        
+    # beep()
+    print "Time is up%s"%('!'*20)
+
 
 elapsed = time() - start
 
