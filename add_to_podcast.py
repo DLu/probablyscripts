@@ -5,6 +5,9 @@ import youtube_dl
 from youtube_dl.PostProcessor import FFmpegExtractAudioPP
 from youtube_dl.utils import encodeFilename
 
+#FILENAME = 'podcast.xml'
+FILENAME = '/home/dlu/public_html/podcast/podcast.xml'
+
 TEMPLATE = """
 <item>
 <title>%s</title>
@@ -34,7 +37,7 @@ def download_file(url):
     return ydl.prepare_filename(sm), sm['description']
    
     
-f = open('podcast.xml', 'r')
+f = open(FILENAME, 'r')
 lines = f.readlines()
 f.close()
 
@@ -69,7 +72,7 @@ for arg in sys.argv[1:]:
 i = -5
 lines = lines[:i] + newlines + lines[i:]
 
-f = open('podcast.xml', 'w')
+f = open(FILENAME, 'w')
 for line in lines:
     f.write(line)
 f.close()
