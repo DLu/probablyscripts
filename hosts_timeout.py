@@ -4,6 +4,7 @@ import sys
 from time import sleep, time
 import argparse
 import collections
+import datetime
 
 HOSTS = '/etc/hosts'
 #HOSTS = 'hosts'
@@ -43,7 +44,7 @@ def toggle(lines, domain):
         return None
 
 def today():
-    return "today"
+    return datetime.datetime.now().strftime("%Y-%m-%d")
 
 def clock_in(lines, hostname, elapsed):
     if lines[-1][0] == '#':
