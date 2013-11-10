@@ -72,6 +72,13 @@ def clock_in(lines, hostname, elapsed):
         lines[-1] = line
     return lines
     
+def time_to_string(t):
+    s = int(t)%60
+    m = int(t/60)%60
+    h = int(t/3600)
+    return "%02d:%02d:%02d"%(h,m,s)
+    
+
 def report(data, yesterday=False):
     if yesterday:
         s = "Yesterday's Report"
@@ -79,12 +86,15 @@ def report(data, yesterday=False):
         s = "Today's Report"
         
     print '===== %17s ====='%s 
+
+    total = 0
     
     for host, t in sorted(data.items(), key=lambda a: a[1], reverse=True):
-        s = int(t)%60
-        m = int(t/60)%60
-        h = int(t/3600)
-        print "%-20s %02d:%02d:%02d"%(host, h, m, s)
+        total += t
+        print "%-20s %s"%(host, time_to_string(t))
+
+    print "============================="
+    print "%-20s %s"%("Total", time_to_string(total))
     
 
 parser = argparse.ArgumentParser()
