@@ -31,6 +31,7 @@ def toggle(lines, domain):
         ip, domains = line.split('\t')
         if domain in domains:
             found = True
+            canonical = domains.split(' ')[0]
             if ip[0]=='#':
                 newlines.append( line[1:] )
             else:
@@ -39,7 +40,7 @@ def toggle(lines, domain):
             newlines.append(line)
 
     if found:
-        return newlines
+        return newlines, canonical
     else:
         return None
 
@@ -107,7 +108,7 @@ seconds = args.minutes * 60
 
 print "Initiating Change" 
 lines = read_hosts()
-lines = toggle(lines, args.hostname)
+lines, canonical = toggle(lines, args.hostname)
 if lines is None:
     print "Can't find %s!"%args.hostname
     exit(0)
@@ -132,9 +133,9 @@ while seconds > 0:
 elapsed = time() - start
 
 print "Reverting"
-lines = toggle(lines, args.hostname)
+lines, canonical = toggle(lines, args.hostname)
 
-lines = clock_in(lines, args.hostname, elapsed)
+lines = clock_in(lines, canonical, elapsed)
 
 write_hosts(lines)
 
