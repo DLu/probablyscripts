@@ -5,9 +5,15 @@ from time import sleep, time
 import argparse
 import collections
 import datetime
+import subprocess
 
-HOSTS = '/etc/hosts'
 #HOSTS = 'hosts'
+HOSTS = '/etc/hosts'
+WARNING_SOUND = '/home/dlu/Sounds/smb_warning.wav'
+
+def play_sound(fn):
+    subprocess.Popen(['aplay', fn], stderr=subprocess.PIPE).communicate()
+    
 
 def read_hosts():
     return open(HOSTS, 'r').readlines()
@@ -126,7 +132,7 @@ while seconds > 0:
     except:
         break
         
-    # beep()
+    play_sound(WARNING_SOUND)
     print "Time is up%s"%('!'*20)
 
 
