@@ -6,6 +6,7 @@ import argparse
 import collections
 import datetime
 import subprocess
+from quotes import get_random_quote
 
 #HOSTS = 'hosts'
 HOSTS = '/etc/hosts'
@@ -102,13 +103,25 @@ def report(data, yesterday=False):
 
     print "============================="
     print "%-20s %s"%("Total", time_to_string(total))
-    
+
+def typing_test():
+    q = get_random_quote()
+    s = ''
+    try:
+        while s != q[0]:
+            print q[0]
+            s = raw_input().strip()
+    except:
+        exit(0)
+    print '- %s'%q[1]
 
 parser = argparse.ArgumentParser()
 parser.add_argument('hostname')
 parser.add_argument('minutes', default=5, type=int, nargs="?")
 parser.add_argument('--toggle', action='store_true')
 args = parser.parse_args()
+
+typing_test()
 
 seconds = args.minutes * 60
 
