@@ -135,11 +135,31 @@ class SplitPage:
             self.analyze_row(start, height)
 
     def analyze_row(self, start, height):
-        cols = self.page.w - self.left
-        if self.has_columns(start, height):
-            col_list = [ (self.left, cols/2), (self.left + cols/2, cols/2) ]
-        else:
-            col_list = [ (self.left, cols) ]
+        col_list = []
+        mode = 0
+        left = None
+
+        s = ''
+        for x in range(self.left, self.page.w-1):
+            intensity = self.page.get_average_intensity(x, start, x+1, start+height-1)
+            white = intensity < .01
+            # TODO: Merge this with row finding code
+            if mode==0:
+                if not white:
+                    left = x
+                    mode = 1
+            elif mode==1:
+                if white:
+                    col = (left, x-left)
+                    col_list.append(col)
+                    mode = 0
+            if white:
+                s+='.'
+            else:
+                s+='*'
+
+        if mode==1:
+            col_list.append( (left, self.page.w-left) )
 
         J = {}
         for col in col_list:
@@ -151,7 +171,7 @@ class SplitPage:
         return ratio < RATIO
 
     def get_chunks(self, x, y, w, h):
-        if not SPLIT_BY_ASPECT or not self.should_split(w,h):
+        if True or not SPLIT_BY_ASPECT or not self.should_split(w,h):
             return [(y,h)]
 
         center_height = y+h/2

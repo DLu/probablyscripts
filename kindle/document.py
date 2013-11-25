@@ -100,7 +100,8 @@ class Page:
                 b = 0.0
         d = self.matrix[x1][y1]
             
-            
+        if y1 != y0:
+            print a, b, c, d, '\t'
 
         diff = a + d -b -c 
 
