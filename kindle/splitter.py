@@ -20,7 +20,7 @@ class SplitPage:
     def size(self):
         return self.page.w, self.page.h
 
-    def is_row_white(self, y, hjump=JUMP, start=None, end=None):
+    def is_row_white(self, y, start=None, end=None):
         if start is None:
             start = self.left
         if end is None:
@@ -29,14 +29,14 @@ class SplitPage:
 
         return intensity < .01
 
-    def get_row_pattern(self, white_limit=WHITE_LIMIT, hjump=3, vjump=JUMP):
+    def get_row_pattern(self, white_limit=WHITE_LIMIT, vjump=JUMP):
         mode = None
         streak = 0
         start = 0
         sections = []
 
         for y in range(0, self.page.h, vjump):
-            white = self.is_row_white(y, hjump)
+            white = self.is_row_white(y)
 
             if mode is None:
                 if white:
