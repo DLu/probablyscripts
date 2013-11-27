@@ -18,7 +18,7 @@ for proc in psutil.process_iter():
     if key is None:
         D[proc.name] += 1
     elif key in proc.name:
-        print "Killing: ", ' '.join(proc.cmdline)
+        print "Killing: %s"%proc.name, ' '.join(proc.cmdline)
         proc.kill()
         
 s = ''
