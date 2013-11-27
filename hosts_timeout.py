@@ -121,7 +121,7 @@ parser.add_argument('minutes', default=5, type=int, nargs="?")
 parser.add_argument('--toggle', action='store_true')
 args = parser.parse_args()
 
-typing_test()
+#typing_test()
 
 seconds = args.minutes * 60
 
@@ -138,23 +138,25 @@ if args.toggle:
                  
 start = time()
     
-while seconds > 0:
-    print "Sleeping"
-    try:
-        sleep(seconds)
-    except:
-        break
-        
-    play_sound(WARNING_SOUND)
-    print "Time is up%s"%('!'*20)
+try:
+    while seconds > 0:
+        print "Sleeping"
+        try:
+            sleep(seconds)
+        except KeyboardInterrupt:
+            print "KILL"
+            sleep(1)
+            break
+            
+        play_sound(WARNING_SOUND)
+        print "Time is up%s"%('!'*20)
+finally:
+    elapsed = time() - start
 
+    print "Reverting"
+    lines, canonical = toggle(lines, args.hostname)
 
-elapsed = time() - start
+    lines = clock_in(lines, canonical, elapsed)
 
-print "Reverting"
-lines, canonical = toggle(lines, args.hostname)
-
-lines = clock_in(lines, canonical, elapsed)
-
-write_hosts(lines)
+    write_hosts(lines)
 
