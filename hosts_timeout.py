@@ -121,7 +121,7 @@ parser.add_argument('minutes', default=5, type=int, nargs="?")
 parser.add_argument('--toggle', action='store_true')
 args = parser.parse_args()
 
-#typing_test()
+typing_test()
 
 seconds = args.minutes * 60
 
