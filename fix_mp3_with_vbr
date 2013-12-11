@@ -1,0 +1,2 @@
+find . -type f -iname '*.mp3' -exec vbrfix {} {} \;
+rm vbrfix.log vbrfix.tmp
