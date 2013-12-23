@@ -116,7 +116,7 @@ def typing_test():
     print '- %s'%q[1]
 
 parser = argparse.ArgumentParser()
-parser.add_argument('hostname')
+parser.add_argument('hostname', nargs="+")
 parser.add_argument('minutes', default=5, type=int, nargs="?")
 parser.add_argument('--toggle', action='store_true')
 args = parser.parse_args()
@@ -127,10 +127,13 @@ seconds = args.minutes * 60
 
 print "Initiating Change" 
 lines = read_hosts()
-lines, canonical = toggle(lines, args.hostname)
-if lines is None:
-    print "Can't find %s!"%args.hostname
-    exit(0)
+canonicals = []
+for hostname in args.hostname:
+    lines, canonical = toggle(lines, hostname)
+    canonicals.append(canonical)
+    if lines is None:
+        print "Can't find %s!"%hostname
+        exit(0)
 write_hosts(lines)
 
 if args.toggle:
@@ -154,9 +157,11 @@ finally:
     elapsed = time() - start
 
     print "Reverting"
-    lines, canonical = toggle(lines, args.hostname)
+    for hostname in args.hostname:
+        lines, canonical = toggle(lines, hostname)
 
-    lines = clock_in(lines, canonical, elapsed)
+    for canonical in canonicals:
+        lines = clock_in(lines, canonical, elapsed)
 
     write_hosts(lines)
 
