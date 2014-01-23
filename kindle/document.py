@@ -76,35 +76,19 @@ class Page:
                 col.append(value)
                 
             self.matrix.append(col)
-
-
+            
+    def quick_sum(self, x0, y0, x1, y1):
+        A = self.matrix[x0-1][y1] if x0>0 else 0
+        B = self.matrix[x1][y1]
+        C = self.matrix[x1][y0-1] if y0>0 else 0
+        D = self.matrix[x0-1][y0-1] if y0>0 and x0>0 else 0
+        return D + B - A - C
 
     def get_average_intensity(self, x0, y0, x1, y1):
         w = x1-x0+1
         h = y1 - y0+1
-
-        if x0 > 0:
-            if y0 > 0:
-                a = self.matrix[x0-1][y0-1]
-                b = self.matrix[x1][y0-1]
-            else:
-                a = 0.0
-                b = 0.0
-            c = self.matrix[x0][y1]
-        else:
-            a = 0.0
-            c = 0.0
-            if y0 > 0:
-                b = self.matrix[x1][y0-1]
-            else:
-                b = 0.0
-        d = self.matrix[x1][y1]
-            
-            
-
-        diff = a + d -b -c 
-
-        return round(diff / (w*h),2)
+        total = self.quick_sum(x0,y0,x1,y1)
+        return round(total / (w*h),2)
 
 class Document:
     def __init__(self, filename, pages=None, density=RES1):
