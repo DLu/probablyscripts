@@ -1,0 +1,17 @@
+#!/usr/bin/python
+import re
+
+pattern ='.*\\[ INFO\\] \\[.*?\\]: (.*)' + chr(27)
+
+rg = re.compile(pattern,re.IGNORECASE|re.DOTALL)
+while( True ):
+    try:
+        s = raw_input()
+    except EOFError:
+        break
+        
+    m = rg.search(s)
+    if m:
+        print m.groups()[0]
+    else:
+        print s
