@@ -75,6 +75,7 @@ class SplitPage:
     def has_columns(self, start, height, centersize = 10, jump=5):
         w = self.page.w - self.left
         mid = w/2
+        #TODO Remove summing here
         for y in range(start, start+height, jump):
             for x in range(self.left + mid-centersize/2, self.left + mid+centersize/2+1, jump):
                 if abs(self.page.get_intensity(x, y) - 1.0) > .001:
@@ -134,13 +135,20 @@ class SplitPage:
         for (start, height) in rows:
             self.analyze_row(start, height)
 
-    def analyze_row(self, start, height):
+    def analyze_row(self, start, height, mincol=15):
         cols = self.page.w - self.left
-        if self.has_columns(start, height):
-            col_list = [ (self.left, cols/2), (self.left + cols/2, cols/2) ]
-        else:
-            col_list = [ (self.left, cols) ]
-
+        xstart = -1
+        col_list = []
+        for x in range(self.left, self.page.w,mincol):
+            r = min(self.page.w-1, x+mincol-1)
+            i = self.page.get_average_intensity(x, start, r, start+height)
+            if i > 0.0:
+                if xstart < 0:
+                    xstart = x
+            elif xstart >= 0:
+                col_list.append((xstart,x-xstart))
+                xstart = -1
+               
         J = {}
         for col in col_list:
             J[ col ] = self.get_chunks(col[0], start, col[1], height)
