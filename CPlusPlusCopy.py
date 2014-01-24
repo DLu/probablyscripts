@@ -18,8 +18,8 @@ def get_camel_case(name, first=True):
     return s
 
 in_file, out_file = sys.argv[1:3]
-in_base = os.path.splitext(in_file)[0]
-out_base = os.path.splitext(out_file)[0]
+in_base = os.path.splitext(os.path.split(in_file)[-1])[0]
+out_base = os.path.splitext(os.path.split(out_file)[-1])[0]
 
 replacements = {get_camel_case(in_base): get_camel_case(out_base), in_base.upper():out_base.upper(), in_base: out_base}
 
