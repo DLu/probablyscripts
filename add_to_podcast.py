@@ -4,9 +4,11 @@ from datetime import datetime
 import youtube_dl
 from youtube_dl.PostProcessor import FFmpegExtractAudioPP
 from youtube_dl.utils import encodeFilename
+import subprocess
 
 #FILENAME = 'podcast.xml'
-FILENAME = '/home/dlu/public_html/podcast/podcast.xml'
+FOLDER = '/home/dlu/public_html/podcast'
+FILENAME = '%s/podcast.xml'%FOLDER
 
 TEMPLATE = """
 <item>
@@ -26,7 +28,7 @@ def formatDate():
 
 
 def download_file(url):
-    fmt = u'%(title)s.%(ext)s'
+    fmt = FOLDER + u'/%(title)s.%(ext)s'
     ext = "mp3"
     ydl = youtube_dl.YoutubeDL({'outtmpl':fmt})
     ydl.add_post_processor(FFmpegExtractAudioPP(preferredcodec=ext))
@@ -35,6 +37,9 @@ def download_file(url):
     sm = m['entries'][0]
     sm['ext'] = ext
     return ydl.prepare_filename(sm), sm['description']
+    
+"""def download_base_file(url):
+    http://pd.npr.org/anon.npr-mp3/npr/me/2014/01/20140115_me_jbi_robot_soccer.mp3?dl=1"""
    
     
 f = open(FILENAME, 'r')
@@ -58,12 +63,23 @@ import sys
 import os
 for arg in sys.argv[1:]:
     if 'http' in arg:
-        filename, description = download_file(arg)
+        if '.mp3' in arg:
+            None
+        else:
+            filename, description = download_file(arg)
     else:
         filename = arg
         description = ''
     size = os.path.getsize(filename)
     title = raw_input(filename + "?")
+
+    filename = os.path.abspath(filename)
+    if FOLDER in filename:
+        filename = filename[len(FOLDER)+1:]
+    else:
+        print "Invalid filename! %s"%filename
+        exit(0)
+
     if len(title) <= 1: 
         base = os.path.split(filename)
         title = os.path.splitext(base[1])[0]
