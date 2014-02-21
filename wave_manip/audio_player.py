@@ -1,6 +1,7 @@
 import pyaudio
 import numpy as np
 import struct
+import thread
 
 CHUNK = 1024
 
@@ -13,31 +14,36 @@ class AudioPlayer:
                                 channels = wave.spf.getnchannels(),
                                 rate = wave.spf.getframerate(),
                                 output = True)
+                        
+        self.signal = None        
+        self.inc = None
         
     def close(self):
         self.stream.close()
         self.player.terminate()
 
-    def play(self, clip):
-        
-        sig= clip[1:CHUNK]
-
-        inc = 0
+    def play(self):
         data = 0
 
-        #play 
-        while data != '' and inc < 300000:
+        while data != '':
+            sig= self.signal[self.inc:self.inc + CHUNK]
             data = struct.pack("%dh"%(len(sig)), *list(sig))    
             self.stream.write(data)
-            inc=inc+CHUNK
-            sig=clip[inc:inc+CHUNK]
+            self.inc+=CHUNK
+            
+    def start(self, signal):
+        self.signal = signal
+        self.inc = 0
+        
+        thread.start_new_thread(self.play, ())
+    
             
 if __name__=='__main__':
     import sys, audio_clip
     try:
         clip = audio_clip.AudioClip(sys.argv[1])
         a = AudioPlayer(clip)
-        a.play(clip.signal)
+        a.start(clip.signal)
     finally:
         a.close()
 

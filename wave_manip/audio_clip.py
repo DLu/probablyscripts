@@ -28,7 +28,7 @@ class AudioClip:
             sub = self.signal[i:i+chunk]
             # max? abs?
             data.append( sum(map(abs,sub))/float(len(sub))/self.max )
-        return data
+        return chunk, data
         
     def get_width(self):
         return self.spf.getsampwidth()
