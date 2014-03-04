@@ -8,5 +8,6 @@ alias fucking_catkin='catkin_make -DCMAKE_BUILD_TYPE=Release ; if [ $? -eq 0 ]; 
 alias seas='ssh dvl1@ssh.seas.wustl.edu'
 alias seas2='ssh dvl1@ssh2.seas.wustl.edu'
 alias list_installed='dpkg --get-selections | grep -v deinstall | awk -F" " '"'"'{ print $1 }'"'"' | grep'
-PS1="! \W/ > \e]2;\h | \w \a"
+PS1="\e]2;\h | \w \a! \W/ > "
+PS1="! \W/ > "
 
