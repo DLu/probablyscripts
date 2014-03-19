@@ -2,12 +2,17 @@
 
 from datetime import datetime
 import youtube_dl
-from youtube_dl.PostProcessor import FFmpegExtractAudioPP
+from youtube_dl.postprocessor.ffmpeg import FFmpegExtractAudioPP
 from youtube_dl.utils import encodeFilename
+from webhelpers.feedgenerator import DefaultFeed, Enclosure #python-webhelpers
 import subprocess
+import yaml
+import sys
+import os
 
-#FILENAME = 'podcast.xml'
 FOLDER = '/home/dlu/public_html/podcast'
+#FOLDER = '.'
+DFILENAME = '%s/podcast.yaml'%FOLDER
 FILENAME = '%s/podcast.xml'%FOLDER
 
 TEMPLATE = """
@@ -41,26 +46,9 @@ def download_file(url):
 """def download_base_file(url):
     http://pd.npr.org/anon.npr-mp3/npr/me/2014/01/20140115_me_jbi_robot_soccer.mp3?dl=1"""
    
-    
-f = open(FILENAME, 'r')
-lines = f.readlines()
-f.close()
 
-pd = False
-date = formatDate()
-for i, line in enumerate(lines):
-    if 'lastBuildDate' in line or (not pd and 'pubDate' in line):
-        i1 = line.index('>')
-        i2 = line.index('<', i1)
-        newline = line[:i1+1] + date + line[i2:]
-        lines[i] = newline
-        if not pd and 'pubDate' in line:
-            pd = True
-            
-newlines = []
+data = yaml.load( open(DFILENAME, 'r') )
 
-import sys
-import os
 for arg in sys.argv[1:]:
     if 'http' in arg:
         if '.mp3' in arg:
@@ -83,13 +71,26 @@ for arg in sys.argv[1:]:
     if len(title) <= 1: 
         base = os.path.split(filename)
         title = os.path.splitext(base[1])[0]
+#    data.append( {'title': title
     entry = TEMPLATE % (title, filename, description, filename, size, date)
     newlines.append(entry)
-i = -5
-lines = lines[:i] + newlines + lines[i:]
+
+
+
+feed = DefaultFeed(title="David's Miscallaneous Podcasts", link="http://gonzo.probablydavid.com/", description="[description]")
+
+for item in data:
+    e = Enclosure(item['filename'], str(item['length']), item['type'])
+    feed.add_item(title=item['title'], categories=["Podcasts"], link='http://gonzo.probablydavid.com/podcast/', enclosure=e, description=item.get('description', ''), pubdate=datetime.strptime(item['date'], '%a, %d %b %Y %H:%M:%S -0500'))
 
 f = open(FILENAME, 'w')
-for line in lines:
-    f.write(line)
+s = feed.writeString('utf-8')
+A = ['title', 'link', 'enclosure', 'description', 'pubDate']
+D = {'<item>': '\n<item>\n'}
+for a in A:
+    w = '</%s>'%a
+    D[w] = w + '\n'
+for a,b in D.iteritems():
+    s = s.replace(a,b)
+f.write( s )
 f.close()
-
