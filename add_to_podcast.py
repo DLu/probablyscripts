@@ -13,19 +13,7 @@ import os
 FOLDER = '/home/dlu/public_html/podcast'
 #FOLDER = '.'
 DFILENAME = '%s/podcast.yaml'%FOLDER
-FILENAME = '%s/podcast.xml'%FOLDER
-
-TEMPLATE = """
-<item>
-<title>%s</title>
-<link>http://gonzo.probablydavid.com/podcast/</link>
-<guid>http://gonzo.probablydavid.com/podcast/%s</guid>
-<description>%s</description>
-<enclosure url="http://gonzo.probablydavid.com/podcast/%s" length="%d" type="audio/mpeg"/>
-<category>Podcasts</category>
-<pubDate>%s</pubDate>
-</item>
-"""
+FILENAME = '%s/podcast2.xml'%FOLDER
 
 def formatDate():
     dt = datetime.now()
@@ -71,9 +59,9 @@ for arg in sys.argv[1:]:
     if len(title) <= 1: 
         base = os.path.split(filename)
         title = os.path.splitext(base[1])[0]
-#    data.append( {'title': title
-    entry = TEMPLATE % (title, filename, description, filename, size, date)
-    newlines.append(entry)
+    data.append( {'title': title, 'filename': filename, 'length':size, 'type': 'audio/mpeg', 'date': formatDate()} )
+    
+yaml.dump( data, open(DFILENAME, 'w'))
 
 
 
