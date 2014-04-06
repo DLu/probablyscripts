@@ -9,6 +9,7 @@ import subprocess
 import yaml
 import sys
 import os
+import urllib2
 
 FOLDER = '/home/dlu/public_html/podcast'
 HOSTNAME = 'http://gonzo.probablydavid.com/podcast'
@@ -35,23 +36,37 @@ def download_file(url):
 def to_local_name(url):
     return url.replace(HOSTNAME, FOLDER)
     
-"""def download_base_file(url):
-    http://pd.npr.org/anon.npr-mp3/npr/me/2014/01/20140115_me_jbi_robot_soccer.mp3?dl=1"""
+def download_base_file(url):
+    split = urllib2.urlparse.urlsplit(url)
+    base = os.path.basename(split.path)
+    
+    response = urllib2.urlopen(url)
+    contents = response.read()
+    
+    outfile = '%s/%s'%(FOLDER, base)
+    f = open(outfile, 'w')
+    f.write(contents)
+    f.close()
+    
+    return outfile, ''
    
 
 data = yaml.load( open(DFILENAME, 'r') )
 
 for arg in sys.argv[1:]:
+    title = ''
     if 'http' in arg:
         if '.mp3' in arg:
-            None
+            filename, title = download_base_file(arg)
+            description = ''
         else:
             filename, description = download_file(arg)
     else:
         filename = arg
         description = ''
     size = os.path.getsize(filename)
-    title = raw_input(filename + "?")
+    if len(title)==0:
+        title = raw_input(filename + "?")
 
     filename = os.path.abspath(filename)
     if FOLDER in filename:
