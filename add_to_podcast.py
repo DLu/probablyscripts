@@ -11,6 +11,7 @@ import sys
 import os
 
 FOLDER = '/home/dlu/public_html/podcast'
+HOSTNAME = 'http://gonzo.probablydavid.com/podcast'
 #FOLDER = '.'
 DFILENAME = '%s/podcast.yaml'%FOLDER
 FILENAME = '%s/podcast2.xml'%FOLDER
@@ -30,6 +31,9 @@ def download_file(url):
     sm = m['entries'][0]
     sm['ext'] = ext
     return ydl.prepare_filename(sm), sm['description']
+    
+def to_local_name(url):
+    return url.replace(HOSTNAME, FOLDER)
     
 """def download_base_file(url):
     http://pd.npr.org/anon.npr-mp3/npr/me/2014/01/20140115_me_jbi_robot_soccer.mp3?dl=1"""
@@ -59,7 +63,7 @@ for arg in sys.argv[1:]:
     if len(title) <= 1: 
         base = os.path.split(filename)
         title = os.path.splitext(base[1])[0]
-    data.append( {'title': title, 'filename': filename, 'length':size, 'type': 'audio/mpeg', 'date': formatDate()} )
+    data.append( {'title': title, 'filename': HOSTNAME + "/" + filename, 'length':size, 'type': 'audio/mpeg', 'date': formatDate()} )
     
 yaml.dump( data, open(DFILENAME, 'w'))
 
@@ -69,7 +73,9 @@ feed = DefaultFeed(title="David's Miscallaneous Podcasts", link="http://gonzo.pr
 
 for item in data:
     e = Enclosure(item['filename'], str(item['length']), item['type'])
-    feed.add_item(title=item['title'], categories=["Podcasts"], link='http://gonzo.probablydavid.com/podcast/', enclosure=e, description=item.get('description', ''), pubdate=datetime.strptime(item['date'], '%a, %d %b %Y %H:%M:%S -0500'))
+    if not os.path.exists( to_local_name(item['filename']) ):
+        print item['filename']    
+    feed.add_item(title=item['title'], categories=["Podcasts"], link=HOSTNAME, enclosure=e, description=item.get('description', ''), pubdate=datetime.strptime(item['date'], '%a, %d %b %Y %H:%M:%S -0500'))
 
 f = open(FILENAME, 'w')
 s = feed.writeString('utf-8')
