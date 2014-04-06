@@ -2,7 +2,7 @@ from youtubeapi import *
 import yaml
 import sys
 
-MAX_RSS_SIZE = 200
+MAX_RSS_SIZE = 300
 
 def update(username, download_all, save_it):
 
