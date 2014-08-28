@@ -14,6 +14,7 @@ KEYMAP = {
 	K_4: ModeDef("Insert column mode", 4),
 	K_5: ModeDef("Insert row mode", 5),
 	K_6: ModeDef("Set left mode", 6),
+	K_7: ModeDef("Manual", 7),
 	K_0: ModeDef("Standard mode", 0),
 }
 
@@ -24,6 +25,7 @@ class Viewer:
         self.screen = pygame.display.set_mode((W,H))
         self.page_no = 0
         self.mode = 0
+        self.save_coords = None
         self.reload_page()
 
     def get_current_page(self):
@@ -92,5 +94,18 @@ class Viewer:
                             page.insert_white_row(y)
                         elif self.mode == 6:
                             page.set_left(x)
+                        elif self.mode == 7:
+                            self.save_coords = (x,y)
                     self.reload_page()
+                elif event.type == MOUSEBUTTONUP:
+                    (x,y) = event.pos
+                    page = self.get_current_page()
+                    (w,h) = page.size()
+                    x = x * w / W
+                    y = y * h / H
+                    if event.button == 1 and self.mode == 7:
+                        if self.save_coords is not None:
+                            page.add_region(self.save_coords, (x,y))
+                            self.save_coords = None
+                        self.reload_page()
             time.sleep(.1)

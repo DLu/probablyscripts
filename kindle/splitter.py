@@ -7,15 +7,17 @@ SPLIT_BY_ASPECT = True
 RATIO = 0.75
 
 class SplitPage:
-    def __init__(self, page):
+    def __init__(self, page, manual=False):
         self.page = page
+        self.manual = manual
         self.reset()
 
     def reset(self):
         self.left = 0
         self.data = {}
         self.break_points = collections.defaultdict(list)
-        self.analyze_rows()
+        if self.manual:
+            self.analyze_rows()
     
     def size(self):
         return self.page.w, self.page.h
@@ -93,6 +95,11 @@ class SplitPage:
     def analyze_rows(self):
         for (start, height) in self.get_row_pattern():
             self.analyze_row(start, height)
+            
+    def add_region(self, (x0,y0), (x1,y1)):
+        M = {(x0, x1-x0): [(y0, y1-y0)]}
+        self.data[ (y0, y1-y0) ] = M
+        
 
     def delete_white_row(self, y):
         rows = []
@@ -218,11 +225,11 @@ class SplitPage:
         self.analyze_rows()
 
 class Splitter:
-    def __init__(self, document):
+    def __init__(self, document, manual=False):
         self.document = document
         self.pages = []
         for page in self.document.pages:
-            sp = SplitPage(page)
+            sp = SplitPage(page, manual)
             self.pages.append( sp )
         
 

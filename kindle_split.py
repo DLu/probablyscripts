@@ -21,6 +21,7 @@ if __name__ == '__main__':
     parser.add_argument('outfile', metavar='output_document', nargs="?")
     parser.add_argument('--no-gui', dest='gui', action='store_false', default=True, help="Run in command line only")
     parser.add_argument('-p', '--pages', type=int, nargs="*")
+    parser.add_argument('-m', '--manual', dest="manual", action="store_true", default=False, help="Manually select regions to include")
 
     args = parser.parse_args()
 
@@ -30,7 +31,7 @@ if __name__ == '__main__':
         outfile = outfile + '/' + os.path.split(infile)[1]
 
     d = Document(args.infile, args.pages)
-    splitter = Splitter(d)
+    splitter = Splitter(d, args.manual)
 
     if args.gui:
         v = Viewer(splitter)
