@@ -12,6 +12,10 @@ alias seas2='ssh dvl1@ssh2.seas.wustl.edu'
 alias cec='ssh dlu@shell.cec.wustl.edu'
 alias list_installed='dpkg --get-selections | grep -v deinstall | awk -F" " '"'"'{ print $1 }'"'"' | grep'
 PS1="\[\e]2;\h | \w \a\]! \W/ > "
+
+alias list_plugins='rospack plugins --attrib=plugin '
+alias ls='ls -h'
+
 #PS1="! \W/ > "
 
 alias cmdf='history | grep '
