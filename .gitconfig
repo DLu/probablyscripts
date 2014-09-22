@@ -1,0 +1,9 @@
+[user]
+	name = David Lu
+	email = davidvlu@gmail.com
+[core]
+	excludesfile = /home/dlu/.gitignore
+[credential]
+	helper = cache --timeout=3600
+[push]
+	default = simple
