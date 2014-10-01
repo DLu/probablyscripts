@@ -2,7 +2,7 @@ from youtubeapi import *
 import yaml
 import sys
 
-MAX_RSS_SIZE = 300
+MAX_RSS_SIZE = 500
 
 def update(username, download_all, save_it):
 
@@ -17,9 +17,8 @@ def update(username, download_all, save_it):
 
     subscriptions = yt.get_all_subscriptions(username, limit=limit)
     all_vids = []
-    for date, uri in subscriptions:
-        print date, uri
-        vids = yt.get_videos(uri)
+    for s in sorted(subscriptions):
+        vids = yt.get_videos(s.url)
         all_vids += vids
 
     if save_it:

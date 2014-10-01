@@ -28,6 +28,18 @@ class Video:
 
     def __lt__(self, other):
              return self.date < other.date
+             
+class Subscription:
+    def __init__(self, name, url, date, thumbnail=None, dname=None):
+        self.name = name
+        self.url = url
+        self.date = date
+        self.thumbnail = thumbnail
+        self.dname = dname
+        
+    def __lt__(self, other):
+        return self.date < other.date
+       
 
 class Youtube:
     def __init__(self, email, password, key):
@@ -39,7 +51,7 @@ class Youtube:
         yt_service.ProgrammaticLogin()
         
         self.yt_service = yt_service
-
+        
     def get_all_subscriptions(self, username, increment=50, limit=1):
         start_i = 0
         entries = []
@@ -52,11 +64,27 @@ class Youtube:
             feed = self.yt_service.GetYouTubeVideoFeed(url)
             c = 0
             for entry in feed.entry:
+                name = None
+                dname = None
+                thumbnail = None
+                upload = None
                 date = entry.updated.text 
+                
+                for x in entry.extension_elements:
+                    if x.tag == 'username':
+                        name = x.text
+                        dname = x.attributes['display']
+                    elif x.tag == 'thumbnail':
+                        thumbnail = x.attributes['url']
+
                 for a in entry.link:
                     if 'upload' in a.href:
-                        entries.append((date, a.href))
+                        upload = a.href
                         break
+                        
+                s = Subscription(name, upload, date, thumbnail, dname)
+                entries.append(s)
+
                 if limit is not None and len(entries)>=limit:
                     return entries
                 c+=1
