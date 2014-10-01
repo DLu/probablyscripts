@@ -30,9 +30,13 @@ def download_file(url):
     ydl.add_post_processor(FFmpegExtractAudioPP(preferredcodec=ext))
     ydl.add_default_info_extractors()
     m = ydl.extract_info(url)
+    if 'entries' in m:
         sm = m['entries'][0]
+    else:
+        sm = m
     sm['ext'] = ext
-    return ydl.prepare_filename(sm), sm['description']
+    return ydl.prepare_filename(sm), sm['title'], sm['description']
+
 
 def to_local_name(url):
     return url.replace(HOSTNAME, FOLDER)
@@ -62,7 +66,7 @@ for arg in sys.argv[1:]:
             filename, title = download_base_file(arg)
             description = ''
         else:
-            filename, description = download_file(arg)
+            filename, title, description = download_file(arg)
     else:
         filename = arg
         description = ''
