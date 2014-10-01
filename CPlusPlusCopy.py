@@ -2,6 +2,7 @@
 import sys
 import os.path
 
+
 def get_camel_case(name, first=True):
     parts = name.split('_')
     s = ''
@@ -14,14 +15,17 @@ def get_camel_case(name, first=True):
         else:
             cap = True
             s += part
-            
+
     return s
 
 in_file, out_file = sys.argv[1:3]
 in_base = os.path.splitext(os.path.split(in_file)[-1])[0]
 out_base = os.path.splitext(os.path.split(out_file)[-1])[0]
 
-replacements = {get_camel_case(in_base): get_camel_case(out_base), in_base.upper():out_base.upper(), in_base: out_base}
+replacements = {
+    get_camel_case(in_base): get_camel_case(out_base),
+    in_base.upper(): out_base.upper(),
+    in_base: out_base}
 
 contents = open(in_file, 'r').read()
 for old_s, new_s in replacements.iteritems():

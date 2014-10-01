@@ -1,6 +1,8 @@
 #!/usr/bin/python
 
+
 class ChainNode:
+
     def __init__(self, word, id, prev=None, next=None):
         self.word = word
         self.id = id
@@ -12,7 +14,7 @@ class ChainNode:
 
     def getFirst(self):
         node = self
-        while node.prev != None:
+        while node.prev is not None:
             node = node.prev
         return node
 
@@ -29,7 +31,7 @@ class ChainNode:
         N = 0
         x = self
         while x:
-            N+=1
+            N += 1
             x = x.next
         return N
 
@@ -43,5 +45,6 @@ class ChainNode:
             last = current
             current = current.prev
         return last
+
 
 class Subchain

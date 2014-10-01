@@ -12,9 +12,8 @@ for arg in sys.argv[3:]:
     parts = list(arg.partition(OLD_PATTERN))
     parts[1] = NEW_PATTERN
     new_arg = ''.join(parts)
-    
+
     cmd = ['git', 'mv', arg, new_arg]
     print cmd
-    
+
     subprocess.call(cmd)
-    
