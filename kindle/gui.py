@@ -8,21 +8,23 @@ H = 1100
 ModeDef = collections.namedtuple('ModeDef', ['doc', 'mode'], verbose=False)
 
 KEYMAP = {
-	K_1: ModeDef("Delete white mode", 1),
-	K_2: ModeDef("Reposition splits mode", 2),
-	K_3: ModeDef("Kill row mode", 3),
-	K_4: ModeDef("Insert column mode", 4),
-	K_5: ModeDef("Insert row mode", 5),
-	K_6: ModeDef("Set left mode", 6),
-	K_7: ModeDef("Manual", 7),
-	K_0: ModeDef("Standard mode", 0),
+    K_1: ModeDef("Delete white mode", 1),
+    K_2: ModeDef("Reposition splits mode", 2),
+    K_3: ModeDef("Kill row mode", 3),
+    K_4: ModeDef("Insert column mode", 4),
+    K_5: ModeDef("Insert row mode", 5),
+    K_6: ModeDef("Set left mode", 6),
+    K_7: ModeDef("Manual", 7),
+    K_0: ModeDef("Standard mode", 0),
 }
 
+
 class Viewer:
+
     def __init__(self, splitter):
         self.splitter = splitter
         pygame.init()
-        self.screen = pygame.display.set_mode((W,H))
+        self.screen = pygame.display.set_mode((W, H))
         self.page_no = 0
         self.mode = 0
         self.save_coords = None
@@ -32,19 +34,21 @@ class Viewer:
         return self.splitter.pages[self.page_no]
 
     def reload_page(self):
-        pygame.draw.rect(self.screen, (255,255,255), (0,0,W,H), 0)
+        pygame.draw.rect(self.screen, (255, 255, 255), (0, 0, W, H), 0)
         page = self.get_current_page()
         image = page.page.pimage
         scaled = pygame.transform.scale(image, (W, H))
-        self.screen.blit(scaled, (0,0))
+        self.screen.blit(scaled, (0, 0))
         for section in page.get_sections():
-            pygame.draw.rect(self.screen, (255,0,0), self.resize(page.size(), section), 1)
+            pygame.draw.rect(
+                self.screen, (255, 0, 0), self.resize(
+                    page.size(), section), 1)
         pygame.display.flip()
 
     def resize(self, size, (x,y,w,h)):
-        x,y = self.to_viewer(size, x, y)
-        w,h = self.to_viewer(size, w,h)
-        return (x,y,w,h)
+        x, y = self.to_viewer(size, x, y)
+        w, h = self.to_viewer(size, w, h)
+        return (x, y, w, h)
 
     def to_viewer(self, (w, h), x, y):
         return x * W / w, y * H / h
@@ -60,7 +64,8 @@ class Viewer:
     def spin(self):
         while True:
             for event in pygame.event.get():
-                if event.type == pygame.QUIT: return
+                if event.type == pygame.QUIT:
+                    return
                 if event.type == KEYDOWN:
                     if event.key == K_LEFT and self.page_no > 0:
                         self.page_no -= 1
@@ -75,37 +80,37 @@ class Viewer:
                         self.get_current_page().reset()
                         self.reload_page()
 
-                if event.type == MOUSEBUTTONDOWN:  
-                    (x,y) = event.pos
+                if event.type == MOUSEBUTTONDOWN:
+                    (x, y) = event.pos
                     page = self.get_current_page()
-                    (w,h) = page.size()
+                    (w, h) = page.size()
                     x = x * w / W
                     y = y * h / H
                     if event.button == 1:
                         if self.mode == 1:
                             page.delete_white_row(y)
                         elif self.mode == 2:
-                            page.insert_break_point(x,y)
+                            page.insert_break_point(x, y)
                         elif self.mode == 3:
                             page.kill_row(y)
                         elif self.mode == 4:
-                            page.insert_column_break(x,y)
+                            page.insert_column_break(x, y)
                         elif self.mode == 5:
                             page.insert_white_row(y)
                         elif self.mode == 6:
                             page.set_left(x)
                         elif self.mode == 7:
-                            self.save_coords = (x,y)
+                            self.save_coords = (x, y)
                     self.reload_page()
                 elif event.type == MOUSEBUTTONUP:
-                    (x,y) = event.pos
+                    (x, y) = event.pos
                     page = self.get_current_page()
-                    (w,h) = page.size()
+                    (w, h) = page.size()
                     x = x * w / W
                     y = y * h / H
                     if event.button == 1 and self.mode == 7:
                         if self.save_coords is not None:
-                            page.add_region(self.save_coords, (x,y))
+                            page.add_region(self.save_coords, (x, y))
                             self.save_coords = None
                         self.reload_page()
             time.sleep(.1)

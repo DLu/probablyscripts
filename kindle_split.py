@@ -6,15 +6,16 @@ from kindle.document import *
 from kindle.splitter import *
 from kindle.gui import Viewer
 
-import sys, os.path
+import sys
+import os.path
 import argparse
 import distutils.spawn
-        
+
 if __name__ == '__main__':
 
     if distutils.spawn.find_executable('convert') is None:
-    	print "Cannot find 'convert' utility. Please make sure ImageMagick is installed."
-    	sys.exit(1)
+        print "Cannot find 'convert' utility. Please make sure ImageMagick is installed."
+        sys.exit(1)
 
     parser = argparse.ArgumentParser(description='Split a PDF document up into smaller pieces')
     parser.add_argument('infile', metavar='document')
@@ -38,4 +39,3 @@ if __name__ == '__main__':
         v.print_doc()
         v.spin()
     splitter.save(args.outfile)
-

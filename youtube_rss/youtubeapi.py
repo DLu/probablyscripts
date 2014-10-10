@@ -1,7 +1,9 @@
 import gdata.youtube
 import gdata.youtube.service
 
+
 class Video:
+
     def __init__(self, entry):
         self.title = entry.title.text
         self.description = entry.media.description.text
@@ -14,12 +16,12 @@ class Video:
                 continue
             i = href.index('v=')
             i2 = href.index('&', i)
-            self.key = href[i+2:i2]
+            self.key = href[i + 2:i2]
             break
 
     def get_link(self):
-        return 'http://www.youtube.com/watch?v=%s'%self.key
-        
+        return 'http://www.youtube.com/watch?v=%s' % self.key
+
     def get_embed_code(self):
         return '<iframe width="560" height="315" src="http://www.youtube.com/embed/%s" frameborder="0" allowfullscreen></iframe>' % self.key
 
@@ -27,9 +29,24 @@ class Video:
         return "%s [%s]" % (self.title, self.uploader)
 
     def __lt__(self, other):
-             return self.date < other.date
+        return self.date < other.date
+
+
+class Subscription:
+
+    def __init__(self, name, url, date, thumbnail=None, dname=None):
+        self.name = name
+        self.url = url
+        self.date = date
+        self.thumbnail = thumbnail
+        self.dname = dname
+
+    def __lt__(self, other):
+        return self.date < other.date
+
 
 class Youtube:
+
     def __init__(self, email, password, key):
         yt_service = gdata.youtube.service.YouTubeService()
         yt_service.email = email
@@ -37,7 +54,7 @@ class Youtube:
         yt_service.ssl = True
         yt_service.developer_key = key
         yt_service.ProgrammaticLogin()
-        
+
         self.yt_service = yt_service
 
     def get_all_subscriptions(self, username, increment=50, limit=1):
@@ -46,28 +63,43 @@ class Youtube:
         base = 'https://gdata.youtube.com/feeds/api/users/%s/subscriptions?v=2&' % username
 
         while True:
-            url = '%smax-results=%d'%(base, increment)
+            url = '%smax-results=%d' % (base, increment)
             if start_i > 0:
-                url += '&start-index=%d'%start_i
+                url += '&start-index=%d' % start_i
             feed = self.yt_service.GetYouTubeVideoFeed(url)
             c = 0
             for entry in feed.entry:
-                date = entry.updated.text 
+                name = None
+                dname = None
+                thumbnail = None
+                upload = None
+                date = entry.updated.text
+
+                for x in entry.extension_elements:
+                    if x.tag == 'username':
+                        name = x.text
+                        dname = x.attributes['display']
+                    elif x.tag == 'thumbnail':
+                        thumbnail = x.attributes['url']
+
                 for a in entry.link:
                     if 'upload' in a.href:
-                        entries.append((date, a.href))
+                        upload = a.href
                         break
-                if limit is not None and len(entries)>=limit:
+
+                s = Subscription(name, upload, date, thumbnail, dname)
+                entries.append(s)
+
+                if limit is not None and len(entries) >= limit:
                     return entries
-                c+=1
-            if c==0:
+                c += 1
+            if c == 0:
                 break
             start_i += increment
         return entries
-        
+
     def get_videos(self, subscription_uri):
         videos = []
         for entry in self.yt_service.GetYouTubeVideoFeed(subscription_uri).entry:
-            videos.append(Video(entry))   
-        return videos    
-      
+            videos.append(Video(entry))
+        return videos
