@@ -6,7 +6,6 @@ lib
 srv_gen
 *cfgc
 msg_gen
-docs
 *.out
 *.aux
 *.tdo
