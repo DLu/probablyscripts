@@ -18,7 +18,7 @@ class SplitPage:
         self.left = 0
         self.data = {}
         self.break_points = collections.defaultdict(list)
-        if self.manual:
+        if not self.manual:
             self.analyze_rows()
 
     def size(self):
@@ -31,7 +31,7 @@ class SplitPage:
             end = self.page.w
         intensity = self.page.get_average_intensity(start, y, end - 1, y)
 
-        return intensity < .01
+        return (1-intensity) < .01
 
     def get_row_pattern(self, white_limit=WHITE_LIMIT, vjump=JUMP):
         mode = None
