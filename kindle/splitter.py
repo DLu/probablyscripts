@@ -189,8 +189,7 @@ class SplitPage:
             return [(y, h)]
 
         first_h = chosen_split_y - y
-        return self.get_chunks(x, y, w, first_h) + 
-				self.get_chunks(x, chosen_split_y, w, h - first_h)
+        return self.get_chunks(x, y, w, first_h) + self.get_chunks(x, chosen_split_y, w, h - first_h)
 
     def insert_break_point(self, cx, cy):
         for y, h in self.data:

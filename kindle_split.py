@@ -36,6 +36,8 @@ if __name__ == '__main__':
 
     if args.gui:
         v = Viewer(splitter)
+        if args.manual:
+            v.mode = 7
         v.print_doc()
         v.spin()
     splitter.save(args.outfile)
