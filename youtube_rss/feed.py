@@ -1,4 +1,5 @@
 from .youtubeapi import *
+from .classes import categorize
 import yaml
 import sys
 
