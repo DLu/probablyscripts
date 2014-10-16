@@ -43,6 +43,9 @@ class Subscription:
 
     def __lt__(self, other):
         return self.date < other.date
+        
+    def __repr__(self):
+        return self.name
 
 
 class Youtube:
@@ -61,6 +64,7 @@ class Youtube:
         start_i = 0
         entries = []
         base = 'https://gdata.youtube.com/feeds/api/users/%s/subscriptions?v=2&' % username
+        seen = set()
 
         while True:
             url = '%smax-results=%d' % (base, increment)
@@ -88,7 +92,10 @@ class Youtube:
                         break
 
                 s = Subscription(name, upload, date, thumbnail, dname)
-                entries.append(s)
+                if name not in seen:
+                    entries.append(s)
+                    seen.add(name)
+                
 
                 if limit is not None and len(entries) >= limit:
                     return entries

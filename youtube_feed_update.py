@@ -7,4 +7,4 @@ if len(sys.argv) > 1:
 else:
     username = 'daviddavidlu'
 
-update(username, True, False)
+update(username, True)
