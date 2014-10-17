@@ -6,7 +6,7 @@ import glob
 import sys
 import collections
 
-BASE = 'youtube_rss/data'
+BASE = '/home/dlu/Projects/probablyscripts/youtube_rss/data'
 SPLITTER = '...'
 
 def get_categories(username):
