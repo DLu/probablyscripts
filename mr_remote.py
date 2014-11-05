@@ -5,8 +5,11 @@ import re
 PATTERN = re.compile('\[([^\]]*)\]\s*(.*)$', re.DOTALL)
 PATTERN2 = re.compile('(\w+)\s*=(.*)\s*')
 
+HOME = '/home/dlu'
+
 class MR:
-    def __init__(self, fn="/home/dlu/.mrconfig"):
+    def __init__(self, fn=HOME + "/.mrconfig"):
+        self.fn = fn
         self.repos = []
         sections = open(fn).read().strip().split("\n\n")
         for section in sections:
@@ -19,7 +22,9 @@ class MR:
                     commands.append( (r2[0], r2[1].strip() ) )
                 self.repos.append( (name, commands) )
             
-    def write(self, fn="/home/dlu/.mrconfig2"):
+    def write(self, fn=None):
+        if fn is None:
+            fn = self.fn
         with open(fn, 'w') as mrfile:
             for n, commands in self.repos:
                 mrfile.write('[%s]\n'%n)
@@ -31,5 +36,5 @@ class MR:
 
 if __name__=='__main__':
     m = MR()
-    m.write()
-        
+    m.write(HOME + "/.mrconfig2")
+
