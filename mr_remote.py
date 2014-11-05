@@ -5,8 +5,7 @@ from collections import OrderedDict
 from git import get_remotes
 
 PATTERN = re.compile('\[([^\]]*)\]\s*(.*)$', re.DOTALL)
-PATTERN2 = re.compile('(\w+)\s*=([^=]*)\s*', re.DOTALL)
-PATTERN3 = re.compile('remote\.(\w+)\.url')
+PATTERN3 = re.compile('.*remote\.(\w+)\.url.*')
 
 TEMPLATE = 'git config --get remote.%(name)s.url || git remote add %(name)s %(url)s'
 
@@ -23,13 +22,31 @@ class MR:
                 name = result.group(1)
                 rest = result.group(2)
                 commands = OrderedDict()
-                for r2 in PATTERN2.findall(rest):
-                    commands[ r2[0] ] = r2[1].strip()
+                cn = None
+                cc = []
+                for line in rest.split('\n'):
+                    line = line.strip()
+                    if '=' in line:
+                        if cn is not None:
+                            commands[cn] = cc
+                        cn, _, l2 = line.partition('=')
+                        cn = cn.strip()
+                        l2=l2.strip()
+                        if len(l2)>0:
+                            cc = [l2.strip()]
+                        else:
+                            cc = []
+                    else:
+                        if len(line)>0:
+                            cc.append(line)
+                if cn is not None:
+                    commands[cn] = cc
+
                 self.repos[name] = commands
                 
     def check_remotes(self):
         for name, commands in self.repos.iteritems():
-            checkout = commands['checkout']
+            checkout = commands['checkout'][0]
             if 'git' not in checkout:
                 continue
             remotes = get_remotes(HOME + '/' + name)
@@ -40,17 +57,17 @@ class MR:
                 else:
                     print "ERROR: Origin not the checkout command for", name
                     continue
+                
+            new_remotes = []
+            old_remotes = commands.get('remote', [])
+            for line in old_remotes:
+                a = PATTERN3.match(line)
+                if a and a.group(1) in remotes:
+                    del remotes[a.group(1)]
+            new_remotes = old_remotes
+            
             if len(remotes)==0:
                 continue
-                
-            print commands
-            new_remotes = []
-            old_remotes = commands.get('remote', '')
-            for a in PATTERN3.findall(old_remotes):
-                if a in remotes:
-                    del remotes[a]
-            print old_remotes
-            new_remotes = filter(None, map(str.strip, old_remotes.split('\n')))
 
             print "==%s=="%name
             print remotes
@@ -61,11 +78,7 @@ class MR:
                     print "Adding %s"%remote
                     new_remotes.append(TEMPLATE % {'name': remote, 'url': remotes[remote]})
 
-            print new_remotes
-            if len(new_remotes)>1:
-                commands['remote'] = '\n    ' + '\n    '.join(new_remotes)
-            elif len(new_remotes)>0:
-                commands['remote'] = new_remotes[0]
+            commands['remote'] = new_remotes
               
             
     def write(self, fn=None):
@@ -74,8 +87,12 @@ class MR:
         with open(fn, 'w') as mrfile:
             for n, commands in self.repos.iteritems():
                 mrfile.write('[%s]\n'%n)
-                for name, command in commands.iteritems():
-                    mrfile.write('%s = %s\n'%(name, command))
+                for name, command_list in commands.iteritems():
+                    if len(command_list)==1:
+                        mrfile.write('%s = %s\n'%(name, command_list[0]))
+                    else:
+                        mrfile.write('%s = \n    ' %name + '\n    '.join(command_list))
+                        mrfile.write('\n')
                 mrfile.write('\n')
             
 
