@@ -9,3 +9,5 @@ alias groovy='source /opt/ros/groovy/setup.bash ; source /home/dlu/Catkin/groovy
 alias hydro='source /opt/ros/hydro/setup.bash   ; source /home/dlu/Catkin/hydro_nav/devel/setup.bash;  add_ros_path'
 alias swri='source /opt/ros/hydro/setup.bash    ; source /home/dlu/Catkin/swri/devel/setup.bash;       add_ros_path'
 alias nasa='source /opt/ros/hydro/setup.bash    ; source /home/dlu/Catkin/nasa/devel/setup.bash;       add_ros_path'
+alias locus='source /opt/ros/hydro/setup.bash   ; source /home/dlu/Catkin/locus/devel/setup.bash;      add_ros_path'
+
