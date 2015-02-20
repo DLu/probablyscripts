@@ -10,4 +10,10 @@ msg_gen
 *.aux
 *.tdo
 *.log
+*.bbl
+*.blg
+*.lof
+*.lot
+*.toc
+*old
 youtube_rss/.private
