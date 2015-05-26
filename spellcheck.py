@@ -26,6 +26,8 @@ for root, dirs, files in os.walk('.'):
                 mode = ['--mode=tex']
             elif 'html' in ftype or 'php' in ftype:
                 mode = ['--mode=html']
+            elif 'java' in ftype:
+                mode = ['--mode=ccpp']
             else:
                 mode = []
             subprocess.call(['aspell'] + mode + ['-x', '-c', full])
