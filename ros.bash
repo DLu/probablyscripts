@@ -11,5 +11,5 @@ alias swri='source /opt/ros/hydro/setup.bash    ; source /home/dlu/Catkin/swri/d
 alias nasa='source /opt/ros/hydro/setup.bash    ; source /home/dlu/Catkin/nasa/devel/setup.bash;       add_ros_path'
 alias locus='source /opt/ros/indigo/setup.bash   ; source /home/dlu/Catkin/locus/devel/setup.bash;      add_ros_path'
 alias skyskysky='source /opt/ros/hydro/setup.bash   ; source /home/dlu/Catkin/skyskysky/devel/setup.bash;      add_ros_path'
-
+alias indigo='source /opt/ros/indigo/setup.bash ; add_ros_path'
 
