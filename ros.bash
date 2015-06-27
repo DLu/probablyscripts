@@ -12,4 +12,4 @@ alias nasa='source /opt/ros/hydro/setup.bash    ; source /home/dlu/Catkin/nasa/d
 alias locus='source /opt/ros/indigo/setup.bash   ; source /home/dlu/Catkin/locus/devel/setup.bash;      add_ros_path'
 alias skyskysky='source /opt/ros/hydro/setup.bash   ; source /home/dlu/Catkin/skyskysky/devel/setup.bash;      add_ros_path'
 alias indigo='source /opt/ros/indigo/setup.bash ; add_ros_path'
-
+alias jadenav='source /opt/ros/jade/setup.bash   ; source /home/dlu/Catkin/jade_nav/devel/setup.bash;  add_ros_path'
