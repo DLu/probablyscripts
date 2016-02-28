@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 
 alias fucking_catkin='catkin_make -DCMAKE_BUILD_TYPE=Release ; if [ $? -eq 0 ]; then aplay /home/dlu/Sounds/smw_power-up.wav 2> /dev/null; else aplay /home/dlu/Sounds/smw_pipe.wav 2> /dev/null; fi'
+alias friggin_catkin='catkin build ; if [ $? -eq 0 ]; then aplay /home/dlu/Sounds/smw_power-up.wav 2> /dev/null; else aplay /home/dlu/Sounds/smw_pipe.wav 2> /dev/null; fi'
+alias asdf='catkin build --this; if [ $? -eq 0 ]; then aplay /home/dlu/Sounds/smw_power-up.wav 2> /dev/null; else aplay /home/dlu/Sounds/smw_pipe.wav 2> /dev/null; fi'
 alias list_plugins='rospack plugins --attrib=plugin '
-
+alias subup='git submodule update --recursive'
 alias add_ros_path='export ROS_PACKAGE_PATH=/home/dlu/ros:$ROS_PACKAGE_PATH'
 alias fuerte='source /opt/ros/fuerte/setup.bash ;                                                      add_ros_path'
 alias groovy='source /opt/ros/groovy/setup.bash ; source /home/dlu/Catkin/groovy_nav/devel/setup.bash; add_ros_path'
