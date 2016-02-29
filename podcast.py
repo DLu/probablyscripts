@@ -38,7 +38,7 @@ class YamlPodcast(Podcast):
                             self.data.get('description', ''),
                             self.data.get('image', ''))
 
-        self.basedir = os.path.dirname(self.filename)
+        self.basedir = os.path.dirname(os.path.abspath(self.filename))
         self.folder = self.data.get('folder', self.basedir)
         for ep in self.data.get('episodes', []):
             self.add_yaml_episode(ep)
@@ -57,7 +57,7 @@ class YamlPodcast(Podcast):
         st = os.stat(full_filename)
         os.chmod(full_filename, st.st_mode | stat.S_IROTH)
         ep = {'title': title, 'filename': filename,
-              'length': size, 'date': date}
+              'length': size, 'date': date, 'description': description}
         self.data['episodes'].append(ep)
         yaml.dump(self.data, open(self.filename, 'w'))
         self.add_yaml_episode(ep) 
