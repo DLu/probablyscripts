@@ -7,17 +7,19 @@ import stat
 DATE_FORMAT = '%a, %d %b %Y %H:%M:%S -0500'
 
 class Podcast(DefaultFeed):
-    def __init__(self, title, link, description, image=None, thumbnail=None):
+    def __init__(self, title, link, description, image=None, thumbnail=None, prefix=None):
         DefaultFeed.__init__(self, title=title, link=link, description=description)
         self.title = title
         self.link = link
         self.image = image
         self.thumbnail = thumbnail
+        self.prefix = prefix
 
     def add_episode(self, url, title, size, description='', date=None):
         if date is None:
             date = datetime.datetime.now()        
-            
+        if self.prefix is not None:
+            url = self.prefix + url.replace('http://', '')
         e = Enclosure(url, str(size), 'audio/mpeg')
         self.add_item(title=title, categories=['Podcasts'], link=self.link,
                       enclosure=e, description=description, pubdate=date)
@@ -52,7 +54,8 @@ class YamlPodcast(Podcast):
         Podcast.__init__(self, self.data['title'], self.data['link'], 
                             self.data.get('description', ''),
                             self.data.get('image', ''),
-                            self.data.get('thumbnail', ''))
+                            self.data.get('thumbnail', ''),
+                            self.data.get('prefix', None))
 
         self.basedir = os.path.dirname(os.path.abspath(self.filename))
         self.folder = self.data.get('folder', self.basedir)
