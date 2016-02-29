@@ -5,7 +5,7 @@ from podcast import YamlPodcast
 import youtube_dl
 from youtube_dl.postprocessor.ffmpeg import FFmpegExtractAudioPP
 from youtube_dl.utils import encodeFilename
-
+from mutagen.easyid3 import EasyID3
 import sys
 import os
 import urllib2
@@ -22,7 +22,8 @@ def download_file(url, out_folder):
     else:
         sm = m
     sm['ext'] = ext
-    return ydl.prepare_filename(sm), sm['title'], sm['description']
+    filename = ydl.prepare_filename(sm)
+    return filename.replace(out_folder + '/', ''), sm['title'], sm['description']
 
 
 def to_local_name(url):
@@ -45,12 +46,16 @@ def download_base_file(url, out_folder='.'):
 
 yaml = '/home/dlu/public_html/podcast/david_misc.yaml'
 files = []
+prompt = False
 for arg in sys.argv[1:]:
     if arg[-4:]=='yaml':
         yaml = arg
+    elif arg=='-p':
+        prompt = True        
     else:
         files.append(arg)
-        
+
+
 podcast = YamlPodcast(yaml)
 
 for arg in files:
@@ -65,8 +70,14 @@ for arg in files:
         filename = arg
         description = ''
     
-    if len(title) == 0:
+    if len(title)==0:
+        audio = EasyID3(podcast.folder + '/' + filename)
+        title = audio.get('title', '')[0]
+    
+    if len(title) == 0 or prompt:
         title = raw_input(filename + "? ")
+    if len(description)==0 or prompt:
+        description = raw_input('Description for %s? '%title)    
 
     if len(title) <= 1:
         title = os.path.splitext(filename)[0]
