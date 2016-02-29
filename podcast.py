@@ -7,9 +7,12 @@ import stat
 DATE_FORMAT = '%a, %d %b %Y %H:%M:%S -0500'
 
 class Podcast(DefaultFeed):
-    def __init__(self, title, link, description, image):
+    def __init__(self, title, link, description, image=None, thumbnail=None):
         DefaultFeed.__init__(self, title=title, link=link, description=description)
+        self.title = title
         self.link = link
+        self.image = image
+        self.thumbnail = thumbnail
 
     def add_episode(self, url, title, size, description='', date=None):
         if date is None:
@@ -28,6 +31,18 @@ class Podcast(DefaultFeed):
             D[w] = w + '\n'
         for a, b in D.iteritems():
             s = s.replace(a, b)
+        if self.image and len(self.image):
+            s = s.replace('<channel>', """<channel>
+<itunes:image href="%s" />
+"""%self.image)
+        if self.thumbnail and len(self.thumbnail):
+            s = s.replace('<channel>', """<channel>
+<image>
+ <url>%s</url>
+ <title>%s</title>
+ <link>%s</link>
+</image>"""%(self.thumbnail, self.title, self.link))
+
         return s
 
 class YamlPodcast(Podcast):
@@ -36,7 +51,8 @@ class YamlPodcast(Podcast):
         self.data = yaml.load(open(yaml_filename, 'r'))
         Podcast.__init__(self, self.data['title'], self.data['link'], 
                             self.data.get('description', ''),
-                            self.data.get('image', ''))
+                            self.data.get('image', ''),
+                            self.data.get('thumbnail', ''))
 
         self.basedir = os.path.dirname(os.path.abspath(self.filename))
         self.folder = self.data.get('folder', self.basedir)
