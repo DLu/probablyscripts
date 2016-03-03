@@ -6,6 +6,8 @@ alias gitst='git status .'
 alias gitdiff='git difftool -g -d'
 alias gitundo="git reset --soft 'HEAD^'"
 alias gitredo='git commit -c ORIG_HEAD'
+alias gitrecent='git for-each-ref --sort=-committerdate refs/heads/'
+alias superpush='git push -u origin `git rev-parse --abbrev-ref HEAD`'
 alias seas='ssh dvl1@ssh.seas.wustl.edu'
 alias seas2='ssh dvl1@ssh2.seas.wustl.edu'
 alias sshai='ssh cse511a@shell.cec.wustl.edu'
