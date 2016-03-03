@@ -43,6 +43,9 @@ class Podcast(DefaultFeed):
  <link>%s</link>
 </image>"""%(self.thumbnail, self.title, self.link))
 
+        if self.image and len(self.image):
+            s = s.replace('<rss ', '<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:itunesu="http://www.itunesu.com/feed" ')
+
         return s
 
 class YamlPodcast(Podcast):
