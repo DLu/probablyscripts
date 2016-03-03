@@ -71,8 +71,11 @@ for arg in files:
         description = ''
     
     if len(title)==0:
-        audio = EasyID3(podcast.folder + '/' + filename)
-        title = audio.get('title', '')[0]
+        try:
+            audio = EasyID3(podcast.folder + '/' + filename)
+            title = audio.get('title', [''])[0]
+        except:
+            None
     
     if len(title) == 0 or prompt:
         title = raw_input(filename + "? ")
