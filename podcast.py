@@ -15,13 +15,15 @@ class Podcast(DefaultFeed):
         self.thumbnail = thumbnail
         self.prefix = prefix
 
-    def add_episode(self, url, title, size, description='', date=None):
+    def add_episode(self, url, title, size, description='', date=None, link=None):
         if date is None:
             date = datetime.datetime.now()        
         if self.prefix is not None:
             url = self.prefix + url.replace('http://', '')
+        if link is None:
+            link = self.link
         e = Enclosure(url, str(size), 'audio/mpeg')
-        self.add_item(title=title, categories=['Podcasts'], link=self.link,
+        self.add_item(title=title, categories=['Podcasts'], link=link,
                       enclosure=e, description=description, pubdate=date)
 
     def __repr__(self):
@@ -45,6 +47,9 @@ class Podcast(DefaultFeed):
  <link>%s</link>
 </image>"""%(self.thumbnail, self.title, self.link))
 
+        if self.image and len(self.image):
+            s = s.replace('<rss ', '<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:itunesu="http://www.itunesu.com/feed" ')
+
         return s
 
 class YamlPodcast(Podcast):
@@ -66,7 +71,7 @@ class YamlPodcast(Podcast):
         date = datetime.datetime.strptime(ep['date'],DATE_FORMAT)
         url = self.link + '/' + ep['filename']
         Podcast.add_episode(self, url, ep['title'], ep['length'], 
-                            ep.get('description', ''), date)
+                            ep.get('description', ''), date, ep.get('link', self.link))
                                 
     def add_episode(self, title, filename, description=''):
         date = datetime.datetime.now().strftime(DATE_FORMAT)
