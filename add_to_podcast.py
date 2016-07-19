@@ -7,7 +7,7 @@ from youtube_dl.postprocessor.ffmpeg import FFmpegExtractAudioPP
 from youtube_dl.utils import encodeFilename
 from mutagen.easyid3 import EasyID3
 import sys
-import os
+import os, shutil
 import urllib2
 
 def download_file(url, out_folder):
@@ -51,12 +51,18 @@ for arg in sys.argv[1:]:
     if arg[-4:]=='yaml':
         yaml = arg
     elif arg=='-p':
-        prompt = True        
+        prompt = True
     else:
         files.append(arg)
 
 
 podcast = YamlPodcast(yaml)
+
+DOWNLOADS = '/home/dlu/Downloads/'
+dish = [x for x in os.listdir(DOWNLOADS) if 'The Unofficial Guide' in x]
+for f in dish:
+    shutil.move(DOWNLOADS + f, '/home/dlu/public_html/podcast/' + f)
+    files.append(f)
 
 for arg in files:
     title = ''
@@ -69,22 +75,22 @@ for arg in files:
     else:
         filename = arg
         description = ''
-    
+
     if len(title)==0:
         try:
             audio = EasyID3(podcast.folder + '/' + filename)
             title = audio.get('title', [''])[0]
         except:
             None
-    
+
     if len(title) == 0 or prompt:
         title = raw_input(filename + "? ")
     if len(description)==0 or prompt:
-        description = raw_input('Description for %s? '%title)    
+        description = raw_input('Description for %s? '%title)
 
     if len(title) <= 1:
         title = os.path.splitext(filename)[0]
-        
+
     podcast.add_episode(title, filename, description)
 
 podcast.write_to_file()
