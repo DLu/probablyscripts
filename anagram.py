@@ -6,6 +6,23 @@ import copy
 
 ALPHABET = 'abcdefghijklmnopqrstuvwxyz'
 
+class LetterSet:
+    def __init__(self, counts, words=[]):
+        self.counts = counts
+        self.words = words
+        self.letter_count = sum(counts.values())
+        
+    def __lt__(self, other):
+        if self.letter_count != other.letter_count:
+            return self.letter_count < other.letter_count
+        for letter in set(self.counts.keys() + other.counts.keys()):
+            a = self.counts[letter]
+            b = other.counts[letter]
+            if a != b:
+                return a < b
+        return None
+        
+
 def has_letter(letter, counts, pcount):
     return counts[letter] > pcount
 
@@ -17,18 +34,16 @@ def to_counts(s):
         counts[c] += 1
     return counts
 
-class Node:
+class Node(LetterSet):
     processed = 0
     total = 0
     last = None
 
     def __init__(self, state=collections.defaultdict(int)):
-        self.words = []
+        LetterSet.__init__(self, state)
         self.letter = None
         self.left = None
         self.right = None
-        self.state = state
-        self.word_length = 0
 
     def split(self, queue):
         if Node.total == 0:
@@ -37,7 +52,7 @@ class Node:
         best = 1.1
         bestL = 'a'
         for letter in ALPHABET:
-            pcount = self.state[letter]
+            pcount = self.counts[letter]
             c = 0
             for word, counts in queue:
                 if has_letter(letter, counts, pcount):
@@ -45,23 +60,25 @@ class Node:
             if c == 0:
                 continue
             r = c / float(len(queue))
-            if abs(r - .50) < best:
+            if False and r==1.0:
+                bestL = letter
+                break
+            elif abs(r - .50) < best:
                 best = abs(r - .5)
                 bestL = letter
-
+        print bestL, best
         self.letter = bestL
-        self.word_length = sum(self.state.values())
-        pcount = self.state[self.letter]
+        pcount = self.counts[self.letter]
         a = []
         b = []
         for word, counts in queue:
-            if len(word) == self.word_length:
+            if len(word) == self.letter_count:
                 self.words.append(word)
             elif has_letter(self.letter, counts, pcount):
                 a.append((word, counts))
             else:
                 b.append((word, counts))
-
+        print self.words, [x[0] for x in a], [x[0] for x in b]
         Node.processed += len(self.words)
         r = Node.processed / float(Node.total)
         s = '%.2f' % r
@@ -70,18 +87,18 @@ class Node:
             print '%d%% Complete' % (int(100 * r))
         
         if len(a) > 0:
-            lstate = copy.copy(self.state)
+            lstate = copy.copy(self.counts)
             lstate[self.letter] += 1
             self.left = Node(lstate)
             self.left.split(a)
         if len(b) > 0:
-            self.right = Node(self.state)
+            self.right = Node(self.counts)
             self.right.split(b)
 
     def get_anagrams(self, counts, state=collections.defaultdict(int), n=None):
         if n is None:
             n = sum(counts.values())
-        if n == self.word_length:
+        if n == self.letter_count:
             return self.words
         elif has_letter(self.letter, counts, state[self.letter]):
             state[self.letter] += 1
@@ -103,7 +120,7 @@ class Node:
                     return self.left.get_anagram_sets(c2)
             elif self.right:
                 return self.right.get_anagram_sets(counts)
-        else:
+        #else:
             
                 
 
@@ -124,7 +141,6 @@ if __name__=='__main__':
         if counts is not None:
             words.append((word.lower(), counts))
     print 'Dictionary Loaded'
-
     root = Node()
     root.split(words)
     print 'Dictionary Processed'
