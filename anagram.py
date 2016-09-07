@@ -7,9 +7,12 @@ import copy
 ALPHABET = 'abcdefghijklmnopqrstuvwxyz'
 
 class LetterSet:
-    def __init__(self, counts, words=[]):
+    def __init__(self, counts, words=None):
         self.counts = counts
-        self.words = words
+        if words is None:
+            self.words = []
+        else:
+            self.words = words
         self.letter_count = sum(counts.values())
         
     def __lt__(self, other):
@@ -66,7 +69,6 @@ class Node(LetterSet):
             elif abs(r - .50) < best:
                 best = abs(r - .5)
                 bestL = letter
-        print bestL, best
         self.letter = bestL
         pcount = self.counts[self.letter]
         a = []
@@ -78,7 +80,6 @@ class Node(LetterSet):
                 a.append((word, counts))
             else:
                 b.append((word, counts))
-        print self.words, [x[0] for x in a], [x[0] for x in b]
         Node.processed += len(self.words)
         r = Node.processed / float(Node.total)
         s = '%.2f' % r
@@ -114,7 +115,7 @@ class Node(LetterSet):
             return []
         if len(self.words)==0:
             if counts[self.letter]>0:
-                c2 = dict(counts)
+                c2 = copy.copy(counts)
                 c2[self.letter]-=1
                 if self.left:
                     return self.left.get_anagram_sets(c2)
@@ -145,4 +146,5 @@ if __name__=='__main__':
     root.split(words)
     print 'Dictionary Processed'
 
-    print root.get_anagrams(to_counts(' '.join(args.basis)))
+#    print root.get_anagrams(to_counts(' '.join(args.basis)))
+    print root.get_anagram_sets(to_counts(' '.join(args.basis)))
