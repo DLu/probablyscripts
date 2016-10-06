@@ -3,6 +3,8 @@
 alias fucking_catkin='catkin_make -DCMAKE_BUILD_TYPE=Release ; if [ $? -eq 0 ]; then aplay /home/dlu/Sounds/smw_power-up.wav 2> /dev/null; else aplay /home/dlu/Sounds/smw_pipe.wav 2> /dev/null; fi'
 alias friggin_catkin='catkin build ; if [ $? -eq 0 ]; then aplay /home/dlu/Sounds/smw_power-up.wav 2> /dev/null; else aplay /home/dlu/Sounds/smw_pipe.wav 2> /dev/null; fi'
 alias asdf='catkin build --this; if [ $? -eq 0 ]; then aplay /home/dlu/Sounds/smw_power-up.wav 2> /dev/null; else aplay /home/dlu/Sounds/smw_pipe.wav 2> /dev/null; fi'
+alias zxcv='catkin build --this --no-deps; if [ $? -eq 0 ]; then aplay /home/dlu/Sounds/smw_power-up.wav 2> /dev/null; else aplay /home/dlu/Sounds/smw_pipe.wav 2> /dev/null; fi'
+alias qwer='catkin build --this --no-deps --catkin-make-args run_tests; if [ $? -eq 0 ]; then aplay /home/dlu/Sounds/smw_power-up.wav 2> /dev/null; else aplay /home/dlu/Sounds/smw_pipe.wav 2> /dev/null; fi'
 alias list_plugins='rospack plugins --attrib=plugin '
 alias subup='git submodule update --recursive'
 alias add_ros_path='export ROS_PACKAGE_PATH=/home/dlu/ros:$ROS_PACKAGE_PATH'
