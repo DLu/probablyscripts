@@ -16,6 +16,7 @@ alias list_installed='dpkg --get-selections | grep -v deinstall | awk -F" " '"'"
 PS1="\[\e]2;\h | \w \a\]! \W/ > "
 
 alias ls='ls -h'
+alias check_size='du -hs'
 
 #PS1="! \W/ > "
 
