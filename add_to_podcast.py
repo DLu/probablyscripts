@@ -59,7 +59,7 @@ for arg in sys.argv[1:]:
 podcast = YamlPodcast(yaml)
 
 DOWNLOADS = '/home/dlu/Downloads/'
-dish = [x for x in os.listdir(DOWNLOADS) if 'The Unofficial Guide' in x]
+dish = [x for x in os.listdir(DOWNLOADS) if 'Disney Dish' in x]
 for f in dish:
     shutil.move(DOWNLOADS + f, '/home/dlu/public_html/podcast/' + f)
     files.append(f)
