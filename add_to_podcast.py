@@ -7,6 +7,7 @@ from youtube_dl.postprocessor.ffmpeg import FFmpegExtractAudioPP
 from youtube_dl.utils import encodeFilename
 from mutagen.easyid3 import EasyID3
 import sys
+import glob
 import os, shutil
 import urllib2
 
@@ -44,6 +45,20 @@ def download_base_file(url, out_folder='.'):
 
     return base, ''
 
+STATIC_PATTERNS = [
+    '/home/dlu/Desktop/*Disney Dish*mp3',
+    '/home/dlu/Desktop/Dropbox/Podcasts/*mp3'
+]
+
+def static_files():
+    files = []
+    for pattern in STATIC_PATTERNS:
+        for filename in glob.glob(pattern):
+            base = os.path.basename(filename)
+            shutil.move(filename, '/home/dlu/public_html/podcast/' + base)
+            files.append(base)
+    return files
+
 yaml = '/home/dlu/public_html/podcast/david_misc.yaml'
 files = []
 prompt = False
@@ -58,11 +73,7 @@ for arg in sys.argv[1:]:
 
 podcast = YamlPodcast(yaml)
 
-DOWNLOADS = '/home/dlu/Downloads/'
-dish = [x for x in os.listdir(DOWNLOADS) if 'Disney Dish' in x]
-for f in dish:
-    shutil.move(DOWNLOADS + f, '/home/dlu/public_html/podcast/' + f)
-    files.append(f)
+files += static_files()
 
 for arg in files:
     title = ''
