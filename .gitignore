@@ -17,3 +17,4 @@ msg_gen
 *.toc
 *old
 youtube_rss/.private
+.creds
