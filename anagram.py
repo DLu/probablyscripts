@@ -3,108 +3,91 @@
 import argparse
 import collections
 import copy
+import itertools
 
 ALPHABET = 'abcdefghijklmnopqrstuvwxyz'
 
-def count_cmp(c1, c2):
-    s1 = sum(c1.values())
-    s2 = sum(c2.values())
-    if s1 != s2:
-        #print count_str(c1), ';', count_str(c2), ';', s1, s2, s1<s2
-        return s1 < s2
-    for letter in sorted(set(c1.keys() + c2.keys())):
-        a = c1[letter]
-        b = c2[letter]
-        if a != b:
-            #print count_str(c1), '|', count_str(c2), '|', letter, a, b, a<b
-            return a < b
-    return None
-
-
-class LetterSet:
-    def __init__(self, counts, words=None):
-        self.counts = counts
-        if words is None:
+class Counts(collections.defaultdict):
+    def __init__(self, word=None):
+        collections.defaultdict.__init__(self, int)
+        if word is None:
             self.words = []
+            self.n = 0
         else:
-            self.words = words
-        self.letter_count = sum(counts.values())
+            self.words = [word]
+            for c in word.lower():
+                self[c] += 1
+            self.n = len(word)
+
+    def has_letter(self, letter, lcount):
+        return self[letter] > lcount
+
+    def subcopy(self, addons):
+        cpy = Counts()
+        for k,v in self.iteritems():
+            cpy[k]=v
+            cpy.n += v
+        for k,v in addons.iteritems():
+            cpy[k]-=v
+            cpy.n -= v
+        return cpy
+
+    def __repr__(self):
+        return ' '.join(['%s%d'%x for x in self.items() if x[1]>0])
 
     def __lt__(self, other):
-        if self.letter_count != other.letter_count:
-            return self.letter_count < other.letter_count
-        for letter in set(self.counts.keys() + other.counts.keys()):
-            a = self.counts[letter]
-            b = other.counts[letter]
+        s1 = self.n
+        s2 = other.n
+        if s1 != s2:
+            return s1 < s2
+        for letter in sorted(set(self.keys() + other.keys())):
+            a = self[letter]
+            b = other[letter]
             if a != b:
                 return a < b
         return None
 
-class AnagramTree:
-    def __init__(self, parent=None, words=None):
-        if words is None:
-            self.words = []
+def load_dictionary(filename):
+    words = {}
+    for word in open(filename, 'r').readlines():
+        word = word.strip().lower()
+        if len(word) == 0:
+            continue
+        if len(word)==1 and word not in 'ai':
+            continue
+        counts = Counts(word)
+        key = str(counts)
+        if key not in words:
+            words[key] = counts
         else:
-            self.words = words
-        self.children = []
-        self.parent = parent
+            words[key].words.append(word)
+    return words.values()
 
-    def valid_count(self, count):
-        if self.parent is None:
-            return True
-        c = to_counts(self.words[0])
-        if not count_cmp(count, c):
-            return False
-        return self.parent.valid_count(count)
-
-    def __repr__(self, depth=0):
-        s = ' ' * depth
-        if self.parent is None:
-            inc = 0
-        else:
-            s += str(self.words)
-            s += '\n'
-            inc = 1
-        for child in sorted(self.children, key=lambda d: -len(d.words[0])):
-            s += child.__repr__(depth+inc)
-        return s
-
-def has_letter(letter, counts, pcount):
-    return counts[letter] > pcount
-
-def to_counts(s):
-    counts = collections.defaultdict(int)
-    for c in s.lower():
-        if c not in ALPHABET:
-            return None
-        counts[c] += 1
-    return counts
-
-def count_str(counts):
-    return ' '.join(['%s%d'%x for x in counts.items() if x[1]>0])
-
-class Node(LetterSet):
+class LetterTree:
     processed = 0
     total = 0
     last = None
 
-    def __init__(self, state=collections.defaultdict(int)):
-        LetterSet.__init__(self, state)
+    def __init__(self, counts=None):
+        if counts is None:
+            self.counts =Counts()
+        else:
+            self.counts = counts
         self.letter = None
         self.left = None
         self.right = None
 
     def split(self, queue):
-        if Node.total == 0:
-            Node.total = len(queue)
+        if LetterTree.total == 0:
+            LetterTree.total = len(queue)
 
         best = 1.1
         bestL = 'a'
         for letter in ALPHABET:
             pcount = self.counts[letter]
             c = 0
-            for word, counts in queue:
-                if has_letter(letter, counts, pcount):
+            for counts in queue:
+                if counts.has_letter(letter, pcount):
                     c += 1
             if c == 0:
                 continue
@@ -119,86 +102,137 @@ class Node(LetterSet):
         pcount = self.counts[self.letter]
         a = []
         b = []
-        for word, counts in queue:
-            if len(word) == self.letter_count:
-                self.words.append(word)
-            elif has_letter(self.letter, counts, pcount):
-                a.append((word, counts))
+        for counts in queue:
+            if counts.n == self.counts.n:
+                self.counts.words += counts.words
+                LetterTree.processed += 1
+            elif counts.has_letter(self.letter, pcount):
+                a.append(counts)
             else:
-                b.append((word, counts))
-        Node.processed += len(self.words)
-        r = Node.processed / float(Node.total)
+                b.append(counts)
+        r = LetterTree.processed / float(LetterTree.total)
         s = '%.2f' % r
-        if s != Node.last:
-            Node.last = s
+        if s != LetterTree.last:
+            LetterTree.last = s
             print '%d%% Complete' % (int(100 * r))
 
         if len(a) > 0:
-            lstate = copy.copy(self.counts)
-            lstate[self.letter] += 1
-            self.left = Node(lstate)
+            lstate = self.counts.subcopy({self.letter: -1})
+            self.left = LetterTree(lstate)
             self.left.split(a)
         if len(b) > 0:
-            self.right = Node(self.counts)
+            self.right = LetterTree(self.counts)
             self.right.split(b)
 
-    def get_anagrams(self, counts, state=collections.defaultdict(int), n=None):
-        if n is None:
-            n = sum(counts.values())
-        if n == self.letter_count:
-            return self.words
-        elif has_letter(self.letter, counts, state[self.letter]):
-            state[self.letter] += 1
-            if self.left:
-                return self.left.get_anagrams(counts, state, n)
-        elif self.right:
-            return self.right.get_anagrams(counts, state, n)
-        return []
-
-    def get_anagram_sets(self, counts):
-        remaining_letters = sum(counts.values())
-        if remaining_letters == 0:
-            if len(self.words)>0:
-                return [self.words]
-            else:
-                return []
+    def get_anagram_sets(self, remaining):
         anagrams = []
-        if len(self.words)>0:
-            anagrams.append(self.words)
-        if counts[self.letter]>0 and self.left:
-            c2 = copy.copy(counts)
-            c2[self.letter]-=1
+        if len(self.counts.words)>0:
+            anagrams.append(self.counts)
+
+        if remaining.n == 0:
+            return anagrams
+
+        if remaining[self.letter]>0 and self.left:
+            c2 = remaining.subcopy({self.letter: 1})
             left_a = self.left.get_anagram_sets(c2)
-            if len(left_a)>0:
-                anagrams.extend(left_a)
+            anagrams += left_a
+
         if self.right:
-            right_a = self.right.get_anagram_sets(counts)
-            if len(right_a)>0:
-                anagrams.extend(right_a)
+            right_a = self.right.get_anagram_sets(remaining)
+            anagrams += right_a
+
         return anagrams
 
-    def get_multiword_anagram(self, counts, node=None, depth=0):
-        if node is None:
-            node = AnagramTree()
-        anagrams = self.get_anagram_sets(counts)
-        for i, words in enumerate(anagrams):
-            if depth<=0:
-                print ' '*depth + '%d/%d'%(i,len(anagrams))
-            child = AnagramTree(parent=node, words=words)
-            word = words[0]
-            pc = to_counts(word)
-            c2 = copy.copy(counts)
-            for l,c in pc.iteritems():
-                c2[l] -= c
-            valid = node.valid_count(pc)
-            if not valid:
+
+def get_anagrams(base_count, root):
+    node = root
+    state = collections.defaultdict(int)
+    while node:
+        if node.counts.n == base_count.n:
+            return node.counts.words
+        elif base_count.has_letter(node.letter, state[node.letter]):
+            state[node.letter] += 1
+            node = node.left
+        else:
+            node = node.right
+    return []
+
+class AnagramTree:
+    def __init__(self, parent=None, counts=None):
+        self.counts = counts
+        self.children = []
+        self.parent = parent
+
+    def valid_count(self, count):
+        if self.parent is None:
+            return True
+        if self.counts < count:
+            return False
+        return self.parent.valid_count(count)
+
+    def __repr__(self, depth=0):
+        s = ' ' * depth
+        if self.parent is None:
+            inc = 0
+        else:
+            s += str(self.counts.words)
+            s += '\n'
+            inc = 1
+        for child in sorted(self.children, key=lambda d: d.counts):
+            s += child.__repr__(depth+inc)
+        return s
+
+    def get_multiword_anagram(self, count, root, depth=0):
+        anagrams = root.get_anagram_sets(count)
+        for i, count_x in enumerate(anagrams):
+            if not self.valid_count(count_x):
                 continue
-            res = self.get_multiword_anagram(c2, child, depth=depth+1)
+            if depth==0:
+                print ' '*depth + '%d/%d'%(i,len(anagrams))
+            child = AnagramTree(parent=self, counts=count_x)
+            c2 = count.subcopy(count_x)
+            res = child.get_multiword_anagram(c2, root, depth=depth+1)
             if res:
-                node.children.append(res)
-        if sum(counts.values())>0 and len(node.children)==0:
+                self.children.append(res)
+        if sum(count.values())>0 and len(self.children)==0:
             return None
-        return node
+        return self
+
+    def flatten(self, parents=None):
+        if parents is None:
+            if self.counts:
+                parents = [self.counts]
+            else:
+                parents = []
+        else:
+            parents = parents + [self.counts]
+        results = []
+        if len(self.children)==0:
+            results.append(parents)
+        else:
+            for child in self.children:
+                if child is None:
+                    continue
+                results += child.flatten(parents)
+
+        return results
+
+def get_multiword_anagram(counts, root):
+    node = AnagramTree()
+    node.get_multiword_anagram(counts, root)
+    return node
+
+def all_variations(tree):
+    results = []
+    for row in tree.flatten():
+        sub = []
+        for count in row:
+            if len(sub)==0:
+                sub = count.words
+            else:
+                sub = list(itertools.product(sub, count.words))
+        results += sub
+    return results
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser()
@@ -209,28 +243,25 @@ if __name__=='__main__':
     parser.add_argument('-m', '--multi', action='store_true')
     args = parser.parse_args()
 
-    words = []
+    basis = ''.join(args.basis)
+    base_count = Counts(basis)
+    print basis, base_count
 
-    for word in open(args.dictionary, 'r').readlines():
-        word = word.strip()
-        if len(word) == 0:
-            continue
-        if len(word)==1 and word not in 'ai':
-            continue
-        counts = to_counts(word)
-        if counts is not None:
-            words.append((word.lower(), counts))
+    dictionary = load_dictionary(args.dictionary)
+
     print 'Dictionary Loaded'
-    root = Node()
-    root.split(words)
+    root = LetterTree()
+    root.split(dictionary)
     print 'Dictionary Processed'
 
-    counts = to_counts(' '.join(args.basis))
     if args.single:
-        print root.get_anagrams(counts)
+        print get_anagrams(base_count, root)
     if args.sub:
-        print root.get_anagram_sets(counts)
+        sets = root.get_anagram_sets(base_count)
+        for counts in sorted(sets):
+            print counts.words
 
     if args.multi:
-        tree = root.get_multiword_anagram(counts)
-        print tree
+        tree = get_multiword_anagram(base_count, root)
+        for x in sorted(all_variations(tree), key=lambda d: sum([pow(len(x),2) for x in d])):
+            print x
