@@ -1,5 +1,7 @@
 #!/usr/bin/python
 import subprocess
+import collections
+import os.path
 
 def GetHumanReadable(size,precision=2):
     suffixes=['B','KB','MB','GB','TB']
@@ -19,18 +21,24 @@ for line in subprocess.check_output('git rev-list --objects --all | sort -k 2', 
     parts = line.split(' ')
     if len(parts)==1:
         continue
-    sha, name = line.split(' ')
+    sha, _, name = line.partition(' ')
     SHAS[sha] = name
 
+FileTypes = collections.defaultdict(int)
 
 for line in subprocess.check_output('git gc 2> /dev/null && git verify-pack -v .git/objects/pack/pack-*.idx 2> /dev/null | egrep "^\w+ blob\W+[0-9]+ [0-9]+ [0-9]+$" | sort -k 3 -n -r  ', shell=True).split('\n'):
     parts = line.split(' ')
     if len(parts)<4:
         continue
     sha = parts[0]
-    size = parts[4]
+    size = int(parts[4])
     if sha not in SHAS:
         continue
-    print '%10s %s'%(GetHumanReadable(int(size), 1), SHAS[sha])
+    print '%10s %s'%(GetHumanReadable(size, 1), SHAS[sha])
+    ft = os.path.splitext(SHAS[sha])[-1]
+    FileTypes[ft]+=size
+print
+for ft, size in sorted(FileTypes.items(), key=lambda x: x[1], reverse=True):
+    print '%10s %s'%(GetHumanReadable(int(size), 1),ft)
 
 #print SIZES
