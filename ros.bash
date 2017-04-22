@@ -19,3 +19,4 @@ alias indigo='source /opt/ros/indigo/setup.bash ; add_ros_path'
 alias jadenav='source /opt/ros/jade/setup.bash   ; source /home/dlu/Catkin/jade_nav/devel/setup.bash;  add_ros_path'
 
 alias rosdebug="rosrun --prefix 'gdb -ex run --args' "
+alias rosprofile="rosrun --prefix 'valgrind --tool=callgrind' "
