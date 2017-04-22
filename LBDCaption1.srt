@@ -1,6 +1,6 @@
 1
 00:00:00,040 --> 00:00:03,050
-Lizzie: It is truth universally acknowledged that a single man 
+Lizzie: It is truth universally acknowledged that a single man
 
 2
 00:00:03,050 --> 00:00:06,460
@@ -24,8 +24,8 @@ I have yet to wear it...
 
 7
 00:00:15,700 --> 00:00:18,600
-Who am I? I'm a 24 year old grad student with 
-a mountain of student loans, 
+Who am I? I'm a 24 year old grad student with
+a mountain of student loans,
 
 8
 00:00:18,600 --> 00:00:20,700
@@ -46,12 +46,12 @@ Written by Bernie Su
 
 12
 00:00:30,680 --> 00:00:34,500
-So my Mom belongs to a class of parents 
+So my Mom belongs to a class of parents
 I like to call the 2.5 WPF Club.
 
 13
 00:00:34,500 --> 00:00:38,699
-What's the 2.5 WPF Club? It stands for a home with 2.5 kids 
+What's the 2.5 WPF Club? It stands for a home with 2.5 kids
 
 14
 00:00:38,699 --> 00:00:41,700
@@ -64,7 +64,7 @@ But it's really annoying when it's all your mom talks about 24/7.
 
 16
 00:00:45,600 --> 00:00:49,600
-Not only is my mom a member of the 2.5 WPF club, 
+Not only is my mom a member of the 2.5 WPF club,
 she's probably the president.
 
 17
@@ -78,12 +78,12 @@ Universal Truth, really?
 
 19
 00:00:55,000 --> 00:01:00,500
-I'm sure there are a great number of rich, young, 
+I'm sure there are a great number of rich, young,
 single men who aren't looking for wives.
 
 20
 00:01:00,500 --> 00:01:02,600
-In fact, let's examine the percentages. 
+In fact, let's examine the percentages.
 
 21
 00:01:02,600 --> 00:01:04,200
@@ -91,7 +91,7 @@ Sleezeballs and scumbags,
 
 22
 00:01:04,200 --> 00:01:07,000
-Incapable of escaping current dead-end relationships, 
+Incapable of escaping current dead-end relationships,
 
 23
 00:01:07,000 --> 00:01:09,100
@@ -99,12 +99,12 @@ sailing around the world trying to find themselves,
 
 24
 00:01:09,100 --> 00:01:13,500
-focusing on work, or skills, or hobbies, or whatever it is 
+focusing on work, or skills, or hobbies, or whatever it is
 that rich guys do when they're young.
 
 25
 00:01:13,500 --> 00:01:18,650
-But no. According to mother, every rich, single guy is 
+But no. According to mother, every rich, single guy is
 put on this planet to impregnate her daughters.
 
 26
@@ -117,7 +117,7 @@ Charlotte: What are you doing?
 
 28
 00:01:23,100 --> 00:01:25,980
-Lizzie: This is my friend Charlotte, and 
+Lizzie: This is my friend Charlotte, and
 she's going to help me with this demo.
 
 29
@@ -127,18 +127,18 @@ Lizzie: Here, okay, your lines.
 
 30
 00:01:29,650 --> 00:01:31,600
-Charlotte: Who wrote this? 
+Charlotte: Who wrote this?
 Lizzie: Shakespeare.
 
 31
 00:01:31,600 --> 00:01:36,150
-Honey! did you hear the house in 
+Honey! did you hear the house in
 Netherfield sold the other day?
 
 32
 00:01:36,150 --> 00:01:39,100
 Charlotte: Did it now?
-Lizzie: The large mansion with the white picket fence and 
+Lizzie: The large mansion with the white picket fence and
 
 33
 00:01:39,100 --> 00:01:42,750
@@ -147,7 +147,7 @@ Charlotte: Mmmhmm
 
 34
 00:01:42,750 --> 00:01:50,200
-Lizzie: Emily Lu told me. She said the deal was for three million 
+Lizzie: Emily Lu told me. She said the deal was for three million
 dollars! But it's not the price that matters, but who bought it.
 
 35
@@ -156,12 +156,12 @@ Charlotte: As you say, my dear.
 
 36
 00:01:52,000 --> 00:01:56,369
-Lizzie: He's a well-mannered young man 
-from Harvard, working to become a doctor. 
+Lizzie: He's a well-mannered young man
+from Harvard, working to become a doctor.
 
 37
 00:01:56,369 --> 00:02:00,500
-I hear his family has quite the fortune. How perfect for our girls! 
+I hear his family has quite the fortune. How perfect for our girls!
 
 38
 00:02:00,500 --> 00:02:02,100
@@ -169,12 +169,12 @@ Charlotte: How so?
 
 39
 00:02:02,100 --> 00:02:06,050
-Lizzie: Oh my dear husband! Can't you 
+Lizzie: Oh my dear husband! Can't you
 imagine him with one of our daughters?
 
 40
 00:02:06,050 --> 00:02:09,400
-Charlotte: I find that rather difficult, 
+Charlotte: I find that rather difficult,
 since I have yet to meet this young man.
 
 41
@@ -184,22 +184,22 @@ Welcome him to the neighborhood.
 
 42
 00:02:13,049 --> 00:02:23,000
-I will bake a pie. Let him know about our three eligible 
+I will bake a pie. Let him know about our three eligible
 young daughters who are in desperate need of a rich, single man.
 
 43
 00:02:23,000 --> 00:02:27,700
-Look, I'm all for rich, single guys, but who 
+Look, I'm all for rich, single guys, but who
 is my mom to tell one of us who to marry?
 
 44
 00:02:27,700 --> 00:02:31,500
-What if he's gay? What if he's a serial killer? 
+What if he's gay? What if he's a serial killer?
 What if he's a gay serial killer?
 
 45
 00:02:31,500 --> 00:02:33,000
-I've got other things to worry about. 
+I've got other things to worry about.
 
 46
 00:02:33,000 --> 00:02:38,000
@@ -207,7 +207,7 @@ It's not like we're all going to put our lives on hold because some rich single 
 
 47
 00:02:38,000 --> 00:02:41,300
-Lydia: Lizzie! Did mom tell you about who just 
+Lydia: Lizzie! Did mom tell you about who just
 bought that mansion in Netherfield?
 
 48
@@ -228,7 +228,7 @@ Everyone this is my sister, Lydia.
 
 52
 00:02:50,139 --> 00:02:58,000
-Lydia: Anyway, so this guy, his name is Bing Lee, 
+Lydia: Anyway, so this guy, his name is Bing Lee,
 and he is rich, hot, annndd...
 
 53

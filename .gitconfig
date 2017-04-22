@@ -1,15 +1,15 @@
 [user]
-	name = David V. Lu
-	email = davidvlu@gmail.com
+  name = David V. Lu
+  email = davidvlu@gmail.com
 [core]
-	excludesfile = /home/dlu/.gitignore
+  excludesfile = /home/dlu/.gitignore
 [credential]
-	helper = cache --timeout=3600
+  helper = cache --timeout=3600
 [push]
-	default = simple
+  default = simple
 
 [url "git@github.com:"]
-  insteadOf = https://github.com/ 
+  insteadOf = https://github.com/
 
-[url "git@github.com:"]                                                                                        
-  insteadOf = git://github.com/                                                                                
+[url "git@github.com:"]
+  insteadOf = git://github.com/

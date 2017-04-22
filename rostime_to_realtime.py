@@ -12,7 +12,7 @@ def cb(msg):
     if s!=last:
         last = s
         print last
-        
+
 rospy.init_node('clock_watcher')
 sub = rospy.Subscriber('/clock', Clock, cb)
 rospy.spin()

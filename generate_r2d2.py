@@ -10,8 +10,8 @@ class BeepGenerator:
     def __init__(self, rate=22050):
         self.rate = rate
         self.data = []
-        
-    def add_beep(self, freq, length, amplitude=30000, 
+
+    def add_beep(self, freq, length, amplitude=30000,
                     attack=.2, decay=.1, silence=.1):
         N = self.rate * length
         wave = self.rate / freq
@@ -57,13 +57,13 @@ class BeepGenerator:
 
             self.data.append(amp * sin(x))
         self.data += [0] * int(silence * N)
-        
+
     def finish(self, filename=None, plot=False):
         if plot:
             pylab.plot(self.data)
             pylab.grid(True)
             pylab.show()
-        
+
         if filename:
             data = numpy.array([numpy.int16(x) for x in self.data])
             scipy.io.wavfile.write(filename, self.rate, data)

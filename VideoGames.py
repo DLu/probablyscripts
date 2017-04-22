@@ -21,20 +21,20 @@ def grab(url):
 def get_game(url):
     try:
         content = grab(url)
-        m = TITLE_PATTERN.search(content)    
+        m = TITLE_PATTERN.search(content)
         title = m.group(1)
-        
+
         folder = '/home/dlu/Music/Video Games/%s'%title
         if not os.path.exists(folder):
             os.mkdir(folder)
-        
+
         m2 = TRACK_PATTERN.findall(content)
         for url, name in m2:
             track_page = grab(url)
             m3 = DOWNLOAD_PATTERN.search(track_page)
-            
+
             mp3 = m3.group(1)
-            
+
             with open( os.path.join(folder, name), 'w' ) as f:
                 f.write( grab(mp3) )
     except urllib2.URLError as e:
@@ -44,5 +44,5 @@ parser = argparse.ArgumentParser()
 parser.add_argument('url', nargs='+')
 args = parser.parse_args()
 
-for url in args.url:       
+for url in args.url:
     get_game(url)

@@ -43,7 +43,7 @@ class MR:
                     commands[cn] = cc
 
                 self.repos[name] = commands
-                
+
     def check_remotes(self):
         for name, commands in self.repos.iteritems():
             checkout = commands['checkout'][0]
@@ -57,7 +57,7 @@ class MR:
                 else:
                     print "ERROR: Origin not the checkout command for", name
                     continue
-                
+
             new_remotes = []
             old_remotes = commands.get('remote', [])
             for line in old_remotes:
@@ -65,13 +65,13 @@ class MR:
                 if a and a.group(1) in remotes:
                     del remotes[a.group(1)]
             new_remotes = old_remotes
-            
+
             if len(remotes)==0:
                 continue
 
             print "==%s=="%name
             print remotes
-            
+
             for remote in remotes:
                 x = raw_input(remote + "?")
                 if 'a' in x:
@@ -79,8 +79,8 @@ class MR:
                     new_remotes.append(TEMPLATE % {'name': remote, 'url': remotes[remote]})
 
             commands['remote'] = new_remotes
-              
-            
+
+
     def write(self, fn=None):
         if fn is None:
             fn = self.fn
@@ -94,7 +94,7 @@ class MR:
                         mrfile.write('%s = \n    ' %name + '\n    '.join(command_list))
                         mrfile.write('\n')
                 mrfile.write('\n')
-            
+
 
 
 if __name__=='__main__':

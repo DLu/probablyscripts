@@ -17,7 +17,7 @@ class Podcast(DefaultFeed):
 
     def add_episode(self, url, title, size, description='', date=None, link=None):
         if date is None:
-            date = datetime.datetime.now()        
+            date = datetime.datetime.now()
         if self.prefix is not None:
             url = self.prefix + url.replace('http://', '')
         if link is None:
@@ -56,7 +56,7 @@ class YamlPodcast(Podcast):
     def __init__(self, yaml_filename):
         self.filename = yaml_filename
         self.data = yaml.load(open(yaml_filename, 'r'))
-        Podcast.__init__(self, self.data['title'], self.data['link'], 
+        Podcast.__init__(self, self.data['title'], self.data['link'],
                             self.data.get('description', ''),
                             self.data.get('image', ''),
                             self.data.get('thumbnail', ''),
@@ -66,13 +66,13 @@ class YamlPodcast(Podcast):
         self.folder = self.data.get('folder', self.basedir)
         for ep in self.data.get('episodes', []):
             self.add_yaml_episode(ep)
-            
-    def add_yaml_episode(self, ep):        
+
+    def add_yaml_episode(self, ep):
         date = datetime.datetime.strptime(ep['date'],DATE_FORMAT)
         url = self.link + '/' + ep['filename']
-        Podcast.add_episode(self, url, ep['title'], ep['length'], 
+        Podcast.add_episode(self, url, ep['title'], ep['length'],
                             ep.get('description', ''), date, ep.get('link', self.link))
-                                
+
     def add_episode(self, title, filename, description=''):
         date = datetime.datetime.now().strftime(DATE_FORMAT)
         full_filename = os.path.join(self.folder, filename)
@@ -84,13 +84,13 @@ class YamlPodcast(Podcast):
               'length': size, 'date': date, 'description': description}
         self.data['episodes'].append(ep)
         yaml.dump(self.data, open(self.filename, 'w'))
-        self.add_yaml_episode(ep) 
-        
+        self.add_yaml_episode(ep)
+
     def check_files(self):
-        for item in self.data.get('episodes', []):    
+        for item in self.data.get('episodes', []):
             if not os.path.exists(to_local_name(item['filename'])):
                 print item['filename']
-                
+
     def write_to_file(self):
         filename = os.path.join( self.folder, self.data.get('output_fn', 'podcast.xml') )
         with open(filename, 'w') as f:

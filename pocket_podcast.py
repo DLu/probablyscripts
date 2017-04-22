@@ -28,14 +28,14 @@ class NPR:
     URL_PATT = re.compile('npr\.org')
     T_PAT = re.compile('<title>(.*)</title>')
     M_PAT = re.compile('<li class="audio-tool audio-tool-download">\s*<a href="([^"]*)"')
-    
+
 class WBUR:
     URL_PATT = re.compile('wbur\.org')
     T_PAT = re.compile('<title>(.*)</title>')
     M_PAT = re.compile('<a href="([^"]*)" class="article-audio-dl" title="Download the audio"')
-    
+
 PATTERNS = [NPR, WBUR]
-    
+
 yaml = '/home/dlu/public_html/podcast/david_misc.yaml'
 
 podcast = YamlPodcast(yaml)
@@ -57,7 +57,7 @@ for key, entry in retrieve(config, verbose=True).iteritems():
             m = pattern.M_PAT.search(page)
             if not m:
                 continue
-            
+
             fn = download_base_file(m.group(1))
             m2 = pattern.T_PAT.search(page)
             if m2:

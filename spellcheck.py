@@ -10,7 +10,7 @@ for root, dirs, files in os.walk('.'):
             continue
         full = root + '/' + fn
         ftype = mimetypes.guess_type(full)[0]
-        
+
         if not ftype or not ('text' in ftype or 'x-httpd-php' in ftype):
             print ftype
             continue

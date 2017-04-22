@@ -43,7 +43,7 @@ class Subscription:
 
     def __lt__(self, other):
         return self.date < other.date
-        
+
     def __repr__(self):
         return self.name
 
@@ -95,7 +95,7 @@ class Youtube:
                 if name not in seen:
                     entries.append(s)
                     seen.add(name)
-                
+
 
                 if limit is not None and len(entries) >= limit:
                     return entries
