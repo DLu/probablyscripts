@@ -15,7 +15,7 @@ alias cec='ssh dlu@shell.cec.wustl.edu'
 alias list_installed='dpkg --get-selections | grep -v deinstall | awk -F" " '"'"'{ print $1 }'"'"' | grep'
 PS1="\[\e]2;\h | \w \a\]! \W/ > "
 
-alias ls='ls -h'
+alias ls='ls -h --color=auto'
 alias check_size='du -hs'
 
 #PS1="! \W/ > "

@@ -19,7 +19,7 @@ for proc in psutil.process_iter():
         D[proc.name] += 1
     elif key in proc.name:
         print "Killing: %s" % proc.name, ' '.join(proc.cmdline)
-        proc.kill()
+        proc.terminate()
 
 s = ''
 for name, count in sorted(D.items(), key=lambda x: (-x[1], x[0])):
