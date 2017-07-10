@@ -15,9 +15,11 @@ output, err = p.communicate()
 tally = collections.defaultdict(int)
 
 last_filename = ''
+c = 0
 for line in err.split('\n'):
     if 'Done processing' in line:
-        print
+        if c > 0:
+            print
         continue
     line = line.strip()
 
@@ -27,11 +29,13 @@ for line in err.split('\n'):
         filename = filename.replace(pwd, '')
         if last_filename != filename:
             print filename
+            c = 0
             last_filename = filename
         line_no = int(line_no)
         n = int(n)
         msg = msg.strip()
         print 'Line %4d %-25s(%d) %s' % (line_no, cat, n, msg)
+        c += 1
         tally[cat] += 1
 
 for cat, count in sorted(tally.items(), key=lambda g: g[1]):
