@@ -4,6 +4,7 @@ import os
 import re
 import argparse
 import rospkg
+import subprocess
 
 rp = rospkg.RosPack()
 
@@ -43,6 +44,15 @@ for package in args.packages:
     if os.path.exists(i_path) and i_path not in includes:
         print 'Adding %s...' % i_path
         includes.append(i_path)
+
+try:
+    DEVEL = subprocess.check_output(['catkin', 'locate', '-d']).strip()
+    d_path = os.path.join(DEVEL, 'include')
+    if os.path.exists(d_path) and d_path not in includes:
+        print 'Adding %s...' % d_path
+        includes.append(d_path)
+except:
+    None
 
 include_strings = ['']
 for line in includes:
