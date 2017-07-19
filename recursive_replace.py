@@ -10,6 +10,8 @@ parser.add_argument('replacement', nargs='?')
 args = parser.parse_args()
 print args
 for path, folders, files in os.walk('.'):
+    if '.git' in path:
+        continue
     for file in files:
         full_path = os.path.join(path, file)
         s = open(full_path).read()

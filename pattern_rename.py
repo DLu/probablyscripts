@@ -13,6 +13,8 @@ parser.add_argument('-g', '--git', action='store_true')
 args = parser.parse_args()
 print args
 for path, folders, files in os.walk('.'):
+    if '.git' in path:
+        continue
     for file in files + folders:
         if args.needle not in file:
             continue
