@@ -6,9 +6,11 @@ import os
 import collections
 
 pwd = os.environ['PWD']
-PATTERN = re.compile('\[[^\]]*\] ([^:]+):(\d+):(.*) \[(.*)\] \[(.*)\]')
+PATTERN = re.compile('\[[^\]]*\] ([^:]+):(\d+):(.*)')
+CPP_PATTERN = re.compile('(.*) \[(.*)\] \[(.*)\]')
+PY_PATTERN = re.compile('\d+: (\w+) (.*)')
 
-p = subprocess.Popen(['catkin', 'build', '-v', '-i', '--this', '--no-deps', '--catkin-make-args', 'roslint'],
+p = subprocess.Popen(['catkin', 'build', '-v', '-i', '--this', '-j', '1', '--no-deps', '--catkin-make-args', 'roslint'],
                      stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 output, err = p.communicate()
 
@@ -16,27 +18,40 @@ tally = collections.defaultdict(int)
 
 last_filename = ''
 c = 0
-for line in err.split('\n'):
+for line in re.split('\r|\n', output + err):
     if 'Done processing' in line:
         if c > 0:
             print
+        c = 0
         continue
     line = line.strip()
 
     m = PATTERN.match(line)
+    if not m:
+        continue
+
+    filename, line_no, msg = m.groups()
+    filename = filename.replace(pwd, '')
+    if last_filename != filename:
+        print filename
+        c = 0
+        last_filename = filename
+    line_no = int(line_no)
+
+    m = CPP_PATTERN.match(msg)
     if m:
-        filename, line_no, msg, cat, n = m.groups()
-        filename = filename.replace(pwd, '')
-        if last_filename != filename:
-            print filename
-            c = 0
-            last_filename = filename
-        line_no = int(line_no)
+        msg, cat, n = m.groups()
         n = int(n)
         msg = msg.strip()
         print 'Line %4d %-25s(%d) %s' % (line_no, cat, n, msg)
-        c += 1
-        tally[cat] += 1
+    else:
+        m = PY_PATTERN.match(msg)
+        if not m:
+            continue
+        cat, msg = m.groups()
+        print 'Line %4d %-25s %s' % (line_no, cat, msg)
+    c += 1
+    tally[cat] += 1
 
 for cat, count in sorted(tally.items(), key=lambda g: g[1]):
     print cat, count
