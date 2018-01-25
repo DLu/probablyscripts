@@ -4,6 +4,7 @@ alias fucking_catkin='catkin_make -DCMAKE_BUILD_TYPE=Release ; success_sound'
 alias friggin_catkin='catkin build ; success_sound'
 alias asdf='catkin build --this; success_sound'
 alias zxcv='catkin build --this --no-deps; success_sound'
+alias qwe='catkin build --this --no-deps --catkin-make-args run_tests; success_sound'
 alias qwer='ros_test; success_sound'
 alias list_plugins='rospack plugins --attrib=plugin '
 alias subup='git submodule update --recursive'
@@ -22,4 +23,5 @@ alias rosdebug="rosrun --prefix 'gdb -ex run --args' "
 alias rosprofile="rosrun --prefix 'valgrind --tool=callgrind' "
 alias rosmemcheck="rosrun --prefix 'valgrind --tool=memcheck' "
 alias cpp_style="find -regextype egrep -regex '.*\.[ch](pp)?$' -exec astyle '{}' --style=allman --indent=spaces=2 --pad-oper --unpad-paren --pad-header --convert-tabs -n \;"
+alias cpp_style_check="find -regextype egrep -regex '.*\.[ch](pp)?$' -exec rosrun roslint cpplint '{}' \; 2>&1 | grep -v 'Total errors' | grep -v 'Done processing'"
 alias install_deps="rosdep install --ignore-src -y -r --from-paths "

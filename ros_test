@@ -2,8 +2,11 @@
 
 import subprocess
 import re
+import os
+from xml.dom import minidom
 
-PATTERN = re.compile('\\x1b\[36mRunning tests...\r\n\\x1b\[0m[^\n]+\n(.*Total Test time \(real\) = [^\n]+\n)',
+PATTERN = re.compile('\\x1b\[36mRunning tests...\\x1b[0m\r\n\\x1b\[0m[^\n]+\n(.*Total Test time \(real\) = [^\n]+\n)'
+                     '.*CATKIN_TEST_RESULTS_DIR=([^\s]+)\s',
                      re.DOTALL
                      )
 
@@ -13,10 +16,26 @@ if ret != 0:
 
 p = subprocess.Popen(['catkin', 'test', '--this', '--no-deps'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 output, err = p.communicate()
-#output = subprocess.check_output()
+
 m = PATTERN.search(output)
 if not m:
     print repr(output)
     exit(0)
 print m.group(1)
+test_dir = m.group(2)
+
+for folder in os.listdir(test_dir):
+    full_folder = os.path.join(test_dir, folder)
+    for filename in os.listdir(full_folder):
+        full_filename = os.path.join(full_folder, filename)
+        xmldoc = minidom.parse(full_filename)
+        for case in xmldoc.getElementsByTagName('testcase'):
+            failures = case.getElementsByTagName('failure')
+            if len(failures) > 0:
+                for failure in failures:
+                    try:
+                        print failure.attributes['message'].value
+                    except:
+                        print failure.toxml()
+
 exit(p.returncode)
