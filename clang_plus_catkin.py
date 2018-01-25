@@ -6,12 +6,20 @@ import argparse
 import rospkg
 import subprocess
 
+def my_sort_fne(path):
+    if '/opt/ros' in path:
+        return 2, path
+    elif '/devel/include' in path:
+        return 1, path
+    return 0, path
+
+
 rp = rospkg.RosPack()
 
 INCLUDE_PATTERN = re.compile('clangIncludePaths: \[([^\]]+)\]', re.DOTALL)
 
 parser = argparse.ArgumentParser()
-parser.add_argument('packages', metavar='package', nargs='+')
+parser.add_argument('packages', metavar='package', nargs='*')
 parser.add_argument('-t', '--test', action='store_true')
 args = parser.parse_args()
 
@@ -55,7 +63,7 @@ except:
     None
 
 include_strings = ['']
-for line in includes:
+for line in sorted(includes, key=my_sort_fne):
     include_strings.append(' ' * indent + '"' + line + '"')
 include_strings.append(lines[-1])
 
