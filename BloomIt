@@ -6,7 +6,15 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('repo')
 parser.add_argument('distro')
+parser.add_argument('--edit', action='store_true')
+parser.add_argument('--new-track', action='store_true')
 
 args = parser.parse_args()
 
-subprocess.call(['bloom-release', args.repo, '--track', args.distro, '--rosdistro', args.distro])
+cmd = ['bloom-release', args.repo, '--track', args.distro, '--rosdistro', args.distro]
+if args.edit:
+    cmd.append('--edit')
+if args.new_track:
+    cmd.append('--new-track')
+
+subprocess.call(cmd)
