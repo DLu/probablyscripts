@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import subprocess
 import re
 import yaml
@@ -12,7 +13,13 @@ def get_mapping(devices, config):
     if len(keys0) == len(keys1):
         return dict(zip(keys0, keys1))
     m = {}
-    print keys0, keys1
+    if len(keys0) == 1:
+        kk = keys0[0]
+        for key in keys1:
+            if key in kk:
+                m[kk] = key
+    else:
+        print keys0, keys1
     return m
 
 
@@ -24,9 +31,10 @@ def get_current_config():
             continue
         name = x[0]
         m = CONFIG_PATTERN.search(x[2])
-        if not m:
-            print x[2]
-        devices[name] = {'w': int(m.group(1)), 'h': int(m.group(2)), 'x': int(m.group(3)), 'y': int(m.group(4))}
+        if m:
+            devices[name] = {'w': int(m.group(1)), 'h': int(m.group(2)), 'x': int(m.group(3)), 'y': int(m.group(4))}
+        else:
+            devices[name] = {}
         if 'primary' in x[2]:
             devices[name]['primary'] = True
     return devices
@@ -40,7 +48,7 @@ while True:
         current = DEVICES[d_key]
         desired = CONFIG[c_key]
         cmd = ['xrandr', '--output', d_key]
-        if current.get('x', 0) != desired.get('x', 0) or current.get('y', 0) != desired.get('y', 0):
+        if len(DEVICES) > 1 and (current.get('x', 0) != desired.get('x', 0) or current.get('y', 0) != desired.get('y', 0)):
             cmd += ['--pos', '%dx%d' % (desired.get('x', 0), desired.get('y', 0))]
         if current.get('w', 0) != desired.get('w', 0) or current.get('h', 0) != desired.get('h', 0):
             cmd += ['--mode', '%dx%d' % (desired.get('w', 0), desired.get('h', 0))]
