@@ -13,12 +13,12 @@ else:
 D = collections.defaultdict(int)
 
 for proc in psutil.process_iter():
-    if USER not in proc.username:
+    if USER not in proc.username():
         continue
     if key is None:
-        D[proc.name] += 1
-    elif key in proc.name:
-        print "Killing: %s" % proc.name, ' '.join(proc.cmdline)
+        D[proc.name()] += 1
+    elif key in proc.name():
+        print "Killing: %s" % proc.name(), ' '.join(proc.cmdline())
         proc.terminate()
 
 s = ''
