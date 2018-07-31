@@ -2,6 +2,7 @@
 import yaml
 import sys
 import re
+import argparse
 import matplotlib.pyplot as plt
 
 DECIMAL_PATTERN = re.compile('(\s\d+)e')
@@ -52,8 +53,17 @@ def create_figures(fig, data, n_plots, index=1, title=None, full_sum=None):
 levels = [[]]
 timing = levels[0]
 plots = 1
-for line in S.split('\n'):
-# for line in sys.stdin:
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-d', '--debug', action='store_true')
+args = parser.parse_args()
+
+if args.debug:
+    src = S.split('\n')
+else:
+    src = sys.stdin
+
+for line in src:
     print line[:-1]
     indent = len([c for c in line if c == '|'])
     if indent == 0:
