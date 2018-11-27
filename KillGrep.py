@@ -1,30 +1,48 @@
 #!/usr/bin/python
 import psutil
 import collections
-import sys
+import argparse
+import subprocess
+
+def match_pattern(patterns, name):
+    for pattern in patterns:
+        if pattern == 'ros' and 'Microsoft' in name:
+            continue
+        if pattern in name:
+            return True
 
 USER = 'dlu'
+parser = argparse.ArgumentParser()
+parser.add_argument('patterns', metavar='pattern', nargs='*')
+parser.add_argument('-g', '--gazebo', action='store_true')
+args = parser.parse_args()
 
-if len(sys.argv) <= 1:
-    key = None
-else:
-    key = sys.argv[1]
+if args.gazebo:
+    args.patterns += ['rviz', 'gz', 'ros']
 
-D = collections.defaultdict(int)
+if len(args.patterns) == 0:
+    # Print Processes
+    D = collections.defaultdict(int)
 
-for proc in psutil.process_iter():
-    if USER not in proc.username():
-        continue
-    if key is None:
+    for proc in psutil.process_iter():
+        if USER not in proc.username():
+            continue
         D[proc.name()] += 1
-    elif key in proc.name():
-        print "Killing: %s" % proc.name(), ' '.join(proc.cmdline())
-        proc.terminate()
 
-s = ''
-for name, count in sorted(D.items(), key=lambda x: (-x[1], x[0])):
-    s += "%02d %-30s " % (count, name)
-    if len(s) > 95:
-        print s
-        s = ''
-print s
+    rows, columns = map(int, subprocess.check_output(['stty', 'size']).split())
+    s = ''
+    for name, count in sorted(D.items(), key=lambda x: (-x[1], x[0])):
+        new_bit = "%02d %-30s " % (count, name)
+        if len(s) < columns and len(s) + len(new_bit) > columns:
+            print(s)
+            s = new_bit
+        else:
+            s += new_bit
+    print(s)
+else:
+    for proc in psutil.process_iter():
+        if USER not in proc.username():
+            continue
+        elif match_pattern(args.patterns, proc.name()):
+            print("Killing: %s" % proc.name() + ' '.join(proc.cmdline()))
+            proc.terminate()
