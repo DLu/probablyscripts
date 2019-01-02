@@ -73,15 +73,16 @@ class YamlPodcast(Podcast):
         Podcast.add_episode(self, url, ep['title'], ep['length'],
                             ep.get('description', ''), date, ep.get('link', self.link))
 
-    def add_episode(self, title, filename, description=''):
-        date = datetime.datetime.now().strftime(DATE_FORMAT)
+    def add_episode(self, title, filename, description='', date=None):
+        if date is None:
+            date = datetime.datetime.now()
         full_filename = os.path.join(self.folder, filename)
         print full_filename
         size = os.path.getsize(full_filename)
         st = os.stat(full_filename)
         os.chmod(full_filename, st.st_mode | stat.S_IROTH)
         ep = {'title': title, 'filename': filename,
-              'length': size, 'date': date, 'description': description}
+              'length': size, 'date': date.strftime(DATE_FORMAT), 'description': description}
         self.data['episodes'].append(ep)
         yaml.dump(self.data, open(self.filename, 'w'))
         self.add_yaml_episode(ep)

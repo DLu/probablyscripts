@@ -61,12 +61,12 @@ def static_files():
 
 yaml = '/home/dlu/public_html/podcast/david_misc.yaml'
 files = []
-prompt = False
+prompt = True
 for arg in sys.argv[1:]:
     if arg[-4:]=='yaml':
         yaml = arg
     elif arg=='-p':
-        prompt = True
+        prompt = False
     else:
         files.append(arg)
 
@@ -94,11 +94,11 @@ for arg in files:
         except:
             None
 
-    if len(title) == 0 or prompt:
+    if len(title) == 0 and prompt:
         title = raw_input(filename + "? ")
     if len(title) <= 1:
         title = os.path.splitext(filename)[0]
-    if len(description)==0 or prompt:
+    if len(description)==0 and prompt:
         description = raw_input('Description for %s? '%title)
 
     podcast.add_episode(title, filename, description)
