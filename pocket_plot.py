@@ -1,9 +1,10 @@
 #!/usr/bin/python
 from pocketpy.pocket import retrieve
-import urllib2
-import os, json
+import os
+import json
 import datetime
 import collections
+from matplotlib.pyplot import plot, show, legend
 
 config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.creds')
 config = json.load(open(config_path))
@@ -19,9 +20,9 @@ config['state'] = 'all'
 for key, entry in retrieve(config, verbose=False).iteritems():
     added = int(entry[u'time_added'])
     read = int(entry[u'time_read'])
-    add_times[ datetime.datetime.fromtimestamp(added) ] += 1
+    add_times[datetime.datetime.fromtimestamp(added)] += 1
     if read > 0:
-        read_times[ datetime.datetime.fromtimestamp(read) ] += 1
+        read_times[datetime.datetime.fromtimestamp(read)] += 1
 
 
 times = []
@@ -31,7 +32,7 @@ total = []
 read_c = 0
 unread_c = 0
 
-for date in sorted(set(add_times.keys()+read_times.keys())):
+for date in sorted(set(add_times.keys() + read_times.keys())):
     times.append(date)
     a = add_times[date]
     r = read_times[date]
@@ -41,9 +42,8 @@ for date in sorted(set(add_times.keys()+read_times.keys())):
 
     read.append(read_c)
     unread.append(unread_c)
-    total.append(read_c+unread_c)
+    total.append(read_c + unread_c)
 
-from matplotlib.pyplot import plot, show, legend
 plot(times, unread, label='Unread')
 plot(times, read, label='Read')
 plot(times, total, label='Total')

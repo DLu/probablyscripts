@@ -98,7 +98,7 @@ for arg in files:
         title = raw_input(filename + "? ")
     if len(title) <= 1:
         title = os.path.splitext(filename)[0]
-    if len(description)==0 and prompt:
+    if prompt:
         description = raw_input('Description for %s? '%title)
 
     podcast.add_episode(title, filename, description)

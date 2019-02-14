@@ -34,7 +34,13 @@ class WBUR:
     T_PAT = re.compile('<title>(.*)</title>')
     M_PAT = re.compile('<a href="([^"]*)" class="article-audio-dl" title="Download the audio"')
 
-PATTERNS = [NPR, WBUR]
+class WESA:
+    URL_PATT = re.compile('wesa\.fm')
+    T_PAT = re.compile('<title>(.*) | 90.5 WESA</title>')
+    M_PAT = re.compile('<a href="([^"]+)" title="[^"]+" class="jp-play"></a>')
+
+
+PATTERNS = [NPR, WBUR, WESA]
 
 yaml = '/home/dlu/public_html/podcast/david_misc.yaml'
 
