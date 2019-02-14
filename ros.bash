@@ -22,6 +22,6 @@ alias jadenav='source /opt/ros/jade/setup.bash   ; source /home/dlu/Catkin/jade_
 alias rosdebug="rosrun --prefix 'gdb -ex run --args' "
 alias rosprofile="rosrun --prefix 'valgrind --tool=callgrind' "
 alias rosmemcheck="rosrun --prefix 'valgrind --tool=memcheck' "
-alias cpp_style="find -regextype egrep -regex '.*\.[ch](pp)?$' -exec astyle '{}' --style=allman --indent=spaces=2 --pad-oper --unpad-paren --pad-header --convert-tabs -n \;"
+alias fix_cpp_style="find -regextype egrep -regex '.*\.[ch](pp)?$' -exec astyle '{}' --style=allman --indent=spaces=2 --pad-oper --unpad-paren --pad-header --convert-tabs -n \;"
 alias cpp_style_check="find -regextype egrep -regex '.*\.[ch](pp)?$' -exec rosrun roslint cpplint '{}' \; 2>&1 | grep -v 'Total errors' | grep -v 'Done processing'"
 alias install_deps="rosdep install --ignore-src -y -r --from-paths "
