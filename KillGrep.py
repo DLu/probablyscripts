@@ -43,6 +43,7 @@ else:
     for proc in psutil.process_iter():
         if USER not in proc.username():
             continue
-        elif match_pattern(args.patterns, proc.name()):
+        elif match_pattern(args.patterns, ' '.join(proc.cmdline())):
             print("Killing: %s" % proc.name() + ' '.join(proc.cmdline()))
             proc.terminate()
+
