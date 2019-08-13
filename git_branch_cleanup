@@ -1,0 +1,55 @@
+#!/usr/bin/python
+import argparse
+import subprocess
+import re
+
+START = r'^\*?\s+([\w\-\./]+)\s+([a-f\d]{7}) '
+LINE_PATTERN0 = re.compile(START + r'\[([^:]+): (.*)\] (.*)$')
+LINE_PATTERN1 = re.compile(START + r'\[([^\]]+)\] (.*)$')
+LINE_PATTERN2 = re.compile(START + r'([^\[].*)$')
+
+
+def classify_branches():
+    branch_dict = {}
+    for line in subprocess.check_output(['git', 'branch', '-vv']).split('\n'):
+        if not line:
+            continue
+        m = LINE_PATTERN0.match(line)
+        if m:
+            branch, commit, remote_branch, status, comment = m.groups()
+            if 'origin/' + branch != remote_branch:
+                branch_dict[branch] = 'unpushed'
+            elif status == 'gone':
+                branch_dict[branch] = 'bahleeted'
+            else:
+                branch_dict[branch] = 'remote'
+        else:
+            m2 = LINE_PATTERN1.match(line)
+            if m2:
+                branch_dict[m2.group(1)] = 'remote'
+            else:
+                m3 = LINE_PATTERN2.match(line)
+                if m3:
+                    branch_dict[m3.group(1)] = 'unpushed'
+                else:
+                    print(line)
+                    print("ERROR")
+                    exit(0)
+    return branch_dict
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-a', '--alpha', action='store_true')
+parser.add_argument('-D', '--delete', action='store_true')
+args = parser.parse_args()
+
+branches = classify_branches()
+if args.alpha:
+    sort_key = lambda d: d
+else:
+    sort_key = lambda d: (d[1], d[0])
+
+for branch, status in sorted(branches.items(), key=sort_key):
+    print('{:10s} {}'.format(status, branch))
+    if args.delete and status == 'bahleeted':
+        subprocess.call(['git', 'branch', '-D', branch])
