@@ -23,5 +23,6 @@ alias atom_root='atom `git rev-parse --show-toplevel`'
 #PS1="! \W/ > "
 
 alias cmdf='history | grep '
+alias please='sudo'
 source /home/dlu/Projects/probablyscripts/ros.bash
 
