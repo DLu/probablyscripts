@@ -47,7 +47,7 @@ def download_base_file(url, out_folder='.'):
 
 STATIC_PATTERNS = [
     '/home/dlu/Desktop/*Disney Dish*mp3',
-    '/home/dlu/Desktop/Dropbox/Podcasts/*mp3'
+    '/home/dlu/Dropbox/Podcasts/*mp3'
 ]
 
 def static_files():

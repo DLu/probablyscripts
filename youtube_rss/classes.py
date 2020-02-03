@@ -27,7 +27,7 @@ def categorize(username, subscriptions):
     data = collections.defaultdict(list)
     cats = get_categories(username)
     for sub in subscriptions:
-        cat = cats.get(sub.name, None)z
+        cat = cats.get(sub.name, None)
         data[cat].append(sub)
     return data
 

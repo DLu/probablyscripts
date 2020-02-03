@@ -71,7 +71,7 @@ class YamlPodcast(Podcast):
             try:
                 self.add_yaml_episode(ep)
             except:
-                print ep
+                print(ep)
 
     def add_yaml_episode(self, ep):
         date = datetime.datetime.strptime(ep['date'], DATE_FORMAT)
@@ -103,7 +103,7 @@ class YamlPodcast(Podcast):
             response = requests.head(full_filename)
             size = response.headers['content-length']
 
-        print full_filename
+        print(full_filename)
         ep = {'title': title, 'filename': filename,
               'length': size, 'date': date, 'description': description}
         self.data['episodes'].append(ep)
@@ -113,7 +113,7 @@ class YamlPodcast(Podcast):
     def check_files(self):
         for item in self.data.get('episodes', []):
             if not os.path.exists(to_local_name(item['filename'])):
-                print item['filename']
+                print(item['filename'])
 
     def write_to_file(self):
         filename = os.path.join(self.folder, self.data.get('output_fn', 'podcast.xml'))
