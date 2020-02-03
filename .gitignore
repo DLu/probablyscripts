@@ -18,3 +18,4 @@ msg_gen
 *old
 youtube_rss/.private
 .creds
+__pycache__
