@@ -1,26 +1,26 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 from podcast import YamlPodcast
 from pocketpy.pocket import retrieve
 from pocketpy.tags import add_tags
-import urllib2
-import re, os, json
-import pprint
+import re
+import json
+import requests
+import pathlib
+from urllib.parse import urlsplit
 
 
 def download_base_file(url, out_folder='/home/dlu/public_html/podcast/'):
     if 'podtrac' in url:
-        base = url[ url.rindex('/')+1 : ]
+        base = url[url.rindex('/') + 1:]
     else:
-        split = urllib2.urlparse.urlsplit(url)
-        base = os.path.basename(split.path)
+        split = urlsplit(url)
+        base = pathlib.Path(split.path).name
 
-    response = urllib2.urlopen(url)
-    contents = response.read()
+    response = requests.get(url)
 
     outfile = '%s/%s' % (out_folder, base)
-    f = open(outfile, 'w')
-    f.write(contents)
-    f.close()
+    with open(outfile, 'w') as f:
+        f.write(response.content)
     return base
 
 
@@ -46,10 +46,11 @@ yaml = '/home/dlu/public_html/podcast/david_misc.yaml'
 
 podcast = YamlPodcast(yaml)
 
-config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.creds')
+parent_folder = pathlib.Path(__file__).parent
+config_path = parent_folder / '.creds'
 config = json.load(open(config_path))
 
-for key, entry in retrieve(config, verbose=True).iteritems():
+for key, entry in retrieve(config, verbose=True).items():
     if 'podcast' in entry.get('tags', {}):
         continue
     try:
@@ -59,7 +60,7 @@ for key, entry in retrieve(config, verbose=True).iteritems():
         for pattern in PATTERNS:
             if not pattern.URL_PATT.search(url):
                 continue
-            page = urllib2.urlopen(url).read()
+            page = requests.get(url).text
             m = pattern.M_PAT.search(page)
             if not m:
                 continue
@@ -72,7 +73,7 @@ for key, entry in retrieve(config, verbose=True).iteritems():
                 title = m.group(1)
             podcast.add_episode(title, fn, '')
             add_tags(config, [key], 'podcast')
-    except:
-        None
+    except Exception:
+        raise
 
 podcast.write_to_file()

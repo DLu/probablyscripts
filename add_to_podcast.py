@@ -1,15 +1,15 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 from podcast import YamlPodcast
 
 import youtube_dl
 from youtube_dl.postprocessor.ffmpeg import FFmpegExtractAudioPP
-from youtube_dl.utils import encodeFilename
 from mutagen.easyid3 import EasyID3
 import sys
 import glob
-import os, shutil
-import urllib2
+import os
+import shutil
+
 
 def download_file(url, out_folder):
     fmt = out_folder + u'/%(title)s.%(ext)s'
@@ -27,10 +27,6 @@ def download_file(url, out_folder):
     return filename.replace(out_folder + '/', ''), sm['title'], sm['description']
 
 
-def to_local_name(url):
-    return url.replace(HOSTNAME, FOLDER)
-
-
 def download_base_file(url, out_folder='.'):
     split = urllib2.urlparse.urlsplit(url)
     base = os.path.basename(split.path)
@@ -44,6 +40,7 @@ def download_base_file(url, out_folder='.'):
     f.close()
 
     return base, ''
+
 
 STATIC_PATTERNS = [
     '/home/dlu/Desktop/*Disney Dish*mp3',
@@ -59,13 +56,14 @@ def static_files():
             files.append(base)
     return files
 
+
 yaml = '/home/dlu/public_html/podcast/david_misc.yaml'
 files = []
 prompt = True
 for arg in sys.argv[1:]:
-    if arg[-4:]=='yaml':
+    if arg[-4:] == 'yaml':
         yaml = arg
-    elif arg=='-p':
+    elif arg == '-p':
         prompt = False
     else:
         files.append(arg)
@@ -87,19 +85,19 @@ for arg in files:
         filename = arg
         description = ''
 
-    if len(title)==0:
+    if len(title) == 0:
         try:
             audio = EasyID3(podcast.folder + '/' + filename)
             title = audio.get('title', [''])[0]
-        except:
-            None
+        except Exception:
+            raise
 
     if len(title) == 0 and prompt:
-        title = raw_input(filename + "? ")
+        title = input(filename + "? ")
     if len(title) <= 1:
         title = os.path.splitext(filename)[0]
     if prompt:
-        description = raw_input('Description for %s? '%title)
+        description = input('Description for %s? ' % title)
 
     podcast.add_episode(title, filename, description)
 
