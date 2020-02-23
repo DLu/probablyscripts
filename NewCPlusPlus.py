@@ -4,7 +4,7 @@ import os
 import argparse
 
 LOCUS_COPYRIGHT = """/*******************************************************
- * Copyright (C) 2019 Locus Robotics
+ * Copyright (C) 2020 Locus Robotics
  *
  * This file can not be copied and/or distributed without the express
  * permission of Locus Robotics.

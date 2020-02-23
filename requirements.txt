@@ -1,0 +1,3 @@
+py-sonic
+pydub
+vlc
