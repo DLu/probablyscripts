@@ -1,8 +1,7 @@
-from pyPdf import PdfFileWriter, PdfFileReader  # python-pypdf
-from pyPdf.generic import NameObject, createStringObject
-from PythonMagick import *  # python-pythonmagick
-from kindle import execute
+from PyPDF2 import PdfFileReader
+from PythonMagick import Image  # python3-pythonmagick
 import pygame
+import subprocess
 import tempfile
 import sys
 
@@ -19,12 +18,14 @@ class Page:
         self.image = Image()
         self.image.density('%d' % density)
         self.image.read(self.base_filename)
+        print(dir(self.image))
+        print(self.image.colorSpace())
         self.density = density
 
         self.w = self.image.size().width()
         self.h = self.image.size().height()
 
-        temp = tempfile.NamedTemporaryFile(suffix='.png')
+        temp = tempfile.NamedTemporaryFile(suffix='.jpg')
         self.image.write(temp.name)
         self.pimage = pygame.image.load(temp.name)
         temp.close()
@@ -48,10 +49,10 @@ class Page:
         y = int(y * factor)
         w = int(w * factor)
         h = int(h * factor)
-        execute(["convert"] +
-                density +
-                [self.base_filename, "-crop", '%dx%d%+d%+d' %
-                 (w, h, x, y), '-trim', '+repage', '-trim', subimage.name])
+        subprocess.call(["convert"] +
+                        density +
+                        [self.base_filename, "-crop", '%dx%d%+d%+d' %
+                        (w, h, x, y), '-trim', '+repage', '-trim', subimage.name])
         return subimage
 
     def calculate_addition_matrix(self):
@@ -100,13 +101,13 @@ class Document:
     def __init__(self, filename, pages=None, density=RES1):
         self.original = filename
 
-        if 'pdf' in filename:
+        if filename.suffix == '.pdf':
             self.read(filename, pages, density)
         else:
             self.read_image(filename, density)
 
     def read(self, filename, pages, density):
-        input1 = PdfFileReader(file(filename))
+        input1 = PdfFileReader(str(filename))
         self.info = input1.getDocumentInfo()
         n = input1.getNumPages()
         self.pages = []

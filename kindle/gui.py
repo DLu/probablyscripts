@@ -1,5 +1,5 @@
 import pygame
-from pygame.locals import *
+import pygame.locals as keys
 import time
 import collections
 
@@ -8,14 +8,14 @@ H = 1100
 ModeDef = collections.namedtuple('ModeDef', ['doc', 'mode'], verbose=False)
 
 KEYMAP = {
-    K_1: ModeDef("Delete white mode", 1),
-    K_2: ModeDef("Reposition splits mode", 2),
-    K_3: ModeDef("Kill row mode", 3),
-    K_4: ModeDef("Insert column mode", 4),
-    K_5: ModeDef("Insert row mode", 5),
-    K_6: ModeDef("Set left mode", 6),
-    K_7: ModeDef("Manual", 7),
-    K_0: ModeDef("Standard mode", 0),
+    keys.K_1: ModeDef("Delete white mode", 1),
+    keys.K_2: ModeDef("Reposition splits mode", 2),
+    keys.K_3: ModeDef("Kill row mode", 3),
+    keys.K_4: ModeDef("Insert column mode", 4),
+    keys.K_5: ModeDef("Insert row mode", 5),
+    keys.K_6: ModeDef("Set left mode", 6),
+    keys.K_7: ModeDef("Manual", 7),
+    keys.K_0: ModeDef("Standard mode", 0),
 }
 
 
@@ -45,47 +45,49 @@ class Viewer:
                     page.size(), section), 1)
         pygame.display.flip()
 
-    def resize(self, size, (x,y,w,h)):
+    def resize(self, size, dims):
+        x, y, w, h = dims
         x, y = self.to_viewer(size, x, y)
         w, h = self.to_viewer(size, w, h)
         return (x, y, w, h)
 
-    def to_viewer(self, (w, h), x, y):
+    def to_viewer(self, dims, x, y):
+        w, h = dims
         return x * W / w, y * H / h
 
     def update_mode(self, key):
         self.mode = KEYMAP[key].mode
-        print KEYMAP[key].doc, "enabled"
+        print(KEYMAP[key].doc, "enabled")
 
     def print_doc(self):
         for doc, mode in KEYMAP.values():
-            print "[%s]: %s" % (mode, doc)
+            print("[%s]: %s" % (mode, doc))
 
     def spin(self):
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     return
-                if event.type == KEYDOWN:
-                    if event.key == K_LEFT and self.page_no > 0:
+                if event.type == keys.KEYDOWN:
+                    if event.key == keys.K_LEFT and self.page_no > 0:
                         self.page_no -= 1
                         self.reload_page()
-                    elif event.key == K_RIGHT and self.page_no + 1 < len(self.splitter.pages):
+                    elif event.key == keys.K_RIGHT and self.page_no + 1 < len(self.splitter.pages):
                         self.page_no += 1
                         self.reload_page()
                     elif event.key in KEYMAP:
                         self.update_mode(event.key)
-                    elif event.key == K_r:
-                        print "RESET PAGE"
+                    elif event.key == keys.K_r:
+                        print("RESET PAGE")
                         self.get_current_page().reset()
                         self.reload_page()
 
-                if event.type == MOUSEBUTTONDOWN:
+                if event.type == keys.MOUSEBUTTONDOWN:
                     (x, y) = event.pos
                     page = self.get_current_page()
                     (w, h) = page.size()
-                    x = x * w / W
-                    y = y * h / H
+                    x = x * w // W
+                    y = y * h // H
                     if event.button == 1:
                         if self.mode == 1:
                             page.delete_white_row(y)
@@ -102,7 +104,7 @@ class Viewer:
                         elif self.mode == 7:
                             self.save_coords = (x, y)
                     self.reload_page()
-                elif event.type == MOUSEBUTTONUP:
+                elif event.type == keys.MOUSEBUTTONUP:
                     (x, y) = event.pos
                     page = self.get_current_page()
                     (w, h) = page.size()

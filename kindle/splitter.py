@@ -1,5 +1,9 @@
-from kindle.document import *
 import collections
+import sys
+import subprocess
+from PyPDF2 import PdfFileWriter, PdfFileReader
+from PyPDF2.generic import NameObject, createStringObject
+import tempfile
 
 JUMP = 2
 WHITE_LIMIT = 8
@@ -31,7 +35,7 @@ class SplitPage:
             end = self.page.w
         intensity = self.page.get_average_intensity(start, y, end - 1, y)
 
-        return (1-intensity) < .01
+        return (1 - intensity) < .01
 
     def get_row_pattern(self, white_limit=WHITE_LIMIT, vjump=JUMP):
         mode = None
@@ -89,8 +93,8 @@ class SplitPage:
 
     def get_sections(self):
         sections = []
-        for (start, height), J in sorted(self.data.iteritems()):
-            for (left, width), chunks in sorted(J.iteritems()):
+        for (start, height), J in sorted(self.data.items()):
+            for (left, width), chunks in sorted(J.items()):
                 for (top, short_height) in chunks:
                     sections.append((left, top, width, short_height))
         return sections
@@ -99,7 +103,9 @@ class SplitPage:
         for (start, height) in self.get_row_pattern():
             self.analyze_row(start, height)
 
-    def add_region(self, (x0,y0), (x1,y1)):
+    def add_region(self, upper_left, lower_right):
+        x0, y0 = upper_left
+        x1, y1 = lower_right
         M = {(x0, x1 - x0): [(y0, y1 - y0)]}
         self.data[(y0, y1 - y0)] = M
 
@@ -145,7 +151,6 @@ class SplitPage:
             self.analyze_row(start, height)
 
     def analyze_row(self, start, height, mincol=15):
-        cols = self.page.w - self.left
         xstart = -1
         col_list = []
         for x in range(self.left, self.page.w, mincol):
@@ -171,10 +176,10 @@ class SplitPage:
         if not SPLIT_BY_ASPECT or not self.should_split(w, h):
             return [(y, h)]
 
-        center_height = y + h / 2
+        center_height = y + h // 2
         chosen_split_y = None
 
-        for delta_y in range(h / 4):
+        for delta_y in range(h // 4):
             for sign in [1, -1]:
                 split_y = center_height + sign * delta_y
                 is_white = self.is_row_white(split_y, start=x, end=x + w)
@@ -258,8 +263,9 @@ class Splitter:
 
         sections = temps
 
-        midfile = 'x.pdf'
-        execute(["convert"] + [f.name for f in sections] + [midfile])
+        midfile = tempfile.NamedTemporaryFile(suffix='.pdf')
+
+        subprocess.call(["convert"] + [f.name for f in sections] + [midfile.name])
         for f in sections:
             f.close()
 
@@ -271,10 +277,10 @@ class Splitter:
             NameObject('/Author'): createStringObject(self.document.info.get('author', ""))
         })
 
-        input1 = PdfFileReader(file(midfile, "rb"))
+        input1 = PdfFileReader(open(midfile.name, "rb"))
         for pn in range(input1.getNumPages()):
             output.addPage(input1.getPage(pn))
-        outputStream = file(outfile, "wb")
+        outputStream = open(outfile, "wb")
         output.write(outputStream)
         outputStream.close()
-        execute(['rm', midfile])
+        midfile.close()
