@@ -1,6 +1,7 @@
 import pygame
 import pygame.locals as keys
 import time
+import tempfile
 import collections
 
 W = 850
@@ -28,6 +29,7 @@ class Viewer:
         self.page_no = 0
         self.mode = 0
         self.save_coords = None
+        self.saved_images = {}
         self.reload_page()
 
     def get_current_page(self):
@@ -36,7 +38,20 @@ class Viewer:
     def reload_page(self):
         pygame.draw.rect(self.screen, (255, 255, 255), (0, 0, W, H), 0)
         page = self.get_current_page()
-        image = page.page.pimage
+        if self.page_no not in self.saved_images:
+            try:
+                temp = tempfile.NamedTemporaryFile(suffix='.png')
+                page.page.image.write(temp.name)
+                self.saved_images[self.page_no] = pygame.image.load(temp.name)
+                temp.close()
+            except Exception:
+                temp = tempfile.NamedTemporaryFile(suffix='.jpg')
+                page.page.image.write(temp.name)
+                self.saved_images[self.page_no] = pygame.image.load(temp.name)
+                temp.close()
+
+
+        image = self.saved_images[self.page_no]
         scaled = pygame.transform.scale(image, (W, H))
         self.screen.blit(scaled, (0, 0))
         for section in page.get_sections():

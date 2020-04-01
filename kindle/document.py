@@ -1,41 +1,28 @@
 from PyPDF2 import PdfFileReader
 from PythonMagick import Image  # python3-pythonmagick
-import pygame
 import subprocess
 import tempfile
-import sys
-
-RES1 = 72
-RES2 = 300
+from tqdm import tqdm
 
 
 class Page:
-
     def __init__(self, filename, density):
-
         self.base_filename = filename
 
         self.image = Image()
         self.image.density('%d' % density)
         self.image.read(self.base_filename)
-        print(dir(self.image))
-        print(self.image.colorSpace())
         self.density = density
 
         self.w = self.image.size().width()
         self.h = self.image.size().height()
-
-        temp = tempfile.NamedTemporaryFile(suffix='.jpg')
-        self.image.write(temp.name)
-        self.pimage = pygame.image.load(temp.name)
-        temp.close()
 
         self.calculate_addition_matrix()
 
     def get_intensity(self, x, y, dn=pow(2, 16) - 1):
         return self.image.pixelColor(x, y).intensity() / dn
 
-    def subimage_to_file(self, x, y, w, h, new_density=RES2):
+    def subimage_to_file(self, x, y, w, h, new_density=300):
         subimage = tempfile.NamedTemporaryFile(suffix='.png')
 
         if '.png' in self.base_filename:
@@ -57,7 +44,7 @@ class Page:
 
     def calculate_addition_matrix(self):
         self.matrix = []
-        for x in range(self.w):
+        for x in tqdm(range(self.w)):
             col = []
             for y in range(self.h):
                 if x > 0:
@@ -97,8 +84,7 @@ class Page:
 
 
 class Document:
-
-    def __init__(self, filename, pages=None, density=RES1):
+    def __init__(self, filename, pages=None, density=72):
         self.original = filename
 
         if filename.suffix == '.pdf':
@@ -115,12 +101,11 @@ class Document:
             self.mypages = range(n)
         else:
             self.mypages = pages
-        for i in self.mypages:
-            sys.stdout.write("\rReading page %d of %d" % (i + 1, n))
-            sys.stdout.flush()
+
+        bar = tqdm(self.mypages)
+        for i in bar:
+            bar.set_description("Reading page %d of %d" % (i + 1, n))
             self.pages.append(Page('%s[%d]' % (filename, i), density))
-        sys.stdout.write("\n")
-        sys.stdout.flush()
 
     def read_image(self, filename, density):
         self.info = {}

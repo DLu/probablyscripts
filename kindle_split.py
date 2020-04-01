@@ -20,6 +20,9 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--pages', type=int, nargs="*")
     parser.add_argument('-m', '--manual', dest="manual", action="store_true", default=False,
                         help="Manually select regions to include")
+    parser.add_argument('-s', '--scan_res', type=int, default=72)
+    parser.add_argument('-o', '--output_res', type=int, default=300)
+    parser.add_argument('-d', '--debug', action='store_true')
 
     args = parser.parse_args()
 
@@ -28,8 +31,8 @@ if __name__ == '__main__':
     elif args.outfile.is_dir():
         args.outfile /= args.infile.name
 
-    d = Document(args.infile, args.pages)
-    splitter = Splitter(d, args.manual)
+    d = Document(args.infile, args.pages, args.scan_res)
+    splitter = Splitter(d, args.manual, args.debug)
 
     if args.gui:
         v = Viewer(splitter)
@@ -37,4 +40,4 @@ if __name__ == '__main__':
             v.mode = 7
         v.print_doc()
         v.spin()
-    splitter.save(args.outfile)
+    splitter.save(args.outfile, args.output_res)

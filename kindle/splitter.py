@@ -6,16 +6,16 @@ from PyPDF2.generic import NameObject, createStringObject
 import tempfile
 
 JUMP = 2
-WHITE_LIMIT = 8
+WHITE_LIMIT = 6
 SPLIT_BY_ASPECT = True
 RATIO = 0.75
 
 
 class SplitPage:
-
-    def __init__(self, page, manual=False):
+    def __init__(self, page, manual=False, debug=False):
         self.page = page
         self.manual = manual
+        self.debug = debug
         self.reset()
 
     def reset(self):
@@ -35,7 +35,7 @@ class SplitPage:
             end = self.page.w
         intensity = self.page.get_average_intensity(start, y, end - 1, y)
 
-        return (1 - intensity) < .01
+        return intensity < .01
 
     def get_row_pattern(self, white_limit=WHITE_LIMIT, vjump=JUMP):
         mode = None
@@ -75,9 +75,12 @@ class SplitPage:
                     streak = (-mode) + streak + vjump * 2
                     mode = 1
 
-            # print y, mode, streak, white
+            # print(f'{y} {mode} {streak} {white}')
         if mode != 0:
             sections.append((start, y - start))
+
+        if self.debug:
+            print('Row Pattern' + str(sections))
         return sections
 
     def has_columns(self, start, height, centersize=10, jump=5):
@@ -240,14 +243,14 @@ class SplitPage:
 
 class Splitter:
 
-    def __init__(self, document, manual=False):
+    def __init__(self, document, manual=False, debug=False):
         self.document = document
         self.pages = []
         for page in self.document.pages:
-            sp = SplitPage(page, manual)
+            sp = SplitPage(page, manual, debug)
             self.pages.append(sp)
 
-    def save(self, outfile):
+    def save(self, outfile, output_resolution):
         temps = []
         for (i, page) in enumerate(self.pages):
             for j, section in enumerate(page.get_sections()):
@@ -255,7 +258,7 @@ class Splitter:
                                  (i + 1, len(self.pages), j + 1, len(page.get_sections())))
                 sys.stdout.flush()
                 (x, y, w, h) = section
-                sectionfile = page.page.subimage_to_file(x, y, w, h)
+                sectionfile = page.page.subimage_to_file(x, y, w, h, output_resolution)
                 temps.append(sectionfile)
 
         sys.stdout.write("\n")
