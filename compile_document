@@ -5,11 +5,17 @@ import re
 import subprocess
 import tempfile
 import yaml
+import os
+import humanize
 
 POINTS_PER_INCH = 72
 PIXELS_PER_INCH = 300
 
 PDF_PATTERN = re.compile(r'\.pdf(\[\d+\])?')
+
+
+def get_size(path):
+    return humanize.naturalsize(os.stat(path.name).st_size)
 
 
 def pdf_convert(input_filename, ratio):
@@ -52,6 +58,7 @@ parser.add_argument('folder', type=pathlib.Path)
 parser.add_argument('output', nargs='?', type=pathlib.Path)
 parser.add_argument('-w', '--width', default=5.5, type=float)
 parser.add_argument('--height', default=8.5, type=float)
+parser.add_argument('-n', '--no_compression', action='store_true')
 args = parser.parse_args()
 
 layout = yaml.load(open(args.folder / 'layout.yaml'))
@@ -68,24 +75,34 @@ for section in layout:
         filename = section['file']
 
     fp = args.folder / filename
-    print(fp)
+    new_files = []
     if fp.suffix == '.xcf':
-        files.append(xcf_convert(fp, points_ratio))
+        new_files.append(xcf_convert(fp, points_ratio))
     elif PDF_PATTERN.match(fp.suffix):
-        files += pdf_convert(fp, pixels_ratio)
+        new_files += pdf_convert(fp, pixels_ratio)
     elif fp.suffix == '.tex':
         pdf = tex_convert(fp)
         to_delete.append(pdf)
-        files.append(pdf)
-    elif fp.suffix == '.png':
-        files.append(png_convert(fp, pixels_ratio))
+        new_files.append(pdf)
+    elif fp.suffix == '.png' or fp.suffix == '.jpg':
+        new_files.append(png_convert(fp, pixels_ratio))
     else:
         print(f'unknown suffix {fp.suffix}')
+        continue
+    print('{:28} {}'.format(str(fp), ', '.join(map(get_size, new_files))))
+
+    files += new_files
 
 if args.output is None:
     args.output = args.folder / 'output.pdf'
 
-subprocess.call(['pdftk'] + [x.name for x in files] + ['cat', 'output', str(args.output)])
+if args.no_compression:
+    subprocess.call(['pdftk'] + [x.name for x in files] + ['cat', 'output', str(args.output)])
+else:
+    with tempfile.NamedTemporaryFile(suffix='.pdf') as temp_pdf:
+        subprocess.call(['pdftk'] + [x.name for x in files] + ['cat', 'output', temp_pdf.name])
+        subprocess.call(['convert', '-density', '300x300', '-quality', '60', '-compress', 'jpeg',
+                         str(temp_pdf.name), str(args.output)])
 
 for fn in to_delete:
     fn.unlink()

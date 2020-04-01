@@ -132,7 +132,7 @@ class MusicStreamer:
                         pass
                 data.append(song)
 
-        data.sort(key=lambda d: (d['album'], d.get('track', 0)))
+        data.sort(key=lambda d: (str(d['album']), d.get('track', 0)))
 
         yaml.safe_dump(data, open(filename, 'w'))
 
