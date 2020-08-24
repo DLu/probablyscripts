@@ -165,6 +165,9 @@ if __name__ == '__main__':
 
     try:
         for song_info in songs:
+            artist = song_info.get('artist', '')
+            if 'Washington University' in artist or 'Carniv' in artist or 'Deciduous' in artist:
+                continue
             ms.play(song_info)
     except KeyboardInterrupt:
         ms.player.keyboard.stop()

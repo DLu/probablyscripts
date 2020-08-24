@@ -11,6 +11,8 @@ alias superpush='git push -u origin `git rev-parse --abbrev-ref HEAD`'
 alias list_installed='dpkg --get-selections | grep -v deinstall | awk -F" " '"'"'{ print $1 }'"'"' | grep'
 PS1="\[\e]2;\h | \w \a\]! \W/ > "
 
+alias pip_v='pip show $1 '
+
 alias ls='ls -h --color=auto'
 alias check_size='du -hs'
 

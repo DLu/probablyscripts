@@ -5,6 +5,8 @@ import argparse
 import subprocess
 
 def match_pattern(patterns, name):
+    if 'KillGrep' in name or 'atom' in name:
+        return False
     for pattern in patterns:
         if pattern == 'ros' and 'Microsoft' in name:
             continue

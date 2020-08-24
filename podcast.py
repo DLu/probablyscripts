@@ -96,10 +96,10 @@ class YamlPodcast(Podcast):
         yaml.safe_dump(self.data, open(self.filename, 'w'), allow_unicode=True)
         self.add_yaml_episode(ep)
 
-    def check_files(self):
-        for item in self.data.get('episodes', []):
-            if not os.path.exists(to_local_name(item['filename'])):
-                print(item['filename'])
+   # def check_files(self):
+   #     for item in self.data.get('episodes', []):
+   #         if not os.path.exists(to_local_name(item['filename'])):
+   #             print(item['filename'])
 
     def write_to_file(self):
         filename = os.path.join(self.folder, self.data.get('output_fn', 'podcast.xml'))
