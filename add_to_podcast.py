@@ -5,9 +5,10 @@ from podcast import YamlPodcast
 import youtube_dl
 from youtube_dl.postprocessor.ffmpeg import FFmpegExtractAudioPP
 from mutagen.easyid3 import EasyID3
-import sys
+import argparse
 import glob
 import os
+import pathlib
 import shutil
 
 
@@ -47,6 +48,7 @@ STATIC_PATTERNS = [
     '/home/dlu/Dropbox/Podcasts/*mp3'
 ]
 
+
 def static_files():
     files = []
     for pattern in STATIC_PATTERNS:
@@ -59,14 +61,17 @@ def static_files():
 
 yaml = '/home/dlu/public_html/podcast/david_misc.yaml'
 files = []
-prompt = True
-for arg in sys.argv[1:]:
-    if arg[-4:] == 'yaml':
-        yaml = arg
-    elif arg == '-p':
-        prompt = False
+
+parser = argparse.ArgumentParser()
+parser.add_argument('filenames', metavar='filename', nargs='*', type=pathlib.Path)
+parser.add_argument('-p', '--prompt', action='store_true')
+args = parser.parse_args()
+
+for filename in args.filenames:
+    if filename.suffix == '.yaml':
+        yaml = str(filename)
     else:
-        files.append(arg)
+        files.append(str(filename))
 
 
 podcast = YamlPodcast(yaml)
@@ -92,11 +97,11 @@ for arg in files:
         except Exception:
             raise
 
-    if len(title) == 0 and prompt:
+    if len(title) == 0 and args.prompt:
         title = input(filename + "? ")
     if len(title) <= 1:
         title = os.path.splitext(filename)[0]
-    if prompt:
+    if args.prompt:
         description = input('Description for %s? ' % title)
 
     podcast.add_episode(title, filename, description)

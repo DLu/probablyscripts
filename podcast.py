@@ -42,7 +42,7 @@ class Podcast(FeedGenerator):
 class YamlPodcast(Podcast):
     def __init__(self, yaml_filename):
         self.filename = yaml_filename
-        self.data = yaml.load(open(yaml_filename, 'r'))
+        self.data = yaml.safe_load(open(yaml_filename, 'r'))
         Podcast.__init__(self, self.data['title'], self.data['link'],
                          self.data.get('description', ''),
                          self.data.get('image', ''),

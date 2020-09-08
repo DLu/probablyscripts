@@ -1,5 +1,12 @@
+feedgen
 PyPDF2
 pdfminer
 google-api-python-client
 google-auth-httplib2
 google-auth-oauthlib
+mutagen
+py-sonic
+pydub
+pynput
+python-vlc
+youtube_dl

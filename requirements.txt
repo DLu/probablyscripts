@@ -1,7 +1,1 @@
-py-sonic
-pydub
-vlc
-mutagen
-feedgen
-youtube_dl
 psutil

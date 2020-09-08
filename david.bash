@@ -17,7 +17,7 @@ alias ls='ls -h --color=auto'
 alias check_size='du -hs'
 
 alias atom_root='atom `git rev-parse --show-toplevel`'
-alias rip_mp3='youtube-dl -x --audio-format mp3 '
+alias rip_mp3='youtube-dl -x --audio-format mp3 -o "%(title)s.%(ext)s" '
 
 #PS1="! \W/ > "
 
