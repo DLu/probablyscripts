@@ -1,7 +1,7 @@
-#!/usr/bin/python
-import psutil
-import collections
+#!/usr/bin/python3
 import argparse
+import collections
+import psutil
 import subprocess
 
 def match_pattern(patterns, name):
@@ -12,6 +12,7 @@ def match_pattern(patterns, name):
             continue
         if pattern in name:
             return True
+
 
 USER = 'dlu'
 parser = argparse.ArgumentParser()
@@ -48,4 +49,3 @@ else:
         elif match_pattern(args.patterns, ' '.join(proc.cmdline())):
             print("Killing: %s" % proc.name() + ' '.join(proc.cmdline()))
             proc.terminate()
-

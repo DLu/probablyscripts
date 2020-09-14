@@ -5,6 +5,7 @@ google-api-python-client
 google-auth-httplib2
 google-auth-oauthlib
 mutagen
+psutil
 py-sonic
 pydub
 pynput
