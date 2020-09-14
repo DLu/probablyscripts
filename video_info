@@ -1,0 +1,40 @@
+#!/usr/bin/python3
+
+import argparse
+import pathlib
+import subprocess
+import re
+
+RES_PATTERN = re.compile(r'Stream #0:0.*[^\d](\d+x\d+)')
+
+def get_info(filepath):
+    process = subprocess.Popen(['ffmpeg', '-i', filepath], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    output, err = process.communicate()
+    s = output.decode() + err.decode()
+    if 'Invalid data found when processing input' in s or 'Invalid argument' in s:
+        return
+    res = RES_PATTERN.search(s)
+    if not res:
+        print('aaa')
+        print(s)
+        exit(0)
+    return res.group(1)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('filenames', metavar='filename', nargs='+', type=pathlib.Path)
+    args = parser.parse_args()
+
+    queue = list(args.filenames)
+
+    while queue:
+        arg = queue.pop(0)
+        if arg.is_dir():
+            queue += list(sorted(arg.iterdir()))
+            continue
+
+        info = get_info(arg)
+        if not info:
+            continue
+        print(f'{info:10} {arg}')
