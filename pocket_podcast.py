@@ -9,35 +9,37 @@ import pathlib
 from urllib.parse import urlsplit
 
 
-def download_base_file(url, out_folder='/home/dlu/public_html/podcast/'):
+def download_base_file(url, out_folder=pathlib.Path('/home/dlu/public_html/podcast/')):
     if 'podtrac' in url:
-        base = url[url.rindex('/') + 1:]
+        new_url = url[url.rindex('/') + 1:]
+        split = urlsplit(new_url)
+        base = split.path
     else:
         split = urlsplit(url)
         base = pathlib.Path(split.path).name
 
     response = requests.get(url)
 
-    outfile = '%s/%s' % (out_folder, base)
-    with open(outfile, 'w') as f:
+    outfile = out_folder / base
+    with open(outfile, 'wb') as f:
         f.write(response.content)
     return base
 
 
 class NPR:
-    URL_PATT = re.compile('npr\.org')
-    T_PAT = re.compile('<title>(.*)</title>')
-    M_PAT = re.compile('<li class="audio-tool audio-tool-download">\s*<a href="([^"]*)"')
+    URL_PATT = re.compile(r'npr\.org')
+    T_PAT = re.compile(r'<title>(.*)</title>')
+    M_PAT = re.compile(r'<li class="audio-tool audio-tool-download">\s*<a href="([^"]*)"')
 
 class WBUR:
-    URL_PATT = re.compile('wbur\.org')
-    T_PAT = re.compile('<title>(.*)</title>')
-    M_PAT = re.compile('<a href="([^"]*)" class="article-audio-dl" title="Download the audio"')
+    URL_PATT = re.compile(r'wbur\.org')
+    T_PAT = re.compile(r'<title>(.*)</title>')
+    M_PAT = re.compile(r'<a href="([^"]*)" class="article-audio-dl" title="Download the audio"')
 
 class WESA:
-    URL_PATT = re.compile('wesa\.fm')
-    T_PAT = re.compile('<title>(.*) | 90.5 WESA</title>')
-    M_PAT = re.compile('<a href="([^"]+)" title="[^"]+" class="jp-play"></a>')
+    URL_PATT = re.compile(r'wesa\.fm')
+    T_PAT = re.compile(r'<title>(.*) | 90.5 WESA</title>')
+    M_PAT = re.compile(r'<a href="([^"]+)" title="[^"]+" class="jp-play"></a>')
 
 
 PATTERNS = [NPR, WBUR, WESA]

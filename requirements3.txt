@@ -10,3 +10,4 @@ pydub
 pynput
 python-vlc
 youtube_dl
+git+https://github.com/DLu/PocketPy
