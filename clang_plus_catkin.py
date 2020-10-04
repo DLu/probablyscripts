@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import os
 import re
@@ -16,7 +16,7 @@ def my_sort_fne(path):
 
 rp = rospkg.RosPack()
 
-INCLUDE_PATTERN = re.compile('clangIncludePaths: \[([^\]]+)\]', re.DOTALL)
+INCLUDE_PATTERN = re.compile(r'clangIncludePaths: \[([^\]]+)\]', re.DOTALL)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('packages', metavar='package', nargs='*')
@@ -28,7 +28,7 @@ contents = open(fn).read()
 
 m = INCLUDE_PATTERN.search(contents)
 if not m:
-    print 'Cannot find proper section of config file!'
+    print('Cannot find proper section of config file!')
     exit(0)
 path_str = m.group(1)
 lines = path_str.split('\n')
@@ -50,16 +50,16 @@ for package in args.packages:
     pkg_path = rp.get_path(package)
     i_path = os.path.join(pkg_path, 'include')
     if os.path.exists(i_path) and i_path not in includes:
-        print 'Adding %s...' % i_path
+        print(f'Adding {i_path}...')
         includes.append(i_path)
 
 try:
     DEVEL = subprocess.check_output(['catkin', 'locate', '-d']).strip()
     d_path = os.path.join(DEVEL, 'include')
     if os.path.exists(d_path) and d_path not in includes:
-        print 'Adding %s...' % d_path
+        print(f'Adding {d_path}...')
         includes.append(d_path)
-except:
+except Exception:
     None
 
 include_strings = ['']

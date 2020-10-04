@@ -80,7 +80,7 @@ class MusicStreamer:
         if not path.exists():
             print(f'{path} not found!')
             exit(-1)
-        self.keys = yaml.load(open(path))
+        self.keys = yaml.safe_load(open(path))
         if 'serverPath' not in self.keys:
             self.keys['serverPath'] = 'rest'
         self.conn = libsonic.Connection(**self.keys)
@@ -108,7 +108,7 @@ class MusicStreamer:
         filename.parent.mkdir(exist_ok=True)
 
         if filename.exists() and not recache:
-            return yaml.load(open(filename))
+            return yaml.safe_load(open(filename))
 
         data = []
         songs = True
@@ -120,6 +120,9 @@ class MusicStreamer:
                                          })
             req = self.conn._getRequest('getSongsByGenre.view', q)
             res = self.conn._doInfoReq(req)
+            if res['status'] == 'failed':
+                print(yaml.safe_dump(res))
+                raise RuntimeError(res['error']['message'])
             songs = res['songsByGenre'].get('song', [])
             for song in songs:
                 for key in IGNORE_KEYS:

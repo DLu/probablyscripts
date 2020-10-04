@@ -61,7 +61,7 @@ parser.add_argument('--height', default=8.5, type=float)
 parser.add_argument('-n', '--no_compression', action='store_true')
 args = parser.parse_args()
 
-layout = yaml.load(open(args.folder / 'layout.yaml'))
+layout = yaml.safe_load(open(args.folder / 'layout.yaml'))
 files = []
 to_delete = []
 

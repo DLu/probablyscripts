@@ -19,10 +19,10 @@ APACHE_CONFIG = """
 <virtualhost *:80>
     ServerName %s
     ServerAlias %s.local
- 
+
     WSGIDaemonProcess %s user=dlu group=dlu threads=5
     WSGIScriptAlias / %s
- 
+
     <directory %s>
         WSGIProcessGroup %s
         WSGIApplicationGroup %%{GLOBAL}
@@ -42,6 +42,7 @@ if __name__ == '__main__':
 
     subprocess.call(['sudo', 'apt-get', 'install', '-y', 'libapache2-mod-wsgi'])
 
+    # TODO: Automatically derive name of app
     main_dir = os.path.abspath(os.path.curdir)
     wsgi_filename = os.path.join(main_dir, '%s.wsgi' % args.name)
     with open(wsgi_filename, 'w') as f:
@@ -63,8 +64,6 @@ if __name__ == '__main__':
     apache_config_path = os.path.join(APACHE_CONFIG_DIR, filename)
     with open(apache_config_path, 'w') as f:
         f.write(APACHE_CONFIG % (args.url, args.name, args.name, wsgi_filename, main_dir, args.name))
-    
+
     subprocess.call(['sudo', 'a2ensite', filename])
     subprocess.call(['sudo', 'service', 'apache2', 'reload'])
-    
-

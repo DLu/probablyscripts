@@ -1,28 +1,35 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 import subprocess
 import re
 import os
 from xml.dom import minidom
 
-PATTERN = re.compile('\\x1b\[36mRunning tests...\\x1b[0m\r\n\\x1b\[0m[^\n]+\n(.*Total Test time \(real\) = [^\n]+\n)'
-                     '.*CATKIN_TEST_RESULTS_DIR=([^\s]+)\s',
-                     re.DOTALL
-                     )
+PATTERN = re.compile(r'\x1b\[36mRunning tests...\x1b[0m\r\n\x1b\[0m[^\n]+\n(.*Total Test time \(real\) = [^\n]+\n)',
+                     re.DOTALL)
+
+RESULTS_PATTERN = re.compile(r'.*CATKIN_TEST_RESULTS_DIR=([^\s]+)\s', re.DOTALL)
+
+
 
 ret = subprocess.call(['catkin', 'build', '--this', '--no-deps', '--catkin-make-args', 'run_tests'])
 if ret != 0:
     exit(ret)
 
-p = subprocess.Popen(['catkin', 'test', '--this', '--no-deps'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-output, err = p.communicate()
 
-m = PATTERN.search(output)
+p = subprocess.run(['catkin', 'test', '--this', '--no-deps'], capture_output=True, text=True)
+
+m = PATTERN.search(p.stdout)
 if not m:
-    print repr(output)
+    print(repr(p.stdout))
+    print(p.stdout)
     exit(0)
-print m.group(1)
-test_dir = m.group(2)
+print(m.group(1))
+
+m = RESULTS_PATTERN.search(p.stdout)
+if not m:
+    exit(0)
+test_dir = m.group(1)
 
 for folder in os.listdir(test_dir):
     full_folder = os.path.join(test_dir, folder)
@@ -34,8 +41,8 @@ for folder in os.listdir(test_dir):
             if len(failures) > 0:
                 for failure in failures:
                     try:
-                        print failure.attributes['message'].value
-                    except:
-                        print failure.toxml()
+                        print(failure.attributes['message'].value)
+                    except Exception:
+                        print(failure.toxml())
 
 exit(p.returncode)

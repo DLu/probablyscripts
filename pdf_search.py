@@ -45,7 +45,8 @@ class MyPDFPage:
             if piece == box:
                 continue
             if (piece.y0 <= box.y0 and box.y0 <= piece.y1) or (piece.y0 <= box.y1 and box.y1 <= piece.y1):
-                things.append(piece)
+                if piece.x1 > box.x0:
+                    things.append(piece)
         return sorted(things, key=lambda piece: piece.x0)
 
 

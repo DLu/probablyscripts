@@ -1,6 +1,7 @@
 feedgen
 PyPDF2
 pdfminer
+humanize
 google-api-python-client
 google-auth-httplib2
 google-auth-oauthlib
