@@ -1,0 +1,27 @@
+#!/usr/bin/python3
+
+import argparse
+import click
+import pathlib
+import subprocess
+import tempfile
+
+# Source: https://engineering.giphy.com/how-to-make-gifs-with-ffmpeg/
+
+parser = argparse.ArgumentParser()
+parser.add_argument('input', type=pathlib.Path)
+parser.add_argument('output', type=pathlib.Path, nargs='?')
+parser.add_argument('-w', '--overwrite', action='store_true')
+args = parser.parse_args()
+
+if not args.output:
+    args.output = args.input.with_suffix('.gif')
+
+if args.output.exists() and not args.overwrite:
+    click.secho(f'Output file {args.output} exists! Use -w to overwrite.', fg='red')
+    exit(-1)
+
+with tempfile.NamedTemporaryFile(suffix='.png') as temp_palette:
+    subprocess.call(['ffmpeg', '-i', str(args.input), '-filter_complex', "[0:v] palettegen", '-y', temp_palette.name])
+    subprocess.call(['ffmpeg', '-i', str(args.input), '-i', temp_palette.name,
+                     '-filter_complex', "[0:v][1:v] paletteuse", '-y', args.output])
