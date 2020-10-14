@@ -1,10 +1,10 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import subprocess
 import re
 import yaml
 
-DEVICE_PATTERN = re.compile('([^\s]+) (dis)?connected ([^\n]+)\n(( [^\n]+\n)+)', re.DOTALL)
-CONFIG_PATTERN = re.compile('(\d+)x(\d+)\+(\d+)\+(\d+)')
+DEVICE_PATTERN = re.compile(r'([^\s]+) (dis)?connected ([^\n]+)\n(( [^\n]+\n)+)', re.DOTALL)
+CONFIG_PATTERN = re.compile(r'(\d+)x(\d+)\+(\d+)\+(\d+)')
 
 
 def get_mapping(devices, config):
@@ -19,7 +19,7 @@ def get_mapping(devices, config):
             if key in kk:
                 m[kk] = key
     else:
-        print keys0, keys1
+        print(keys0, keys1)
     return m
 
 
@@ -40,7 +40,7 @@ def get_current_config():
     return devices
 
 
-CONFIG = yaml.load(open('/home/dlu/.monitor_config.yaml'))
+CONFIG = yaml.safe_load(open('/home/dlu/.monitor_config.yaml'))
 while True:
     commands_run = False
     DEVICES = get_current_config()
@@ -48,7 +48,8 @@ while True:
         current = DEVICES[d_key]
         desired = CONFIG[c_key]
         cmd = ['xrandr', '--output', d_key]
-        if len(DEVICES) > 1 and (current.get('x', 0) != desired.get('x', 0) or current.get('y', 0) != desired.get('y', 0)):
+        if len(DEVICES) > 1 and \
+           (current.get('x', 0) != desired.get('x', 0) or current.get('y', 0) != desired.get('y', 0)):
             cmd += ['--pos', '%dx%d' % (desired.get('x', 0), desired.get('y', 0))]
         if current.get('w', 0) != desired.get('w', 0) or current.get('h', 0) != desired.get('h', 0):
             cmd += ['--mode', '%dx%d' % (desired.get('w', 0), desired.get('h', 0))]
@@ -56,10 +57,10 @@ while True:
             cmd.append('--primary')
         if len(cmd) == 3:
             continue
-        print cmd
+        print(cmd)
         subprocess.call(cmd)
         commands_run = True
-    print
+    print()
     if not commands_run:
         break
 # alias two_screen='xrandr --output HDMI1 --auto --pos 1920x180 --primary ; xrandr --output VGA1 --auto'

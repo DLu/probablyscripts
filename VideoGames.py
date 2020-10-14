@@ -1,33 +1,37 @@
+#!/usr/bin/env python3
+import argparse
+import pathlib
 import re
 import requests
 import time
-import argparse
-import os
 import random
 import urllib
 
 from bs4 import BeautifulSoup
 
+ROOT = pathlib.Path('/home/dlu/')
+
 TITLE_PATTERN = re.compile(r'<h2>([^<]+)</h2>')
 DOWNLOAD_PATTERN = re.compile(r'<p><a style="color: #21363f;" href="([^"]+)">Click here to download</a></b>')
-#http://downloads.khinsider.com/game-soundtracks/album/donkey-kong-country
+# http://downloads.khinsider.com/game-soundtracks/album/donkey-kong-country
+
+
 def grab(url):
     try:
         response = requests.get(url)
-        time.sleep(random.randint(1,5))
+        time.sleep(random.randint(1, 5))
         return response.text
     except Exception as e:
-        print type(e)
+        print(type(e))
 
 def get_game(url):
     content = grab(url)
     m = TITLE_PATTERN.search(content)
     title = m.group(1)
-    print title
+    print(title)
 
-    folder = '/home/dlu/Desktop/%s'%title
-    if not os.path.exists(folder):
-        os.mkdir(folder)
+    folder = ROOT / title
+    folder.mkdir(exist_ok=True)
 
     soup = BeautifulSoup(content, 'lxml')
     table = soup.find('table', {'id': 'songlist'})
@@ -38,11 +42,11 @@ def get_game(url):
 
         base = link['href'].split('/')[-1]
         while '%' in base:
-            base = urllib.unquote(base)
-        print '\t', base
+            base = urllib.parse.unquote(base)
+        print(f'\t{base}')
 
-        fn = os.path.join(folder, base)
-        if os.path.exists(fn):
+        fn = folder / base
+        if fn.exists():
             continue
 
         track_page = grab('https://downloads.khinsider.com' + link['href'])
@@ -50,8 +54,9 @@ def get_game(url):
         mp3 = soup2.find('a', {'style': 'color: #21363f;'})
 
         res = requests.get(mp3['href'])
-        with open(os.path.join(folder, fn), 'w' ) as f:
+        with open(fn, 'wb') as f:
             f.write(res.content)
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument('url', nargs='+')

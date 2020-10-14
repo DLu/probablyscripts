@@ -16,7 +16,7 @@ class GoogleContactAPI:
     def __init__(self, credentials_path=pathlib.Path('~/.config/google_contact_api.yaml').expanduser()):
         creds = None
         if credentials_path.exists():
-            creds = yaml.load(open(credentials_path))
+            creds = yaml.safe_load(open(credentials_path))
 
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
