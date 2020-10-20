@@ -1,77 +1,65 @@
 #!/usr/bin/python3
 
-import os
-import re
 import argparse
+import cson
+import pathlib
 import rospkg
 import subprocess
 
+
 def my_sort_fne(path):
-    if '/opt/ros' in path:
-        return 2, path
-    elif '/devel/include' in path:
-        return 1, path
-    return 0, path
+    path_s = str(path)
+    if '/opt/ros' in path_s:
+        return 2, path_s
+    elif '/devel/include' in path_s:
+        return 1, path_s
+    return 0, path_s
 
 
 rp = rospkg.RosPack()
 
-INCLUDE_PATTERN = re.compile(r'clangIncludePaths: \[([^\]]+)\]', re.DOTALL)
+def get_package_path(name):
+    pkg_path = rp.get_path(name)
+    return pathlib.Path(pkg_path)
 
-parser = argparse.ArgumentParser()
-parser.add_argument('packages', metavar='package', nargs='*')
-parser.add_argument('-t', '--test', action='store_true')
-args = parser.parse_args()
 
-fn = os.path.expanduser('~/.atom/config.cson')
-contents = open(fn).read()
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('packages', metavar='package', nargs='*')
+    parser.add_argument('-t', '--test', action='store_true')
+    args = parser.parse_args()
 
-m = INCLUDE_PATTERN.search(contents)
-if not m:
-    print('Cannot find proper section of config file!')
-    exit(0)
-path_str = m.group(1)
-lines = path_str.split('\n')
-includes = []
-indent = None
-for line in lines:
-    if len(line.strip()) == 0:
-        continue
-    if indent is None:
-        indent = 0
-        while line[indent] == ' ':
-            indent += 1
-    path = line.strip()
-    if path[0] == '"' and path[-1] == '"':
-        path = path[1:-1]
-    includes.append(path)
+    filepath = pathlib.Path('~/.atom/config.cson').expanduser()
+    config = cson.load(open(filepath))
 
-for package in args.packages:
-    pkg_path = rp.get_path(package)
-    i_path = os.path.join(pkg_path, 'include')
-    if os.path.exists(i_path) and i_path not in includes:
-        print(f'Adding {i_path}...')
-        includes.append(i_path)
+    linter_clang = config['*']['linter-clang']
+    includes = list(map(pathlib.Path, linter_clang.get('clangIncludePaths', [])))
 
-try:
-    DEVEL = subprocess.check_output(['catkin', 'locate', '-d']).strip()
-    d_path = os.path.join(DEVEL, 'include')
-    if os.path.exists(d_path) and d_path not in includes:
-        print(f'Adding {d_path}...')
-        includes.append(d_path)
-except Exception:
-    None
+    for package in args.packages:
+        i_path = get_package_path(package) / 'include'
+        if i_path.exists() and i_path not in includes:
+            print(f'Adding {i_path}...')
+            includes.append(i_path)
 
-include_strings = ['']
-for line in sorted(includes, key=my_sort_fne):
-    include_strings.append(' ' * indent + '"' + line + '"')
-include_strings.append(lines[-1])
+    try:
+        DEVEL = subprocess.check_output(['catkin', 'locate', '-d']).decode().strip()
+        d_path = pathlib.Path(DEVEL) / 'include'
+        if d_path.exists() and d_path not in includes:
+            print(f'Adding {d_path}...')
+            includes.append(d_path)
+    except Exception:
+        raise
 
-new_substr = '\n'.join(include_strings)
-contents = contents.replace(path_str, new_substr)
+    for build in pathlib.Path('/opt/ros/').glob('*'):
+        binary_path = build / 'include'
+        if binary_path.exists() and binary_path not in includes:
+            print(f'Adding {binary_path}...')
+            includes.append(binary_path)
 
-if args.test:
-    exit(0)
+    linter_clang['clangIncludePaths'] = list(map(str, sorted(includes, key=my_sort_fne)))
 
-with open(fn, 'w') as f:
-    f.write(contents)
+    if args.test:
+        print(config)
+        exit(0)
+
+    cson.dump(config, open(filepath, 'w'), indent=2)
