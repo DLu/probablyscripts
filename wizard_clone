@@ -1,0 +1,102 @@
+#!/usr/bin/env python3
+
+import argparse
+import json
+import os
+import pathlib
+import re
+
+import click
+
+import git
+
+from github import Github, UnknownObjectException
+
+import yaml
+
+ROSDISTRO_PATH = pathlib.Path('~/rosdistro').expanduser()
+ROSDISTRO_URL = 'git@github.com:ros/rosdistro.git'
+GITHUB_PATTERN = re.compile(r'github.com/([^/]+/[^/]+).git')
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('repo_name')
+    parser.add_argument('-u', '--update', action='store_true')
+    args = parser.parse_args()
+
+    bloom_config_path = pathlib.Path('~/.config/bloom').expanduser()
+    if not bloom_config_path.exists():
+        print(f'No github token setup in {bloom_config_path}')
+        exit(-1)
+
+    bloom_config = json.load(open(bloom_config_path))
+    gh = Github(bloom_config['oauth_token'])
+
+    repos = {}
+
+    user = gh.get_user()
+    try:
+        repo = user.get_repo(args.repo_name)
+        repos['origin'] = repo
+
+        if repo.parent:
+            repos['upstream'] = repo.parent
+    except UnknownObjectException:
+        pass
+
+    if not repos:
+        if not ROSDISTRO_PATH.exists():
+            click.secho('Cloning rosdistro...', fg='blue')
+            repo = git.Repo.clone_from(ROSDISTRO_URL, ROSDISTRO_PATH)
+        else:
+            repo = git.Repo(ROSDISTRO_PATH)
+            if args.update:
+                click.secho('Updating rosdistro...', fg='blue')
+                repo.remotes.origin.pull()
+
+        distribution_file = ROSDISTRO_PATH / os.environ['ROS_DISTRO'] / 'distribution.yaml'
+        distro = yaml.load(open(distribution_file))
+
+        distro_entry = distro['repositories'].get(args.repo_name, {})
+        url = distro_entry.get('source', {}).get('url') or distro_entry.get('doc', {}).get('url')
+        print(url)
+
+        m = GITHUB_PATTERN.search(url)
+        if m:
+            repos['origin'] = gh.get_repo(m.group(1))
+            # TODO: Look for fork in organization
+        else:
+            click.secho(f'Bad url in rosdistro: {url}', color='red')
+            exit(-1)
+
+    repo_path = pathlib.Path(args.repo_name)
+    if not repo_path.exists():
+        url = repos['origin'].clone_url
+        click.secho(f'Cloning {url}', fg='white')
+        repo = git.Repo.clone_from(url, repo_path)
+    else:
+        repo = git.Repo(repo_path)
+
+    existing_remotes = {}
+    for remote in repo.remotes:
+        m = GITHUB_PATTERN.search(remote.url)
+        if m:
+            existing_remotes[m.group(1)] = str(remote)
+        else:
+            existing_remotes[remote.url] = str(remote)
+
+    # Rename existing
+    for name, remote in repos.items():
+        if remote.full_name in existing_remotes and existing_remotes[remote.full_name] != name:
+            getattr(repo.remotes, existing_remotes[remote.full_name]).rename(name)
+            existing_remotes[remote.full_name] = name
+
+    for remote in repos:
+        if remote not in existing_remotes.values():
+            url = repos[remote].clone_url
+            click.secho(f'Adding remote {remote}: {url}', fg='white')
+            x = repo.create_remote(remote, url)
+            x.fetch()
+        else:
+            print(repr(getattr(repo.remotes, remote)))
