@@ -1,0 +1,118 @@
+#!/usr/bin/python3
+import argparse
+import pathlib
+import time
+
+from metric_db import MetricDB
+
+from subsonic_connection import SubsonicConnection
+
+from subsonic_vlc_player import VlcPlayer
+
+from tqdm import tqdm
+
+ignore_keys = {'coverArt'}
+
+def clean_title(s):
+    s = s.lower()
+    if s[0] == ' ':
+        print(s)
+
+    for punc in '."()\'[]_$*#…':
+        s = s.replace(punc, ' ')
+    while '  ' in s:
+        s = s.replace('  ', ' ')
+
+    while s.startswith(' '):
+        s = s[1:]
+
+    prefixes = ['the ', 'a ', 'an ']
+
+    for prefix in prefixes:
+        if s.startswith(prefix):
+            s = s[len(prefix):]
+
+    return s
+
+
+class MusicStreamer:
+    def __init__(self):
+        self.subsonic = SubsonicConnection(ignore=ignore_keys)
+        self.folder = pathlib.Path('~/.subsonic_stream/').expanduser()
+        current_folder = pathlib.Path(__file__).parent.resolve()
+        self.db = MetricDB('songs', self.folder, current_folder / 'subsonic_db.yaml')
+        self.player = VlcPlayer()
+
+    def crawl(self):
+        now = int(time.time())
+        last = self.db.lookup('last', 'crawl')
+        if last and now - last < 86400:  # 24 hours a day
+            return
+
+        progress = tqdm(list(self.subsonic.get_top_level_folders()))
+
+        for mf_id, name, folder_id in progress:
+            # TODO: Crawl albums
+            c = 0
+            for song in self.subsonic.get_folder_contents(mf_id, folder_id):
+                c += 1
+                progress.set_description(f'{name:15} {c:04d}')
+                self.db.update('songs', song)
+
+        self.db.execute('DELETE FROM crawl')
+        self.db.insert('crawl', {'last': now})
+
+    def update_sort_titles(self):
+        query = 'SELECT id, title FROM songs' # WHERE sort_title IS NULL '
+        for song in self.db.query(query):
+            ct = clean_title(song['title'])
+            if ct != song['title']:
+                song['sort_title'] = ct
+                self.db.update('songs', song)
+
+    def play(self, song_info):
+        self.subsonic.display_info(song_info)
+        url = self.subsonic.get_streaming_url(song_info['id'])
+        if self.player.stream(url):
+            self.subsonic.scrobble(song_info['id'])
+            entry = {'id': song_info['id']}
+            if song_info.get('count'):
+                entry['count'] = song_info['count'] + 1
+            else:
+                entry['count'] = 1
+            entry['last'] = int(time.time())
+            self.db.update('plays', entry)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('genre', nargs='?', default='Soundtrack')
+    parser.add_argument('-f', '--folder', type=int, default=0)
+    parser.add_argument('-c', '--recache', action='store_true')
+    args = parser.parse_args()
+
+    ms = MusicStreamer()
+
+    try:
+        if args.recache:
+            ms.crawl()
+
+        ms.update_sort_titles()
+
+        TS = 1604946876
+        query = 'SELECT songs.id, title, album, year, artist, count FROM songs LEFT JOIN plays ON songs.id = plays.id'
+        query += f' WHERE genre = "{args.genre}" and folder={args.folder}'
+        query += f' and artist NOT LIKE "%Washington Univ%"'
+        query += f' and artist NOT LIKE "%Carniv%"'
+        query += f' and artist NOT LIKE "%Deciduous%"'
+        query += f' and (last < {TS} or last is null) ORDER BY sort_title, title'
+
+        songs = ms.db.query(query)
+        print(len(songs))
+        for song in songs:
+            ms.play(song)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        ms.player.keyboard.stop()
+        ms.db.close()

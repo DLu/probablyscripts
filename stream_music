@@ -1,103 +1,20 @@
 #!/usr/bin/python3
 import argparse
-import libsonic
 import pathlib
-from pynput.keyboard import Key, Listener, KeyCode
 import random
-import time
-import urllib
-import vlc
+
+from subsonic_connection import SubsonicConnection
+
+from subsonic_vlc_player import VlcPlayer
+
 import yaml
 
-IGNORE_KEYS = set([
-    'path',
-    'suffix',
-    'type',
-    'size',
-    'bitRate',
-    'contentType',
-    'created',
-    'genre',
-    'isDir',
-    'parent',
-    'albumId',
-    'artistId',
-    'discNumber',
-    'transcodedSuffix',
-    'transcodedContentType'
-])
-
-
-class VlcPlayer:
-    def __init__(self):
-        self.instance = vlc.Instance()
-        self.player = self.instance.media_player_new()
-
-        self.eventManager = self.player.event_manager()
-        self.eventManager.event_attach(vlc.EventType.MediaPlayerEndReached, self.over_callback)
-        self.playing = False
-        self.full_play = False
-
-        self.keyboard = Listener(on_press=self.on_press)
-        self.keyboard.start()
-
-    def play(self, wait=True):
-        if not self.player.is_playing():
-            if self.player.get_state() == vlc.State.Ended:
-                self.player.stop()  # Restart it
-            self.player.play()
-        self.playing = True
-        self.full_play = False
-
-        while wait and self.playing:
-            time.sleep(0.5)
-
-        return wait and self.full_play
-
-    def over_callback(self, event):
-        self.playing = False
-        self.full_play = True
-
-    def stop(self):
-        self.player.stop()
-
-    def stream(self, url):
-        self.player.set_mrl(url)
-        return self.play()
-
-    def on_press(self, key):
-        if key == Key.pause:
-            self.player.pause()
-        elif isinstance(key, KeyCode) and key.vk == 269025048:
-            self.player.stop()
-            self.full_play = False
-            self.playing = False
-
+ignore_keys = {'created', 'genre'}
 
 class MusicStreamer:
-    def __init__(self, config_filename='~/.subsonic_config'):
-        path = pathlib.Path(config_filename).expanduser()
-        if not path.exists():
-            print(f'{path} not found!')
-            exit(-1)
-        self.keys = yaml.safe_load(open(path))
-        if 'serverPath' not in self.keys:
-            self.keys['serverPath'] = 'rest'
-        self.conn = libsonic.Connection(**self.keys)
-
+    def __init__(self):
+        self.subsonic = SubsonicConnection(ignore=ignore_keys)
         self.player = VlcPlayer()
-
-    def get_streaming_url(self, song_info):
-        url = '{baseUrl}:{port}/{serverPath}/stream.view?'.format(**self.keys)
-
-        vars = {'id': song_info['id'],
-                'c': 'my_python_streamer',
-                'u': self.keys['username'],
-                'p': self.keys['password'],
-                'v': self.conn.apiVersion
-                }
-
-        return url + urllib.parse.urlencode(vars)
 
     def get_random_songs(self, genre, n=1, musicFolderId=None):
         res = self.conn.getRandomSongs(n, genre, musicFolderId=musicFolderId)
@@ -110,31 +27,7 @@ class MusicStreamer:
         if filename.exists() and not recache:
             return yaml.safe_load(open(filename))
 
-        data = []
-        songs = True
-        while songs:
-            q = self.conn._getQueryDict({'genre': genre,
-                                         'count': 500,
-                                         'offset': len(data),
-                                         'musicFolderId': musicFolderId,
-                                         })
-            req = self.conn._getRequest('getSongsByGenre.view', q)
-            res = self.conn._doInfoReq(req)
-            if res['status'] == 'failed':
-                print(yaml.safe_dump(res))
-                raise RuntimeError(res['error']['message'])
-            songs = res['songsByGenre'].get('song', [])
-            for song in songs:
-                for key in IGNORE_KEYS:
-                    if key in song:
-                        del song[key]
-                for k, v in song.items():
-                    try:
-                        song[k] = int(v)
-                    except ValueError:
-                        pass
-                data.append(song)
-
+        data = list(self.subsonic.get_songs_by_genre(genre, musicFolderId))
         data.sort(key=lambda d: (str(d['album']), d.get('track', 0)))
 
         yaml.safe_dump(data, open(filename, 'w'))
@@ -142,17 +35,10 @@ class MusicStreamer:
         return data
 
     def play(self, song_info):
-        url = self.get_streaming_url(song_info)
-        print(song_info['title'])
-        if 'year' in song_info:
-            print(f'{song_info["album"]} ({song_info["year"]})')
-        else:
-            print(song_info['album'])
-        print(song_info.get('artist'))
-        print()
-        print('\33]0;{title} - {album}\a'.format(**song_info), end='', flush=True)
+        self.subsonic.display_info(song_info)
+        url = self.subsonic.get_streaming_url(song_info['id'])
         if self.player.stream(url):
-            self.conn.scrobble(song_info['id'])
+            self.subsonic.scrobble(song_info['id'])
 
 
 if __name__ == '__main__':

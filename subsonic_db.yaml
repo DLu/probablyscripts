@@ -1,0 +1,28 @@
+tables:
+    songs:
+    - id
+    - folder
+    - album
+    - artist
+    - title
+    - track
+    - genre
+    - year
+    - created
+    - duration
+    - sort_title
+    plays:
+    - id
+    - count
+    - last
+    crawl:
+    - last
+special_types:
+    id: int
+    folder: int
+    track: int
+    year: int
+    count: int
+    last: int
+    duration: int
+    created: int

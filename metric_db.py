@@ -1,6 +1,7 @@
-import sqlite3
-import yaml
 import pathlib
+import sqlite3
+
+import yaml
 
 # Copy of the ros_metrics library module
 # https://github.com/DLu/ros_metrics/blob/master/ros_metrics/metric_db.py
@@ -16,16 +17,20 @@ class MetricDB:
     """
        Custom wrapper around an sqlite database with a plausibly easier-to-use API
     """
-    def __init__(self, key, folder='.'):
+    def __init__(self, key, folder='.', structure_filepath=None, structure_key=None):
         data_folder = pathlib.Path(folder)
         filepath = data_folder / f'{key}.db'
         self.raw_db = sqlite3.connect(str(filepath), detect_types=sqlite3.PARSE_DECLTYPES)
         sqlite3.register_adapter(bool, int)
-        sqlite3.register_converter("bool", lambda v: bool(int(v)))
+        sqlite3.register_converter('bool', lambda v: bool(int(v)))
         self.raw_db.row_factory = dict_factory
 
-        structure_filepath = data_folder / f'{key}.yaml'
-        self.db_structure = yaml.safe_load(open(str(structure_filepath)))
+        if structure_filepath is None:
+            if structure_key is None:
+                structure_key = key
+
+            structure_filepath = data_folder / f'{structure_key}.yaml'
+        self.db_structure = yaml.load(open(str(structure_filepath)))
         self._update_database_structure()
 
     def query(self, query):
@@ -162,6 +167,27 @@ class MetricDB:
         value_str = ', '.join(v_query)
         query = f'UPDATE {table} SET {value_str} ' + clause
         self.execute(query, values)
+
+    def get_next_id(self, table, start_id=0):
+        """ Return an id that is not yet in the table """
+        all_ids = self.lookup_all('id', table)
+        id = start_id
+        while id in all_ids:
+            id += 1
+        return id
+
+    def get_entry_id(self, table, values):
+        """ If the given values are in a table, return the id. Otherwise assign a new id and insert values """
+        clause_parts = []
+        for k, v in values.items():
+            clause_parts.append('{}={}'.format(k, self.format_value(k, v)))
+        clause = ' and '.join(clause_parts)
+        id = self.lookup('id', table, f'WHERE {clause}')
+        if id is None:
+            id = self.get_next_id(table)
+            values['id'] = id
+            self.insert(table, values)
+        return id
 
     # DB Structure Operations
     def get_field_type(self, field):

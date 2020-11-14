@@ -2,6 +2,7 @@ feedgen
 PyPDF2
 pdfminer
 humanize
+gitpython
 google-api-python-client
 google-auth-httplib2
 google-auth-oauthlib
@@ -10,6 +11,7 @@ psutil
 py-sonic
 pydub
 pynput
+PyGithub
 python-vlc
 youtube_dl
 git+https://github.com/DLu/PocketPy
