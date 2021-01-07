@@ -4,10 +4,10 @@ import argparse
 import pathlib
 
 LOCUS_COPYRIGHT = """/*******************************************************
- * Copyright (C) 2020 Locus Robotics
+ * Copyright (C) 2020 PickNik Robotics
  *
  * This file can not be copied and/or distributed without the express
- * permission of Locus Robotics.
+ * permission of PickNik Robotics.
  *******************************************************/
 """
 

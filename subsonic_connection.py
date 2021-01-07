@@ -25,6 +25,7 @@ STANDARD_IGNORE_KEYS = {
     'transcodedContentType'
 }
 
+
 def set_window_title(s):
     print(f'\33]0;{s}\a', end='', flush=True)
 
@@ -91,7 +92,10 @@ class SubsonicConnection:
         queue = [top_folder_id]
         while queue:
             fid = queue.pop(0)
-            fres = self.conn.getMusicDirectory(fid)
+            try:
+                fres = self.conn.getMusicDirectory(fid)
+            except ConnectionResetError:
+                queue.append(fid)
 
             for child in fres.get('directory', {}).get('child', []):
                 if child.get('isDir'):

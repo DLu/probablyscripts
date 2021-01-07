@@ -13,6 +13,7 @@ from tqdm import tqdm
 
 ignore_keys = {'coverArt'}
 
+
 def clean_title(s):
     s = s.lower()
     if s[0] == ' ':
@@ -62,8 +63,10 @@ class MusicStreamer:
         self.db.execute('DELETE FROM crawl')
         self.db.insert('crawl', {'last': now})
 
-    def update_sort_titles(self):
-        query = 'SELECT id, title FROM songs' # WHERE sort_title IS NULL '
+    def update_sort_titles(self, force=False):
+        query = 'SELECT id, title FROM songs'
+        if not force:
+            query += ' WHERE sort_title IS NULL'
         for song in self.db.query(query):
             ct = clean_title(song['title'])
             if ct != song['title']:
