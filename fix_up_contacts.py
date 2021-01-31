@@ -1,4 +1,5 @@
 import re
+import dateutil.parser
 
 from google_contact_api import GoogleContactAPI
 
@@ -12,7 +13,7 @@ api = GoogleContactAPI()
 # TODO: Sort email addresses
 # TODO: Merge
 
-for contact in api.get_contact_list(['names', 'phoneNumbers', 'emailAddresses']):
+for contact in api.get_contact_list(['names', 'phoneNumbers', 'emailAddresses', 'birthdays']):
 
     changed = set()
     names = contact.get('names', [])
@@ -65,6 +66,19 @@ for contact in api.get_contact_list(['names', 'phoneNumbers', 'emailAddresses'])
             if phone['value'] != new_phone:
                 phone['value'] = new_phone
                 changed.add('phoneNumbers')
+
+    # Format Birthdays
+    for birthday in contact.get('birthdays', []):
+        if 'date' in birthday:
+            continue
+        if 'text' not in birthday:
+            continue
+        text = birthday['text']
+        dt = dateutil.parser.parse(text)
+        birthday['date'] = {'month': dt.month, 'day': dt.day}
+        if dt.year != 2021:
+            birthday['date']['year'] = dt.year
+        changed.add('birthdays')
 
     if changed:
         new_value = {'etag': contact['etag']}
