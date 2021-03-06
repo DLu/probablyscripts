@@ -1,13 +1,14 @@
 #!/usr/bin/python3
 
 import argparse
+import datetime
 import pathlib
 
-LOCUS_COPYRIGHT = """/*******************************************************
- * Copyright (C) 2020 PickNik Robotics
+COPYRIGHT_BLOCK = """/*******************************************************
+ * Copyright (C) {year} {company}
  *
  * This file can not be copied and/or distributed without the express
- * permission of PickNik Robotics.
+ * permission of {company}.
  *******************************************************/
 """
 
@@ -51,6 +52,7 @@ int main(int argc, char **argv)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('name')
+parser.add_argument('company', nargs='?', default='Picknik Robotics')
 parser.add_argument('-i', '--include', action='store_true')
 parser.add_argument('-c', '--cpp', action='store_true')
 parser.add_argument('-t', '--test', action='store_true')
@@ -59,6 +61,8 @@ args = parser.parse_args()
 if not args.include and not args.cpp and not args.test:
     args.include = True
     args.cpp = True
+
+copyright_block = COPYRIGHT_BLOCK.format(company=args.company, year=datetime.datetime.now().year)
 
 root = pathlib.Path('.').resolve()
 folder = root.stem
@@ -72,7 +76,7 @@ if args.include:
         print(new_path)
         guard = folder.upper() + '_' + args.name.upper() + '_H'
         with open(new_path, 'w') as f:
-            f.write(HEADER_TEMPLATE % {'copyright': LOCUS_COPYRIGHT, 'guard': guard, 'ns': folder, 'class': class_name})
+            f.write(HEADER_TEMPLATE % {'copyright': copyright_block, 'guard': guard, 'ns': folder, 'class': class_name})
 
 if args.cpp:
     src_path = root / 'src'
@@ -86,7 +90,7 @@ if args.cpp:
             header = ''
 
         with open(new_path, 'w') as f:
-            f.write(CPP_TEMPLATE % {'copyright': LOCUS_COPYRIGHT, 'ns': folder, 'header': header})
+            f.write(CPP_TEMPLATE % {'copyright': copyright_block, 'ns': folder, 'header': header})
 
 if args.test:
     test_path = root / 'test'
@@ -96,4 +100,4 @@ if args.test:
         print(new_path)
 
         with open(new_path, 'w') as f:
-            f.write(TEST_TEMPLATE % {'copyright': LOCUS_COPYRIGHT, 'class': class_name})
+            f.write(TEST_TEMPLATE % {'copyright': copyright_block, 'class': class_name})

@@ -16,6 +16,9 @@ alias pip_v='pip show $1 '
 alias ls='ls -h --color=auto'
 alias check_size='du -hs'
 
+alias ackc='ack -c -l --sort-files'
+alias ack='ack --sort-files'
+
 alias atom_root='atom `git rev-parse --show-toplevel`'
 alias rip_mp3='youtube-dl -x --audio-format mp3 -o "%(title)s.%(ext)s" '
 
