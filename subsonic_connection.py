@@ -12,6 +12,7 @@ STANDARD_IGNORE_KEYS = {
     'suffix',
     'type',
     'size',
+    'bookmarkPosition',
     'bitRate',
     'contentType',
     'isDir',
