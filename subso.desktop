@@ -1,0 +1,8 @@
+[Desktop Entry]
+Version=1.0
+Name=Subso
+GenericName=Media player
+Comment=Stream Some Tunes
+Icon=/usr/share/icons/Numix-Circle-Light/48/apps/gmpc.svg
+Type=Application
+Categories=AudioVideo;Player;Recorder;

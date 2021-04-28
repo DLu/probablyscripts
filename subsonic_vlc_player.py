@@ -1,4 +1,4 @@
-import time
+import asyncio
 
 from pynput.keyboard import Key, KeyCode, Listener
 
@@ -8,47 +8,64 @@ import vlc
 MEDIA_RIGHT = 269025047
 UNKNOWN_SKIP = 269025048
 
+
 class VlcPlayer:
     def __init__(self):
         self.instance = vlc.Instance()
         self.player = self.instance.media_player_new()
 
+        self.done_playing_condition = asyncio.Condition()
+        self.loop = asyncio.get_event_loop()
+
         self.eventManager = self.player.event_manager()
         self.eventManager.event_attach(vlc.EventType.MediaPlayerEndReached, self.over_callback)
-        self.playing = False
         self.full_play = False
 
         self.keyboard = Listener(on_press=self.on_press)
         self.keyboard.start()
 
-    def play(self, wait=True):
+    async def play(self, wait=True):
         if not self.player.is_playing():
             if self.player.get_state() == vlc.State.Ended:
                 self.player.stop()  # Restart it
             self.player.play()
-        self.playing = True
         self.full_play = False
 
-        while wait and self.playing:
-            time.sleep(0.5)
+        if wait:
+            async with self.done_playing_condition:
+                await self.done_playing_condition.wait()
 
         return wait and self.full_play
 
-    def over_callback(self, event):
-        self.playing = False
+    async def stop_it(self):
         self.full_play = True
+        async with self.done_playing_condition:
+            self.done_playing_condition.notify_all()
 
-    def stop(self):
+    def over_callback(self, event):
+        self.loop.call_soon_threadsafe(asyncio.async, self.stop_it())
+
+    async def stop(self):
         self.player.stop()
 
-    def stream(self, url):
+        async with self.done_playing_condition:
+            self.done_playing_condition.notify_all()
+
+    async def stream(self, url):
         self.player.set_mrl(url)
-        return self.play()
+        return await self.play()
+
+    def play_pause(self):
+        self.player.pause()
+
+    async def skip(self):
+        self.player.stop()
+        self.full_play = False
+        async with self.done_playing_condition:
+            self.done_playing_condition.notify_all()
 
     def on_press(self, key):
         if key == Key.pause:
-            self.player.pause()
-        elif isinstance(key, KeyCode) and key.vk in [MEDIA_RIGHT, UNKNOWN_SKIP]:
-            self.player.stop()
-            self.full_play = False
-            self.playing = False
+            self.play_pause()
+        elif isinstance(key, KeyCode) and key.vk in [UNKNOWN_SKIP]:
+            self.skip()

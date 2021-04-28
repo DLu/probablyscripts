@@ -1,9 +1,12 @@
 #!/usr/bin/python3
 import argparse
+import asyncio
 import pathlib
 import time
 
 from metric_db import MetricDB
+
+from mpris_controls import MprisControls, PlaybackStatus
 
 from subsonic_connection import SubsonicConnection
 
@@ -42,6 +45,9 @@ class MusicStreamer:
         self.folder = pathlib.Path('~/.subsonic_stream/').expanduser()
         current_folder = pathlib.Path(__file__).parent.resolve()
         self.db = MetricDB('songs', self.folder, current_folder / 'subsonic_db.yaml')
+        self.loop = asyncio.get_event_loop()
+        self.stopped = False
+
         self.player = VlcPlayer()
 
     def crawl(self):
@@ -73,10 +79,10 @@ class MusicStreamer:
                 song['sort_title'] = ct
                 self.db.update('songs', song)
 
-    def play(self, song_info):
+    async def play(self, song_info):
         self.subsonic.display_info(song_info)
         url = self.subsonic.get_streaming_url(song_info['id'])
-        if self.player.stream(url):
+        if await self.player.stream(url):
             self.subsonic.scrobble(song_info['id'])
             entry = {'id': song_info['id']}
             if song_info.get('count'):
@@ -86,8 +92,21 @@ class MusicStreamer:
             entry['last'] = int(time.time())
             self.db.update('plays', entry)
 
+    async def control(self, msg):
+        if msg == 'next':
+            await self.player.skip()
+        elif msg == 'pause':
+            await self.player.play_pause()
+        elif msg == 'playpause':
+            await self.player.play_pause()
+        elif msg == 'play':
+            await self.player.play_pause()
+        elif msg == 'stop':
+            self.stopped = True
+            await self.player.stop()
 
-if __name__ == '__main__':
+
+async def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('genre', nargs='?', default='Soundtrack')
     parser.add_argument('-f', '--folder', type=int, default=0)
@@ -95,6 +114,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     ms = MusicStreamer()
+
+    controls = await MprisControls.create('Empress', 'subso', ms.control)
 
     try:
         if args.recache:
@@ -112,10 +133,22 @@ if __name__ == '__main__':
 
         songs = ms.db.query(query)
         print(len(songs))
+        controls.set_playback_status(PlaybackStatus.PLAYING)
         for song in songs:
-            ms.play(song)
+            controls.set_metadata(song['title'], song['id'], song['artist'], song['album'])
+            await ms.play(song)
+
+            if ms.stopped:
+                break
     except KeyboardInterrupt:
         pass
     finally:
         ms.player.keyboard.stop()
         ms.db.close()
+
+
+if __name__ == '__main__':
+    try:
+        asyncio.get_event_loop().run_until_complete(main())
+    except KeyboardInterrupt:
+        pass
