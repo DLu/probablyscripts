@@ -43,7 +43,7 @@ class VlcPlayer:
             self.done_playing_condition.notify_all()
 
     def over_callback(self, event):
-        self.loop.call_soon_threadsafe(asyncio.async, self.stop_it())
+        asyncio.run_coroutine_threadsafe(self.stop_it(), self.loop)
 
     async def stop(self):
         self.player.stop()

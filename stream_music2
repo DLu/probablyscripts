@@ -106,49 +106,49 @@ class MusicStreamer:
             await self.player.stop()
 
 
-async def main():
+async def main(ms, query):
+    controls = await MprisControls.create('Empress', 'subso', ms.control)
+
+    songs = ms.db.query(query)
+    controls.set_playback_status(PlaybackStatus.PLAYING)
+    for song in songs:
+        controls.set_metadata(song['title'], song['id'], song['artist'], song['album'])
+        await ms.play(song)
+
+        if ms.stopped:
+            break
+
+if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('genre', nargs='?', default='Soundtrack')
     parser.add_argument('-f', '--folder', type=int, default=0)
     parser.add_argument('-c', '--recache', action='store_true')
     args = parser.parse_args()
 
+    if args.genre == 'Soundtrack':
+        TS = 1620228335
+    else:
+        TS = 1604946876
+
+    query = 'SELECT songs.id, title, album, year, artist, count FROM songs LEFT JOIN plays ON songs.id = plays.id'
+    query += f' WHERE genre = "{args.genre}" and folder={args.folder}'
+    query += f' and artist NOT LIKE "%Washington Univ%"'
+    query += f' and artist NOT LIKE "%Carniv%"'
+    query += f' and artist NOT LIKE "%Deciduous%"'
+    query += f' and (last < {TS} or last is null)'
+    if args.genre == 'Soundtrack':
+        query += ' ORDER BY year, album, track'
+    else:
+        query += ' ORDER BY sort_title, title'
+
     ms = MusicStreamer()
-
-    controls = await MprisControls.create('Empress', 'subso', ms.control)
-
     try:
         if args.recache:
             ms.crawl()
-
-        ms.update_sort_titles()
-
-        TS = 1604946876
-        query = 'SELECT songs.id, title, album, year, artist, count FROM songs LEFT JOIN plays ON songs.id = plays.id'
-        query += f' WHERE genre = "{args.genre}" and folder={args.folder}'
-        query += f' and artist NOT LIKE "%Washington Univ%"'
-        query += f' and artist NOT LIKE "%Carniv%"'
-        query += f' and artist NOT LIKE "%Deciduous%"'
-        query += f' and (last < {TS} or last is null) ORDER BY sort_title, title'
-
-        songs = ms.db.query(query)
-        print(len(songs))
-        controls.set_playback_status(PlaybackStatus.PLAYING)
-        for song in songs:
-            controls.set_metadata(song['title'], song['id'], song['artist'], song['album'])
-            await ms.play(song)
-
-            if ms.stopped:
-                break
+            ms.update_sort_titles()
+        asyncio.get_event_loop().run_until_complete(main(ms, query))
     except KeyboardInterrupt:
         pass
     finally:
         ms.player.keyboard.stop()
         ms.db.close()
-
-
-if __name__ == '__main__':
-    try:
-        asyncio.get_event_loop().run_until_complete(main())
-    except KeyboardInterrupt:
-        pass

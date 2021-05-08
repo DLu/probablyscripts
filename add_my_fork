@@ -1,0 +1,38 @@
+#!/usr/bin/env python3
+
+import argparse
+import re
+
+import click
+
+import git
+
+GITHUB_PATTERN = re.compile(r'github.com[/:]([^/]+)/([^/\.]+)\.?')
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('username', nargs='?', default='DLu')
+    args = parser.parse_args()
+
+    repo = git.Repo('.')
+    existing_remotes = {}
+    for remote in repo.remotes:
+        m = GITHUB_PATTERN.search(remote.url)
+        if m:
+            value = m.group(1), m.group(2)
+            if m.group(1) == args.username:
+                click.secho(f'Remote already exists: {remote}: {remote.url}', fg='yellow')
+                exit(0)
+        existing_remotes[str(remote)] = value
+
+    if 'upstream' not in existing_remotes and 'origin' in existing_remotes:
+        repo.remotes.origin.rename('upstream')
+        click.secho(f'Renaming origin to upstream', fg='blue')
+        existing_remotes['upstream'] = existing_remotes['origin']
+        del existing_remotes['origin']
+
+    if 'origin' not in existing_remotes:
+        repo_name = existing_remotes['upstream'][1]
+        new_url = f'git@github.com:{args.username}/{repo_name}.git'
+        click.secho(f'Creating new origin: {new_url}', fg='green')
+        repo.create_remote('origin', new_url)

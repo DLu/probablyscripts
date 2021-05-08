@@ -25,3 +25,5 @@ alias rosmemcheck="rosrun --prefix 'valgrind --tool=memcheck' "
 alias fix_cpp_style="find -regextype egrep -regex '.*\.[ch](pp)?$' -exec astyle '{}' --style=allman --indent=spaces=2 --pad-oper --unpad-paren --pad-header --convert-tabs -n \;"
 alias cpp_style_check="find -regextype egrep -regex '.*\.[ch](pp)?$' -exec rosrun roslint cpplint --filter -build/c++11,-runtime/references '{}' \; 2>&1 | grep -v 'Total errors' | grep -v 'Done processing'"
 alias install_deps="rosdep install --ignore-src -y -r --from-paths "
+
+alias friggin_colcon='colcon build --event-handlers desktop_notification- status- --cmake-args -DCMAKE_BUILD_TYPE=Release'
