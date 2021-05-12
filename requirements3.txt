@@ -11,6 +11,7 @@ mutagen
 psutil
 py-sonic
 pydub
+python-magic
 pynput
 PyGithub
 python-vlc
