@@ -1,0 +1,51 @@
+#!/usr/bin/python3
+
+import argparse
+import pathlib
+import subprocess
+
+
+def get_workspace_root(starting):
+    folder = starting
+    while folder:
+        if (folder / 'src').exists() and (folder / 'build').exists():
+            return folder
+        elif folder.parent == folder:
+            return
+        else:
+            folder = folder.parent
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-t', '--this', action='store_true')
+parser.add_argument('-n', '--no-deps', action='store_true')
+parser.add_argument('-x', '--test', action='store_true')
+parser.add_argument('-m', '--mute', action='store_true')
+args = parser.parse_args()
+
+current = pathlib.Path('.').resolve()
+root = get_workspace_root(current)
+
+command = ['colcon', 'build', '--event-handlers', 'desktop_notification-', 'status-']
+
+if args.this or args.no_deps:
+    pkg = current.stem
+    if args.no_deps:
+        command += ['--packages-select', pkg]
+    else:
+        command += ['--packages-up-to', pkg]
+
+command += ['--cmake-args', '-DCMAKE_BUILD_TYPE=Release']
+
+if args.test:
+    print(' '.join(command))
+else:
+    code = subprocess.call(command, cwd=root)
+    if not args.mute:
+        if code == 0:
+            sound = 'smw_power-up.wav'
+        else:
+            sound = 'smw_pipe.wav'
+        subprocess.call(['aplay', '-q', '/home/dlu/Sounds/' + sound])
+
+    exit(code)
