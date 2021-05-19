@@ -1,0 +1,27 @@
+#!/usr/bin/python3
+
+import argparse
+import subprocess
+
+parser = argparse.ArgumentParser()
+parser.add_argument('pattern')
+parser.add_argument('-t', '--test', action='store_true')
+args = parser.parse_args()
+
+command = ['sudo', 'apt', 'list', '--upgradable']
+proc = subprocess.Popen(command, stdout=subprocess.PIPE)
+output, errs = proc.communicate()
+pkgs = []
+for line in output.decode().split('\n'):
+    pkg, _, _ = line.partition('/')
+    if args.pattern in pkg:
+        pkgs.append(pkg)
+
+if not pkgs:
+    exit(-1)
+
+upgrade_command = ['sudo', 'apt', 'install'] + pkgs
+if args.test:
+    print(' '.join(upgrade_command))
+else:
+    subprocess.call(upgrade_command)

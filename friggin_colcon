@@ -16,12 +16,39 @@ def get_workspace_root(starting):
             folder = folder.parent
 
 
+def get_package_names(starting):
+    # Start by looking up the hierarchy
+    folder = starting
+    while folder:
+        if (folder / 'package.xml').exists():
+            return [folder.stem]
+        elif folder.parent == folder:
+            folder = None
+        else:
+            folder = folder.parent
+
+    # Try looking in all subfolders
+    queue = [starting]
+    found = []
+    while queue:
+        folder = queue.pop(0)
+        if (folder / 'package.xml').exists():
+            found.append(folder.stem)
+            continue
+        for path in folder.iterdir():
+            if path.is_dir():
+                queue.append(path)
+
+    if not found:
+        raise RuntimeError('No packages found')
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument('-t', '--this', action='store_true')
 parser.add_argument('-n', '--no-deps', action='store_true')
 parser.add_argument('-x', '--test', action='store_true')
 parser.add_argument('-m', '--mute', action='store_true')
-args = parser.parse_args()
+args, unknown_args = parser.parse_known_args()
 
 current = pathlib.Path('.').resolve()
 root = get_workspace_root(current)
@@ -29,11 +56,13 @@ root = get_workspace_root(current)
 command = ['colcon', 'build', '--event-handlers', 'desktop_notification-', 'status-']
 
 if args.this or args.no_deps:
-    pkg = current.stem
     if args.no_deps:
-        command += ['--packages-select', pkg]
+        command.append('--packages-select')
     else:
-        command += ['--packages-up-to', pkg]
+        command.append('--packages-up-to')
+    command += get_package_names(current)
+
+command += unknown_args
 
 command += ['--cmake-args', '-DCMAKE_BUILD_TYPE=Release']
 
