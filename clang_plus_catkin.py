@@ -1,10 +1,13 @@
 #!/usr/bin/python3
 
 import argparse
-import cson
+import os
 import pathlib
-import rospkg
 import subprocess
+
+import cson
+
+import rospkg
 
 
 def my_sort_fne(path):
@@ -17,6 +20,7 @@ def my_sort_fne(path):
 
 
 rp = rospkg.RosPack()
+
 
 def get_package_path(name):
     pkg_path = rp.get_path(name)
@@ -35,26 +39,36 @@ if __name__ == '__main__':
     linter_clang = config['*']['linter-clang']
     includes = list(map(pathlib.Path, linter_clang.get('clangIncludePaths', [])))
 
-    for package in args.packages:
-        i_path = get_package_path(package) / 'include'
-        if i_path.exists() and i_path not in includes:
-            print(f'Adding {i_path}...')
-            includes.append(i_path)
+    COLCON_PATH = os.environ.get('COLCON_PREFIX_PATH')
+    if not COLCON_PATH:
+        for package in args.packages:
+            i_path = get_package_path(package) / 'include'
+            if i_path.exists() and i_path not in includes:
+                print(f'Adding {i_path}...')
+                includes.append(i_path)
 
-    try:
-        DEVEL = subprocess.check_output(['catkin', 'locate', '-d']).decode().strip()
-        d_path = pathlib.Path(DEVEL) / 'include'
-        if d_path.exists() and d_path not in includes:
-            print(f'Adding {d_path}...')
-            includes.append(d_path)
-    except Exception:
-        raise
+        try:
+            DEVEL = subprocess.check_output(['catkin', 'locate', '-d']).decode().strip()
+            d_path = pathlib.Path(DEVEL) / 'include'
+            if d_path.exists() and d_path not in includes:
+                print(f'Adding {d_path}...')
+                includes.append(d_path)
+        except Exception:
+            raise
 
-    for build in pathlib.Path('/opt/ros/').glob('*'):
-        binary_path = build / 'include'
-        if binary_path.exists() and binary_path not in includes:
-            print(f'Adding {binary_path}...')
-            includes.append(binary_path)
+        for build in pathlib.Path('/opt/ros/').glob('*'):
+            binary_path = build / 'include'
+            if binary_path.exists() and binary_path not in includes:
+                print(f'Adding {binary_path}...')
+                includes.append(binary_path)
+    else:
+        colcon_paths = [pathlib.Path(p) for p in COLCON_PATH.split(':')]
+        for package in args.packages:
+            for install_path in colcon_paths:
+                inc_path = install_path / package / 'include'
+                if inc_path.exists() and inc_path not in includes:
+                    print(f'Adding {inc_path}...')
+                    includes.append(inc_path)
 
     linter_clang['clangIncludePaths'] = list(map(str, sorted(includes, key=my_sort_fne)))
 

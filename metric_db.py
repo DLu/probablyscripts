@@ -88,12 +88,15 @@ class MetricDB:
             db.execute(f'DROP TABLE IF EXISTS {table}')
         self._update_database_structure()
 
+    def write(self):
+        self.raw_db.commit()
+
     def close(self, print_table_sizes=True):
         """Write data to database. Possibly print the number of rows in each table."""
         if print_table_sizes:
             for table in self.db_structure['tables']:
                 print('{}({})'.format(table, self.count(table)))
-        self.raw_db.commit()
+        self.write()
         self.raw_db.close()
 
     # Convenience interfaces for special types of queries
