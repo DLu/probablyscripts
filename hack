@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Based on https://github.com/Russell91/sshrc/blob/master/sshrc
+# Based on https://github.com/cdown/sshrc
 
 function sshrc() {
     local SSHHOME=${SSHHOME:=~}
