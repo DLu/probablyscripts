@@ -1,9 +1,12 @@
+bidict
 cson
+dbus_next
 feedgen
 PyPDF2
 pdfminer
 humanize
 gitpython
+graphviz
 google-api-python-client
 google-auth-httplib2
 google-auth-oauthlib
@@ -15,5 +18,7 @@ python-magic
 pynput
 PyGithub
 python-vlc
+tabulate
+tqdm
 youtube_dl
 git+https://github.com/DLu/PocketPy

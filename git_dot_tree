@@ -1,0 +1,84 @@
+#!/usr/bin/python3
+
+import argparse
+import collections
+import subprocess
+import git
+import time
+import graphviz
+from bidict import bidict
+
+def get_hash(branch):
+    return subprocess.check_output(['git', 'rev-parse', branch]).decode().strip()
+
+def get_common_ancestor(branch0, branch1):
+    return subprocess.check_output(['git', 'merge-base', branch0, branch1]).decode().strip()
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('filename', nargs='?')
+    parser.add_argument('-b', '--branch_names', nargs='*', default=[])
+    args = parser.parse_args()
+
+    remappings = {}
+
+    branch_hashes = bidict()
+    repo = git.Repo('.')
+
+    if args.filename:
+        with open(args.filename, 'r') as f:
+            for token in map(str.strip, f.read().split('\n')):
+                if token:
+                    args.branch_names.append(token)
+
+    for branch_name in args.branch_names:
+        if ':=' in branch_name:
+            a, _, b = branch_name.partition(':=')
+            remappings[a] = b
+        else:
+            branch_hashes[branch_name] = get_hash(branch_name)
+
+    key_hashes = set(branch_hashes.values())
+    ancestors = collections.defaultdict(dict)
+
+    changed = True
+    while changed:
+        changed = False
+        for key_hash0 in list(key_hashes):
+            for key_hash1 in list(key_hashes):
+                if key_hash1 in ancestors[key_hash0]:
+                    continue
+                ancestor = get_common_ancestor(key_hash0, key_hash1)
+                ancestors[key_hash0][key_hash1] = ancestor
+                # ancestors[key_hash1][key_hash0] = ancestor
+                key_hashes.add(ancestor)
+                changed = True
+    dates = {}
+    for key_hash in key_hashes:
+        c = repo.commit(key_hash)
+        dates[key_hash] = c.committed_date
+
+    hashes = sorted(key_hashes, key=lambda d: dates[d])
+
+    dot = graphviz.Digraph()
+    for i, h in enumerate(hashes):
+        if h in branch_hashes.inverse:
+            name = branch_hashes.inverse[h]
+            for before, after in remappings.items():
+                name = name.replace(before, after)
+        else:
+            name = h[:8]
+
+        dt = time.strftime('%Y-%m-%d', time.localtime(dates[h]))
+        dot.node(h, f'{name}\n{dt}\n{h[:8]}')
+
+        newest = None
+        for h2 in hashes[:i]:
+            ancestor = ancestors[h][h2]
+            if newest is None or hashes.index(ancestor) > hashes.index(newest):
+                newest = h2
+
+        if newest:
+            dot.edge(newest, h)
+    dot.render(view=True)
