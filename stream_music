@@ -137,9 +137,9 @@ if __name__ == '__main__':
 
     query = 'SELECT songs.id, title, album, year, artist, count FROM songs LEFT JOIN plays ON songs.id = plays.id'
     query += f' WHERE genre = "{args.genre}" and folder={args.folder}'
-    query += f' and artist NOT LIKE "%Washington Univ%"'
-    query += f' and artist NOT LIKE "%Carniv%"'
-    query += f' and artist NOT LIKE "%Deciduous%"'
+    query += ' and artist NOT LIKE "%Washington Univ%"'
+    query += ' and artist NOT LIKE "%Carniv%"'
+    query += ' and artist NOT LIKE "%Deciduous%"'
     query += f' and (last < {TS} or last is null)'
     if args.genre == 'Soundtrack':
         query += ' ORDER BY year, album, track'

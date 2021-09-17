@@ -16,7 +16,7 @@ S = """
 |   |   -coreScore:  total: 0.18762,  self: 0.18762,  children: 0,  iterations: 495,  min: 0.000152,  max: 0.001568
 |   |   -orca:  total: 0.122163,  self: 0.122163,  children: 0,  iterations: 495,  min: 3.4e-05,  max: 0.001026
 |   |   -end:  total: 0.001796,  self: 0.001796,  children: 0,  iterations: 495,  min: 1e-06,  max: 0.00015
-"""
+"""  # noqa
 
 
 def draw_bars(ax, data, full_sum=None):

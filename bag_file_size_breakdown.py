@@ -67,7 +67,7 @@ try:
 finally:
     for k, v in sorted(totals.items(), key=operator.itemgetter(1), reverse=True):
         n, unit = sizeof_fmt(v)
-        print('%5s %3s %03s%% %s' % (n, unit, int(v*100/float(total)), k))
+        print('%5s %3s %03s%% %s' % (n, unit, int(v * 100 / float(total)), k))
 
     n, unit = sizeof_fmt(total)
     print('\n%5s %3s Total' % (n, unit))

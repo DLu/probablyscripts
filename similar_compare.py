@@ -4,7 +4,6 @@ import tempfile
 import argparse
 import subprocess
 import os
-import collections
 
 
 def fix_string(s, replacements):

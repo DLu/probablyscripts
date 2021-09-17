@@ -1,6 +1,5 @@
 import pygame
-import sys
-from pygame.locals import *
+from pygame.locals import QUIT
 import audio_player
 
 MSTART = (50, 50)

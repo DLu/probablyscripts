@@ -12,7 +12,7 @@ config = json.load(open(config_path))
 add_times = collections.defaultdict(int)
 read_times = collections.defaultdict(int)
 
-#date = datetime.datetime.fromtimestamp(int('1467690697'))
+# date = datetime.datetime.fromtimestamp(int('1467690697'))
 # add_times[date]+=1
 config['state'] = 'all'
 

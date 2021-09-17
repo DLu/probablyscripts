@@ -36,9 +36,7 @@ class Page:
         y = int(y * factor)
         w = int(w * factor)
         h = int(h * factor)
-        subprocess.call(['convert'] +
-                        density +
-                        [self.base_filename, '-crop', '%dx%d%+d%+d' %
+        subprocess.call(['convert'] + density + [self.base_filename, '-crop', '%dx%d%+d%+d' %
                         (w, h, x, y), '-trim', '+repage', '-trim', subimage.name])
         return subimage
 

@@ -27,7 +27,7 @@ if __name__ == '__main__':
 
     if 'upstream' not in existing_remotes and 'origin' in existing_remotes:
         repo.remotes.origin.rename('upstream')
-        click.secho(f'Renaming origin to upstream', fg='blue')
+        click.secho('Renaming origin to upstream', fg='blue')
         existing_remotes['upstream'] = existing_remotes['origin']
         del existing_remotes['origin']
 

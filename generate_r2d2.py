@@ -4,7 +4,6 @@ import pylab
 import numpy
 from math import pi, sin
 import random
-import argparse
 
 
 class BeepGenerator:
@@ -16,7 +15,7 @@ class BeepGenerator:
                  attack=.2, decay=.1, silence=.1):
         N = self.rate * length
         wave = self.rate / freq
-        att = N * attack
+        # att = N * attack
         dec = N - N * decay
 
         for i in range(int(N)):
@@ -72,12 +71,12 @@ class BeepGenerator:
 
 r2 = BeepGenerator()
 t = 1.5
-for l in [.1, .1, .1, .2, .1, .3, .1, .1, .05, .1, 0.1, .05]:
+for length in [.1, .1, .1, .2, .1, .3, .1, .1, .05, .1, 0.1, .05]:
     # for l in [.2, .3, .5]:
     f = random.randint(200, 500)
-    r2.add_beep(f, l)
+    r2.add_beep(f, length)
 
-#data = beep(570, .2) + beep(590, .5) + beep(540, .3)
-#data = sweep(10, 200, 0.5)
+# data = beep(570, .2) + beep(590, .5) + beep(540, .3)
+# data = sweep(10, 200, 0.5)
 
 r2.finish('r2.wav', True)

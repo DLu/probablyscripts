@@ -1,7 +1,6 @@
 #!/usr/bin/python
 
 import subprocess
-import sys
 from math import ceil
 
 
@@ -37,7 +36,7 @@ def build_git(fn='paper.tex'):
                          stderr=subprocess.PIPE)
     out, err = p.communicate()
     # TODO: Catch Error
-    newfn = fn[:-4] + '.pdf'
+    # newfn = fn[:-4] + '.pdf'
     # TODO: Save version
 
 
@@ -54,11 +53,11 @@ def make_image(pdf_file, image_file, total_pages=None):
     if total_pages is None:
         total_pages = num_pages
     rows, cols = get_dimensions(num_pages, total_pages)
-#commits = get_commits(sys.argv[1])
+# commits = get_commits(sys.argv[1])
 # for commit in commits:
 #    h = commit['commit']
 #    checkout(h)
 
 # checkout('master')
 
-#make_image('paper.pdf', 'paper.png')
+# make_image('paper.pdf', 'paper.png')

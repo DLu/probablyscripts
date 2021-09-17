@@ -1,5 +1,4 @@
 import pyaudio
-import numpy as np
 import struct
 import thread
 

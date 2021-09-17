@@ -9,14 +9,14 @@ def GetHumanReadable(size, precision=2):
     suffixIndex = 0
     while size > 1024 and suffixIndex < 4:
         suffixIndex += 1  # increment the index of the suffix
-        size = size/1024.0  # apply the division
+        size = size / 1024.0  # apply the division
     if suffixIndex == 0:
         precision = 0
     return '%.*f%s' % (precision, size, suffixes[suffixIndex])
 
 
 SHAS = {}
-for line in subprocess.check_output('git rev-list --objects --all | sort -k 2', shell=True).split('\n'):
+for line in subprocess.check_output('git rev-list --objects --all | sort -k 2', shell=True).decode().split('\n'):
     line = line.strip()
     if len(line) == 0:
         continue
@@ -28,7 +28,10 @@ for line in subprocess.check_output('git rev-list --objects --all | sort -k 2', 
 
 FileTypes = collections.defaultdict(int)
 
-for line in subprocess.check_output('git gc 2> /dev/null && git verify-pack -v .git/objects/pack/pack-*.idx 2> /dev/null | egrep "^\w+ blob\W+[0-9]+ [0-9]+ [0-9]+$" | sort -k 3 -n -r  ', shell=True).split('\n'):
+cmd = 'git gc 2> /dev/null && git verify-pack -v .git/objects/pack/pack-*.idx 2> /dev/null '
+cmd += '| egrep "^\\w+ blob\\W+[0-9]+ [0-9]+ [0-9]+$" | sort -k 3 -n -r  '
+
+for line in subprocess.check_output(cmd, shell=True).decode().split('\n'):
     parts = line.split(' ')
     if len(parts) < 4:
         continue

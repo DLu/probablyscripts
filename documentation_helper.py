@@ -51,7 +51,7 @@ def update_markdown_with_equations(input_markdown_fn, output_markdown_fn):
             with open(img_filename, 'wb') as f:
                 f.write(img.content)
         # if img_filename in gifs_to_remove:
-         #   gifs_to_remove.remove(img_filename)
+        #   gifs_to_remove.remove(img_filename)
         s = s.replace(m.group(0), '![%s](%s)' % (equation, img_filename))
         m = EQ_PATTERN.search(s)
 
@@ -71,9 +71,9 @@ if __name__ == '__main__':
             gifs = update_markdown_with_equations(fn, output_path)
 
 
-#existing_gifs = [p for p in doc_folder.iterdir() if p.suffix == '.gif']
-#gifs_to_remove = set(existing_gifs)
+# existing_gifs = [p for p in doc_folder.iterdir() if p.suffix == '.gif']
+# gifs_to_remove = set(existing_gifs)
 
 # for gif_to_remove in gifs_to_remove:
- #   print('Deleting {}'.format(gif_to_remove))
-  #  gif_to_remove.unlink()
+#   print('Deleting {}'.format(gif_to_remove))
+#   gif_to_remove.unlink()
