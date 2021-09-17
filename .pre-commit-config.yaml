@@ -9,3 +9,6 @@ repos:
   - id: check-ast
   - id: check-executables-have-shebangs
   - id: double-quote-string-fixer
+  - id: check-merge-conflict
+  - id: mixed-line-ending
+  - id: requirements-txt-fixer
