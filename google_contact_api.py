@@ -10,6 +10,7 @@ import yaml
 SCOPES = ['https://www.googleapis.com/auth/contacts', 'https://www.googleapis.com/auth/contacts.other.readonly']
 FIELDS = ['addresses', 'birthdays', 'emailAddresses', 'metadata', 'names', 'nicknames', 'phoneNumbers']
 
+
 class GoogleContactAPI:
     # https://developers.google.com/people/v1/contacts
 

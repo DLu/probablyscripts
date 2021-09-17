@@ -11,6 +11,7 @@ import requests
 
 DATE_FORMAT = '%a, %d %b %Y %H:%M:%S -0500'
 
+
 class Podcast(FeedGenerator):
     def __init__(self, title, link, description, image=None, thumbnail=None, prefix=None):
         FeedGenerator.__init__(self)
@@ -38,6 +39,7 @@ class Podcast(FeedGenerator):
 
     def __repr__(self):
         return self.rss_str(pretty=True).decode()
+
 
 class YamlPodcast(Podcast):
     def __init__(self, yaml_filename):

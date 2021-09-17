@@ -4,6 +4,7 @@ import collections
 import psutil
 import subprocess
 
+
 def match_pattern(patterns, name):
     if 'KillGrep' in name or 'atom' in name:
         return False

@@ -7,6 +7,7 @@ import re
 
 RES_PATTERN = re.compile(r'Stream #0:0.*[^\d](\d+x\d+)')
 
+
 def get_info(filepath):
     process = subprocess.Popen(['ffmpeg', '-i', filepath], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output, err = process.communicate()

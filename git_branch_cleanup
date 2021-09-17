@@ -45,9 +45,9 @@ args = parser.parse_args()
 
 branches = classify_branches()
 if args.alpha:
-    sort_key = lambda d: d
+    def sort_key(d): return d
 else:
-    sort_key = lambda d: (d[1], d[0])
+    def sort_key(d): return (d[1], d[0])
 
 for branch, status in sorted(branches.items(), key=sort_key):
     print('{:10s} {}'.format(status, branch))

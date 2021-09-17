@@ -50,7 +50,6 @@ class Viewer:
                 self.saved_images[self.page_no] = pygame.image.load(temp.name)
                 temp.close()
 
-
         image = self.saved_images[self.page_no]
         scaled = pygame.transform.scale(image, (W, H))
         self.screen.blit(scaled, (0, 0))

@@ -31,10 +31,12 @@ class NPR:
     T_PAT = re.compile(r'<title>(.*)</title>')
     M_PAT = re.compile(r'<li class="audio-tool audio-tool-download">\s*<a href="([^"]*)"')
 
+
 class WBUR:
     URL_PATT = re.compile(r'wbur\.org')
     T_PAT = re.compile(r'<title>(.*)</title>')
     M_PAT = re.compile(r'<a href="([^"]*)" class="article-audio-dl" title="Download the audio"')
+
 
 class WESA:
     URL_PATT = re.compile(r'wesa\.fm')

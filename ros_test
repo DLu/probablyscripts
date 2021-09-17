@@ -11,7 +11,6 @@ PATTERN = re.compile(r'\x1b\[36mRunning tests...\x1b[0m\r\n\x1b\[0m[^\n]+\n(.*To
 RESULTS_PATTERN = re.compile(r'.*CATKIN_TEST_RESULTS_DIR=([^\s]+)\s', re.DOTALL)
 
 
-
 ret = subprocess.call(['catkin', 'build', '--this', '--no-deps', '--catkin-make-args', 'run_tests'])
 if ret != 0:
     exit(ret)

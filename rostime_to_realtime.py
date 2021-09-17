@@ -5,6 +5,7 @@ import datetime
 from rosgraph_msgs.msg import Clock
 last = None
 
+
 def cb(msg):
     global last
     x = datetime.datetime.fromtimestamp(int(msg.clock.to_sec()))

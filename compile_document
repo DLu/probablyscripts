@@ -26,6 +26,7 @@ def pdf_convert(input_filename, ratio):
 
     return [temp_pdf]
 
+
 def xcf_convert(input_filename, ratio):
     temp_pdf = tempfile.NamedTemporaryFile(suffix='.pdf')
     with tempfile.NamedTemporaryFile(suffix='.png') as temp_png:

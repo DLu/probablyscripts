@@ -3,6 +3,7 @@
 import subprocess
 import argparse
 
+
 def remote_command(cmd, machine, wdir=None, password=None):
     remote_cmd = ''
     if wdir:
@@ -12,6 +13,7 @@ def remote_command(cmd, machine, wdir=None, password=None):
     remote_cmd += cmd
     cmd = ['ssh', '-t', machine, remote_cmd]
     subprocess.call(cmd)
+
 
 DIR = '/usr/share/sounds/ubuntu/stereo'
 FN = 'system-ready.ogg'
@@ -28,7 +30,7 @@ REMOTE = args.user + '@' + args.ip
 if args.soundfile:
     cmd = ['scp', args.soundfile, REMOTE + ':startup.ogg']
     subprocess.call(cmd)
-    target = '/home/%s/startup.ogg'%args.user
+    target = '/home/%s/startup.ogg' % args.user
     remote_command('mv ' + target + ' .', wdir=DIR, password=args.password)
     target = 'startup.ogg'
 else:

@@ -24,6 +24,7 @@ def grab(url):
     except Exception as e:
         print(type(e))
 
+
 def get_game(url):
     content = grab(url)
     m = TITLE_PATTERN.search(content)

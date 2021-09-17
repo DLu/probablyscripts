@@ -1,7 +1,8 @@
 #!/usr/bin/python
 
 import rosbag
-import os, sys
+import os
+import sys
 import argparse
 import collections
 import operator
@@ -23,11 +24,12 @@ the metadata for each individual bag.
 
 # http://stackoverflow.com/questions/1094841/reusable-library-to-get-human-readable-version-of-file-size/1094933#1094933
 def sizeof_fmt(num, suffix='B'):
-    for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
+    for unit in ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi']:
         if abs(num) < 1024.0:
-            return '%3.1f'%num, '%s%s' % (unit, suffix)
+            return '%3.1f' % num, '%s%s' % (unit, suffix)
         num /= 1024.0
-    return '%.1f'%num, 'Yi%s' % suffix
+    return '%.1f' % num, 'Yi%s' % suffix
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument('bags', metavar='bagfile', nargs='+')
@@ -47,7 +49,7 @@ try:
             if args.deep:
                 if topic not in bags:
                     clean = topic[1:].replace('/', '_')
-                    fn = '/tmp/%s.bag'%(clean)
+                    fn = '/tmp/%s.bag' % (clean)
                     filenames[topic] = fn
                     bags[topic] = rosbag.Bag(fn, 'w')
                 bags[topic].write(topic, msg)
@@ -63,12 +65,12 @@ try:
             total += size
             totals[topic] += size
 finally:
-    for k,v in sorted(totals.items(), key=operator.itemgetter(1), reverse=True):
+    for k, v in sorted(totals.items(), key=operator.itemgetter(1), reverse=True):
         n, unit = sizeof_fmt(v)
-        print('%5s %3s %03s%% %s'%(n, unit,int(v*100/float(total)),k))
+        print('%5s %3s %03s%% %s' % (n, unit, int(v*100/float(total)), k))
 
     n, unit = sizeof_fmt(total)
-    print('\n%5s %3s Total'%(n, unit))
+    print('\n%5s %3s Total' % (n, unit))
 
     for filename in bags.values():
         if os.path.exists(bag_fn):

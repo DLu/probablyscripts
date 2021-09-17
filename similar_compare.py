@@ -3,12 +3,15 @@
 import tempfile
 import argparse
 import subprocess
-import os, collections
+import os
+import collections
+
 
 def fix_string(s, replacements):
-    for k,v in replacements:
-        s = s.replace(k,v)
+    for k, v in replacements:
+        s = s.replace(k, v)
     return s
+
 
 parser = argparse.ArgumentParser()
 
@@ -20,12 +23,12 @@ args = parser.parse_args()
 replacements = []
 if args.replacements:
     for s in args.replacements:
-        k,_,v = s.partition('=')
-        replacements.append((k,v))
+        k, _, v = s.partition('=')
+        replacements.append((k, v))
 
 dir3 = tempfile.mkdtemp()
 
-for folder,subdirs,files in os.walk(args.dir2):
+for folder, subdirs, files in os.walk(args.dir2):
     rel = folder.replace(args.dir2, '')
     newdir = dir3 + '/' + rel
     newdir = fix_string(newdir, replacements)
@@ -35,7 +38,7 @@ for folder,subdirs,files in os.walk(args.dir2):
         newfn = fix_string(fn, replacements)
         newpath = newdir + '/' + newfn
         with open(newpath, 'w') as f:
-            contents = open( folder + '/' + fn).read()
+            contents = open(folder + '/' + fn).read()
             contents = fix_string(contents, replacements)
             f.write(contents)
 

@@ -6,6 +6,7 @@ from collections import Counter
 import argparse
 done = False
 
+
 def cb(msg):
     global done
     for value, count in sorted(Counter(msg.data).items()):
@@ -21,4 +22,4 @@ rospy.init_node('count_values')
 sub = rospy.Subscriber(args.topic, OccupancyGrid, cb)
 r = rospy.Rate(1)
 while not done and not rospy.is_shutdown():
-   r.sleep()
+    r.sleep()

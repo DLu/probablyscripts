@@ -8,8 +8,10 @@ import time
 import graphviz
 from bidict import bidict
 
+
 def get_hash(branch):
     return subprocess.check_output(['git', 'rev-parse', branch]).decode().strip()
+
 
 def get_common_ancestor(branch0, branch1):
     return subprocess.check_output(['git', 'merge-base', branch0, branch1]).decode().strip()

@@ -11,6 +11,8 @@ warnings.filterwarnings('ignore', module='urllib')
 
 base_folder = '/home/dlu/public_html/podcast'
 base_url = 'http://wesa.fm/'
+
+
 def wesa_podcast(yaml_filename, url):
     podcast = YamlPodcast(os.path.join(base_folder, yaml_filename))
     req = requests.get(base_url + url, verify=False)

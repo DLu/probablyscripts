@@ -13,6 +13,7 @@ STARTERS = {
     'GIF': 'GIF'
 }
 
+
 def get_type(path):
     s = magic.from_file(str(path))
     for k, v in STARTERS.items():
