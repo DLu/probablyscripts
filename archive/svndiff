@@ -10,4 +10,3 @@ for my $line (@lines){
     	print `tkdiff $2`;
     }
 }
-

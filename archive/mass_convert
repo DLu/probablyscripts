@@ -1,3 +1,4 @@
+#!/usr/bin/bash
 for f in *.flv
 do
       ffmpeg -i "$f" "${f%.flv}.mp3"

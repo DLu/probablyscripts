@@ -22,4 +22,3 @@ for course in ['365S', '550S']:
         limit = text(tag, 'EnrollLimit')
         wait = text(tag, 'WaitCnt')
         print '\t%3s %03d/%03d    Waiting: %d'%(section, int(enrolled), int(limit), int(wait))
-

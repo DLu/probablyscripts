@@ -11,4 +11,3 @@ def get_remotes(location):
         s = git_cmd(['config', '--get', 'remote.%s.url'%r], location)
         remotes[r] = s.strip()
     return remotes
-

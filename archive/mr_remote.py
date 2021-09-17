@@ -101,4 +101,3 @@ if __name__=='__main__':
     m = MR()
     m.check_remotes()
     m.write(HOME + "/.mrconfig2")
-

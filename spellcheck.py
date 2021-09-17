@@ -31,4 +31,3 @@ for root, dirs, files in os.walk('.'):
             else:
                 mode = []
             subprocess.call(['aspell'] + mode + ['-x', '-c', full])
-

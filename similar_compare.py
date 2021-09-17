@@ -42,4 +42,3 @@ for folder,subdirs,files in os.walk(args.dir2):
 subprocess.call(['meld', args.dir1, dir3])
 
 subprocess.call(['rm', '-rf', dir3])
-
