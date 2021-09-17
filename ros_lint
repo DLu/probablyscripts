@@ -6,9 +6,9 @@ import os
 import collections
 
 pwd = os.environ['PWD']
-PATTERN = re.compile('\[[^\]]*\] ([^:]+):(\d+):(.*)')
-CPP_PATTERN = re.compile('(.*) \[(.*)\] \[(.*)\]')
-PY_PATTERN = re.compile('\d+: (\w+) (.*)')
+PATTERN = re.compile(r'\[[^\]]*\] ([^:]+):(\d+):(.*)')
+CPP_PATTERN = re.compile(r'(.*) \[(.*)\] \[(.*)\]')
+PY_PATTERN = re.compile(r'\d+: (\w+) (.*)')
 
 p = subprocess.Popen(['catkin', 'build', '-v', '-i', '--this', '-j', '1', '--no-deps', '--catkin-make-args', 'roslint'],
                      stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -33,7 +33,7 @@ for line in re.split('\r|\n', output + err):
     filename, line_no, msg = m.groups()
     filename = filename.replace(pwd, '')
     if last_filename != filename:
-        print filename
+        print(filename)
         c = 0
         last_filename = filename
     line_no = int(line_no)
@@ -43,15 +43,15 @@ for line in re.split('\r|\n', output + err):
         msg, cat, n = m.groups()
         n = int(n)
         msg = msg.strip()
-        print 'Line %4d %-25s(%d) %s' % (line_no, cat, n, msg)
+        print('Line %4d %-25s(%d) %s' % (line_no, cat, n, msg))
     else:
         m = PY_PATTERN.match(msg)
         if not m:
             continue
         cat, msg = m.groups()
-        print 'Line %4d %-25s %s' % (line_no, cat, msg)
+        print('Line %4d %-25s %s' % (line_no, cat, msg))
     c += 1
     tally[cat] += 1
 
 for cat, count in sorted(tally.items(), key=lambda g: g[1]):
-    print cat, count
+    print(cat, count)

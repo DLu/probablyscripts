@@ -12,9 +12,9 @@ for root, dirs, files in os.walk('.'):
         ftype = mimetypes.guess_type(full)[0]
 
         if not ftype or not ('text' in ftype or 'x-httpd-php' in ftype):
-            print ftype
+            print(ftype)
             continue
-        s = raw_input(full)
+        s = input(full)
         if 'q' in s or 'x' in s:
             exit(1)
         elif s == 'sf':

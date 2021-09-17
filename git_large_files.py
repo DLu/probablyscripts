@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import subprocess
 import collections
 import os.path
@@ -34,11 +34,11 @@ for line in subprocess.check_output('git gc 2> /dev/null && git verify-pack -v .
     size = int(parts[4])
     if sha not in SHAS:
         continue
-    print '%10s %s'%(GetHumanReadable(size, 1), SHAS[sha])
+    print('%10s %s'%(GetHumanReadable(size, 1), SHAS[sha]))
     ft = os.path.splitext(SHAS[sha])[-1]
     FileTypes[ft]+=size
-print
+print()
 for ft, size in sorted(FileTypes.items(), key=lambda x: x[1], reverse=True):
-    print '%10s %s'%(GetHumanReadable(int(size), 1),ft)
+    print('%10s %s'%(GetHumanReadable(int(size), 1),ft))
 
 #print SIZES

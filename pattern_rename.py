@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import argparse
 import os
@@ -11,7 +11,6 @@ parser.add_argument('replacement', nargs='?')
 parser.add_argument('-g', '--git', action='store_true')
 
 args = parser.parse_args()
-print args
 for path, folders, files in os.walk('.'):
     if '.git' in path:
         continue
@@ -19,12 +18,12 @@ for path, folders, files in os.walk('.'):
         if args.needle not in file:
             continue
         full_path = os.path.join(path, file)
-        print full_path
+        print(full_path)
         if args.replacement is None:
             continue
         replacement_path = os.path.join(path, file.replace(args.needle, args.replacement))
         if os.path.exists(replacement_path):
-            print "Can't move", full_path
+            print("Can't move", full_path)
         if args.git:
             subprocess.call(['git', 'mv', full_path, replacement_path])
         else:

@@ -8,9 +8,10 @@ done = False
 
 def cb(msg):
     global done
-    for value, count in sorted(Counter( msg.data ).items()):
-        print '%3s %7s'%(str(value), str(count))
+    for value, count in sorted(Counter(msg.data).items()):
+        print('%3s %7s' % (str(value), str(count)))
     done = True
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument('topic', default='/map', nargs='?')

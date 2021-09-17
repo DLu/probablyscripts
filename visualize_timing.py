@@ -5,7 +5,7 @@ import re
 import argparse
 import matplotlib.pyplot as plt
 
-DECIMAL_PATTERN = re.compile('(\s\d+)e')
+DECIMAL_PATTERN = re.compile(r'(\s\d+)e')
 
 S = """
 -Outline:
@@ -64,7 +64,7 @@ else:
     src = sys.stdin
 
 for line in src:
-    print line[:-1]
+    print(line[:-1])
     indent = len([c for c in line if c == '|'])
     if indent == 0:
         continue

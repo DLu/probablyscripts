@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import argparse
 import os
@@ -8,15 +8,17 @@ parser.add_argument('needle')
 parser.add_argument('replacement', nargs='?')
 
 args = parser.parse_args()
-print args
 for path, folders, files in os.walk('.'):
     if '.git' in path:
         continue
     for file in files:
         full_path = os.path.join(path, file)
-        s = open(full_path).read()
+        try:
+            s = open(full_path).read()
+        except UnicodeDecodeError:
+            continue
         if args.needle in s:
-            print full_path, s.count(args.needle)
+            print(f'{full_path}: {s.count(args.needle)}')
             if args.replacement is None:
                 continue
             s = s.replace(args.needle, args.replacement)

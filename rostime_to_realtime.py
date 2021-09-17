@@ -9,9 +9,10 @@ def cb(msg):
     global last
     x = datetime.datetime.fromtimestamp(int(msg.clock.to_sec()))
     s = x.strftime('%Y-%m-%d %H:%M:%S')
-    if s!=last:
+    if s != last:
         last = s
-        print last
+        print(last)
+
 
 rospy.init_node('clock_watcher')
 sub = rospy.Subscriber('/clock', Clock, cb)
