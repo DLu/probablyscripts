@@ -8,14 +8,14 @@ EQ_PATTERN = re.compile(r'!eq\[([^\]]*[^\\])\]')
 
 def translate_sequence_diagram(text, out_fn, style='modern-blue'):
     request = {}
-    request["message"] = text
-    request["style"] = style
-    request["apiVersion"] = "1"
+    request['message'] = text
+    request['style'] = style
+    request['apiVersion'] = '1'
 
     r = requests.post(WSD_URL, data=request)
     response = r.json()
     if 'img' not in response:
-        print("Invalid response from server.")
+        print('Invalid response from server.')
         return
 
     with open(out_fn, 'wb') as f:

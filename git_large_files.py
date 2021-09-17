@@ -11,7 +11,7 @@ def GetHumanReadable(size,precision=2):
         size = size/1024.0 #apply the division
     if suffixIndex==0:
         precision = 0
-    return "%.*f%s"%(precision,size,suffixes[suffixIndex])
+    return '%.*f%s'%(precision,size,suffixes[suffixIndex])
 
 SHAS = {}
 for line in subprocess.check_output('git rev-list --objects --all | sort -k 2', shell=True).split('\n'):

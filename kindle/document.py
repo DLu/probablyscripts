@@ -30,15 +30,15 @@ class Page:
             density = []
         else:
             factor = float(new_density) / self.density
-            density = ["-density", str(new_density)]
+            density = ['-density', str(new_density)]
 
         x = int(x * factor)
         y = int(y * factor)
         w = int(w * factor)
         h = int(h * factor)
-        subprocess.call(["convert"] +
+        subprocess.call(['convert'] +
                         density +
-                        [self.base_filename, "-crop", '%dx%d%+d%+d' %
+                        [self.base_filename, '-crop', '%dx%d%+d%+d' %
                         (w, h, x, y), '-trim', '+repage', '-trim', subimage.name])
         return subimage
 
@@ -104,7 +104,7 @@ class Document:
 
         bar = tqdm(self.mypages)
         for i in bar:
-            bar.set_description("Reading page %d of %d" % (i + 1, n))
+            bar.set_description('Reading page %d of %d' % (i + 1, n))
             self.pages.append(Page('%s[%d]' % (filename, i), density))
 
     def read_image(self, filename, density):

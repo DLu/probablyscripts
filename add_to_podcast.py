@@ -14,7 +14,7 @@ import shutil
 
 def download_file(url, out_folder):
     fmt = out_folder + u'/%(title)s.%(ext)s'
-    ext = "mp3"
+    ext = 'mp3'
     ydl = youtube_dl.YoutubeDL({'outtmpl': fmt})
     ydl.add_post_processor(FFmpegExtractAudioPP(preferredcodec=ext))
     ydl.add_default_info_extractors()
@@ -98,7 +98,7 @@ for arg in files:
             raise
 
     if len(title) == 0 and args.prompt:
-        title = input(filename + "? ")
+        title = input(filename + '? ')
     if len(title) <= 1:
         title = os.path.splitext(filename)[0]
     if args.prompt:

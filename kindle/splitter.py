@@ -254,21 +254,21 @@ class Splitter:
         temps = []
         for (i, page) in enumerate(self.pages):
             for j, section in enumerate(page.get_sections()):
-                sys.stdout.write("\rWriting Image for page %d/%d, section %d/%d     " %
+                sys.stdout.write('\rWriting Image for page %d/%d, section %d/%d     ' %
                                  (i + 1, len(self.pages), j + 1, len(page.get_sections())))
                 sys.stdout.flush()
                 (x, y, w, h) = section
                 sectionfile = page.page.subimage_to_file(x, y, w, h, output_resolution)
                 temps.append(sectionfile)
 
-        sys.stdout.write("\n")
+        sys.stdout.write('\n')
         sys.stdout.flush()
 
         sections = temps
 
         midfile = tempfile.NamedTemporaryFile(suffix='.pdf')
 
-        subprocess.call(["convert"] + [f.name for f in sections] + [midfile.name])
+        subprocess.call(['convert'] + [f.name for f in sections] + [midfile.name])
         for f in sections:
             f.close()
 
@@ -276,14 +276,14 @@ class Splitter:
         infoDict = output._info.getObject()
 
         infoDict.update({
-            NameObject('/Title'): createStringObject(self.document.info.get('title', "david")),
-            NameObject('/Author'): createStringObject(self.document.info.get('author', ""))
+            NameObject('/Title'): createStringObject(self.document.info.get('title', 'david')),
+            NameObject('/Author'): createStringObject(self.document.info.get('author', ''))
         })
 
-        input1 = PdfFileReader(open(midfile.name, "rb"))
+        input1 = PdfFileReader(open(midfile.name, 'rb'))
         for pn in range(input1.getNumPages()):
             output.addPage(input1.getPage(pn))
-        outputStream = open(outfile, "wb")
+        outputStream = open(outfile, 'wb')
         output.write(outputStream)
         outputStream.close()
         midfile.close()

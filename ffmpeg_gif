@@ -22,6 +22,6 @@ if args.output.exists() and not args.overwrite:
     exit(-1)
 
 with tempfile.NamedTemporaryFile(suffix='.png') as temp_palette:
-    subprocess.call(['ffmpeg', '-i', str(args.input), '-filter_complex', "[0:v] palettegen", '-y', temp_palette.name])
+    subprocess.call(['ffmpeg', '-i', str(args.input), '-filter_complex', '[0:v] palettegen', '-y', temp_palette.name])
     subprocess.call(['ffmpeg', '-i', str(args.input), '-i', temp_palette.name,
-                     '-filter_complex', "[0:v][1:v] paletteuse", '-y', args.output])
+                     '-filter_complex', '[0:v][1:v] paletteuse', '-y', args.output])

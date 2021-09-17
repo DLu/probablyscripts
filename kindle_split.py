@@ -15,11 +15,11 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Split a PDF document up into smaller pieces')
     parser.add_argument('infile', metavar='document', type=pathlib.Path)
-    parser.add_argument('outfile', metavar='output_document', nargs="?", type=pathlib.Path)
-    parser.add_argument('--no-gui', dest='gui', action='store_false', default=True, help="Run in command line only")
-    parser.add_argument('-p', '--pages', type=int, nargs="*")
-    parser.add_argument('-m', '--manual', dest="manual", action="store_true", default=False,
-                        help="Manually select regions to include")
+    parser.add_argument('outfile', metavar='output_document', nargs='?', type=pathlib.Path)
+    parser.add_argument('--no-gui', dest='gui', action='store_false', default=True, help='Run in command line only')
+    parser.add_argument('-p', '--pages', type=int, nargs='*')
+    parser.add_argument('-m', '--manual', dest='manual', action='store_true', default=False,
+                        help='Manually select regions to include')
     parser.add_argument('-s', '--scan_res', type=int, default=72)
     parser.add_argument('-o', '--output_res', type=int, default=300)
     parser.add_argument('-d', '--debug', action='store_true')

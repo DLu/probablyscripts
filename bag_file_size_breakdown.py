@@ -25,9 +25,9 @@ the metadata for each individual bag.
 def sizeof_fmt(num, suffix='B'):
     for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
         if abs(num) < 1024.0:
-            return "%3.1f"%num, "%s%s" % (unit, suffix)
+            return '%3.1f'%num, '%s%s' % (unit, suffix)
         num /= 1024.0
-    return "%.1f"%num, "Yi%s" % suffix
+    return '%.1f'%num, 'Yi%s' % suffix
 
 parser = argparse.ArgumentParser()
 parser.add_argument('bags', metavar='bagfile', nargs='+')

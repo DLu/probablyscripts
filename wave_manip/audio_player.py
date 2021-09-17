@@ -28,7 +28,7 @@ class AudioPlayer:
 
         while data != '':
             sig = self.signal[self.inc:self.inc + CHUNK]
-            data = struct.pack("%dh" % (len(sig)), *list(sig))
+            data = struct.pack('%dh' % (len(sig)), *list(sig))
             self.stream.write(data)
             self.inc += CHUNK
 

@@ -9,14 +9,14 @@ H = 1100
 ModeDef = collections.namedtuple('ModeDef', ['doc', 'mode'], verbose=False)
 
 KEYMAP = {
-    keys.K_1: ModeDef("Delete white mode", 1),
-    keys.K_2: ModeDef("Reposition splits mode", 2),
-    keys.K_3: ModeDef("Kill row mode", 3),
-    keys.K_4: ModeDef("Insert column mode", 4),
-    keys.K_5: ModeDef("Insert row mode", 5),
-    keys.K_6: ModeDef("Set left mode", 6),
-    keys.K_7: ModeDef("Manual", 7),
-    keys.K_0: ModeDef("Standard mode", 0),
+    keys.K_1: ModeDef('Delete white mode', 1),
+    keys.K_2: ModeDef('Reposition splits mode', 2),
+    keys.K_3: ModeDef('Kill row mode', 3),
+    keys.K_4: ModeDef('Insert column mode', 4),
+    keys.K_5: ModeDef('Insert row mode', 5),
+    keys.K_6: ModeDef('Set left mode', 6),
+    keys.K_7: ModeDef('Manual', 7),
+    keys.K_0: ModeDef('Standard mode', 0),
 }
 
 
@@ -72,11 +72,11 @@ class Viewer:
 
     def update_mode(self, key):
         self.mode = KEYMAP[key].mode
-        print(KEYMAP[key].doc, "enabled")
+        print(KEYMAP[key].doc, 'enabled')
 
     def print_doc(self):
         for doc, mode in KEYMAP.values():
-            print("[%s]: %s" % (mode, doc))
+            print('[%s]: %s' % (mode, doc))
 
     def spin(self):
         while True:
@@ -93,7 +93,7 @@ class Viewer:
                     elif event.key in KEYMAP:
                         self.update_mode(event.key)
                     elif event.key == keys.K_r:
-                        print("RESET PAGE")
+                        print('RESET PAGE')
                         self.get_current_page().reset()
                         self.reload_page()
 

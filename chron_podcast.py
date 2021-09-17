@@ -6,8 +6,8 @@ from dateutil.parser import parse
 import requests
 import os.path
 import warnings
-warnings.filterwarnings("ignore", category=UserWarning, module='bs4')
-warnings.filterwarnings("ignore", module='urllib')
+warnings.filterwarnings('ignore', category=UserWarning, module='bs4')
+warnings.filterwarnings('ignore', module='urllib')
 
 base_folder = '/home/dlu/public_html/podcast'
 base_url = 'http://wesa.fm/'
@@ -17,7 +17,7 @@ def wesa_podcast(yaml_filename, url):
     soup = BeautifulSoup(req.text, 'html.parser')
 
     for x in soup.find_all(class_='node'):
-        title_el = x.find(attrs={"property": "dc:title"})
+        title_el = x.find(attrs={'property': 'dc:title'})
         if not title_el:
             continue
         title = title_el.text

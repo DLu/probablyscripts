@@ -35,7 +35,7 @@ if len(args.patterns) == 0:
     rows, columns = map(int, subprocess.check_output(['stty', 'size']).split())
     s = ''
     for name, count in sorted(D.items(), key=lambda x: (-x[1], x[0])):
-        new_bit = "%02d %-30s " % (count, name)
+        new_bit = '%02d %-30s ' % (count, name)
         if len(s) < columns and len(s) + len(new_bit) > columns:
             print(s)
             s = new_bit
@@ -47,5 +47,5 @@ else:
         if USER not in proc.username():
             continue
         elif match_pattern(args.patterns, ' '.join(proc.cmdline())):
-            print("Killing: %s" % proc.name() + ' '.join(proc.cmdline()))
+            print('Killing: %s' % proc.name() + ' '.join(proc.cmdline()))
             proc.terminate()

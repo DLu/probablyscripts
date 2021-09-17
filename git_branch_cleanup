@@ -33,7 +33,7 @@ def classify_branches():
                     branch_dict[m3.group(1)] = 'unpushed'
                 else:
                     print(line)
-                    print("ERROR")
+                    print('ERROR')
                     exit(0)
     return branch_dict
 
