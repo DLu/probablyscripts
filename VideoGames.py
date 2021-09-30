@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 import argparse
 import pathlib
-import re
-import requests
-import time
 import random
+import re
+import time
 import urllib
 
 from bs4 import BeautifulSoup
+
+import requests
 
 ROOT = pathlib.Path('/home/dlu/')
 
@@ -17,12 +18,9 @@ DOWNLOAD_PATTERN = re.compile(r'<p><a style="color: #21363f;" href="([^"]+)">Cli
 
 
 def grab(url):
-    try:
-        response = requests.get(url)
-        time.sleep(random.randint(1, 5))
-        return response.text
-    except Exception as e:
-        print(type(e))
+    response = requests.get(url)
+    time.sleep(random.randint(1, 5))
+    return response.text
 
 
 def get_game(url):
