@@ -75,9 +75,8 @@ class MusicStreamer:
             query += ' WHERE sort_title IS NULL'
         for song in self.db.query(query):
             ct = clean_title(song['title'])
-            if ct != song['title']:
-                song['sort_title'] = ct
-                self.db.update('songs', song)
+            song['sort_title'] = ct
+            self.db.update('songs', song)
 
     async def play(self, song_info):
         self.subsonic.display_info(song_info)
@@ -131,7 +130,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.genre == 'Soundtrack':
-        TS = 1620228335
+        TS = 1629823146
+    elif args.genre == 'Video Game':
+        TS = 1622749901
     else:
         TS = 1604946876
 
@@ -140,11 +141,10 @@ if __name__ == '__main__':
     query += ' and artist NOT LIKE "%Washington Univ%"'
     query += ' and artist NOT LIKE "%Carniv%"'
     query += ' and artist NOT LIKE "%Deciduous%"'
+    query += ' and artist NOT LIKE "%OBOC%"'
     query += f' and (last < {TS} or last is null)'
-    if args.genre == 'Soundtrack':
-        query += ' ORDER BY year, album, track'
-    else:
-        query += ' ORDER BY sort_title, title'
+    # query += ' ORDER BY year, album, track'
+    query += ' ORDER BY sort_title, title'
 
     ms = MusicStreamer()
     try:
