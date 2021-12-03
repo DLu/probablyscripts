@@ -56,6 +56,7 @@ parser.add_argument('company', nargs='?', default='Picknik Robotics')
 parser.add_argument('-i', '--include', action='store_true')
 parser.add_argument('-c', '--cpp', action='store_true')
 parser.add_argument('-t', '--test', action='store_true')
+parser.add_argument('-p', '--hpp', action='store_true')
 
 args = parser.parse_args()
 if not args.include and not args.cpp and not args.test:
@@ -68,13 +69,14 @@ root = pathlib.Path('.').resolve()
 folder = root.stem
 class_name = ''.join(map(str.title, args.name.split('_')))
 
+ext = 'hpp' if args.hpp else 'h'
 if args.include:
     inc_path = root / 'include' / folder
     inc_path.mkdir(parents=True, exist_ok=True)
-    new_path = inc_path / (args.name + '.h')
+    new_path = inc_path / (args.name + '.' + ext)
     if not new_path.exists():
         print(new_path)
-        guard = folder.upper() + '_' + args.name.upper() + '_H'
+        guard = folder.upper() + '_' + args.name.upper() + '_' + ext.upper()
         with open(new_path, 'w') as f:
             f.write(HEADER_TEMPLATE % {'copyright': copyright_block, 'guard': guard, 'ns': folder, 'class': class_name})
 
@@ -85,7 +87,7 @@ if args.cpp:
     if not new_path.exists():
         print(new_path)
         if args.include:
-            header = '#include <%s/%s.h>' % (folder, args.name)
+            header = '#include <%s/%s.%s>' % (folder, args.name, ext)
         else:
             header = ''
 
