@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 alias success_sound='if [ $? -eq 0 ]; then aplay /home/dlu/Sounds/smw_power-up.wav 2> /dev/null; true; else aplay /home/dlu/Sounds/smw_pipe.wav 2> /dev/null; false; fi'
-alias fucking_catkin='catkin_make -DCMAKE_BUILD_TYPE=Release ; success_sound'
 
 alias qwe='catkin build --this --no-deps --catkin-make-args run_tests; success_sound'
 alias qwer='ros_test; success_sound'

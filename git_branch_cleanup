@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 import argparse
 import re
 import subprocess
@@ -11,7 +11,7 @@ LINE_PATTERN2 = re.compile(START + r'([^\[].*)$')
 
 def classify_branches():
     branch_dict = {}
-    for line in subprocess.check_output(['git', 'branch', '-vv']).split('\n'):
+    for line in subprocess.check_output(['git', 'branch', '-vv']).decode().split('\n'):
         if not line:
             continue
         m = LINE_PATTERN0.match(line)
@@ -42,6 +42,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-a', '--alpha', action='store_true')
 parser.add_argument('-D', '--delete', action='store_true')
 args = parser.parse_args()
+
+subprocess.call(['git', 'remote', 'prune', 'origin'])
 
 branches = classify_branches()
 if args.alpha:

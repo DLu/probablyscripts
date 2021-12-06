@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 import argparse
+import os
 import pathlib
 import re
 import subprocess
 import tempfile
-import yaml
-import os
+
 import humanize
+
+import yaml
 
 POINTS_PER_INCH = 72
 PIXELS_PER_INCH = 300
