@@ -2,10 +2,11 @@
 
 import argparse
 import pathlib
-import subprocess
 import re
+import subprocess
 
 RES_PATTERN = re.compile(r'Stream #0:0.*[^\d](\d+x\d+)')
+DURATION_PATTERN = re.compile(r'Duration: ([\d:\.]+)')
 
 
 def get_info(filepath):
@@ -15,11 +16,12 @@ def get_info(filepath):
     if 'Invalid data found when processing input' in s or 'Invalid argument' in s:
         return
     res = RES_PATTERN.search(s)
-    if not res:
+    dur = DURATION_PATTERN.search(s)
+    if not res or not dur:
         print('aaa')
         print(s)
         exit(0)
-    return res.group(1)
+    return res.group(1) + ' ' + dur.group(1)
 
 
 if __name__ == '__main__':
@@ -32,10 +34,10 @@ if __name__ == '__main__':
     while queue:
         arg = queue.pop(0)
         if arg.is_dir():
-            queue += list(sorted(arg.iterdir()))
+            queue += sorted(arg.iterdir())
             continue
 
         info = get_info(arg)
         if not info:
             continue
-        print(f'{info:10} {arg}')
+        print(f'{info:10}\t{arg}')

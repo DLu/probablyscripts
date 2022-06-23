@@ -41,7 +41,7 @@ class WBUR:
 class WESA:
     URL_PATT = re.compile(r'wesa\.fm')
     T_PAT = re.compile(r'<title>(.*) | 90.5 WESA</title>')
-    M_PAT = re.compile(r'<a href="([^"]+)" title="[^"]+" class="jp-play"></a>')
+    M_PAT = re.compile(r'<div class="ArticlePage-audioPlayer">.*data-stream-url="([^"]+)">', re.DOTALL)
 
 
 PATTERNS = [NPR, WBUR, WESA]

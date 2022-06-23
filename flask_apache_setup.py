@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import subprocess
 import argparse
@@ -40,7 +40,7 @@ if __name__ == '__main__':
     parser.add_argument('url')
     args = parser.parse_args()
 
-    subprocess.call(['sudo', 'apt-get', 'install', '-y', 'libapache2-mod-wsgi'])
+    subprocess.call(['sudo', 'apt-get', 'install', '-y', 'libapache2-mod-wsgi', 'libapache2-mod-wsgi-py3'])
 
     # TODO: Automatically derive name of app
     main_dir = os.path.abspath(os.path.curdir)
