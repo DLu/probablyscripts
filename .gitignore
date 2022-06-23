@@ -19,3 +19,4 @@ youtube_rss/.private
 .creds
 __pycache__
 node_modules
+credentials.json

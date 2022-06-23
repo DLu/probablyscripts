@@ -1,33 +1,18 @@
 import pathlib
 
-from google.auth.transport.requests import Request
-from google_auth_oauthlib.flow import InstalledAppFlow
-from googleapiclient.discovery import build
-
-import yaml
+from google_api import GoogleAPI
 
 # If modifying these scopes, delete the token
 SCOPES = ['https://www.googleapis.com/auth/contacts', 'https://www.googleapis.com/auth/contacts.other.readonly']
 FIELDS = ['addresses', 'birthdays', 'emailAddresses', 'metadata', 'names', 'nicknames', 'phoneNumbers']
 
 
-class GoogleContactAPI:
+class GoogleContactAPI(GoogleAPI):
     # https://developers.google.com/people/v1/contacts
 
-    def __init__(self, credentials_path=pathlib.Path('~/.config/google_contact_api.yaml').expanduser()):
-        creds = None
-        if credentials_path.exists():
-            creds = yaml.safe_load(open(credentials_path))
-
-        if not creds or not creds.valid:
-            if creds and creds.expired and creds.refresh_token:
-                creds.refresh(Request())
-            else:
-                flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
-                creds = flow.run_local_server(port=0)
-            yaml.dump(creds, open(credentials_path, 'w'))
-
-        self.service = build('people', 'v1', credentials=creds)
+    def __init__(self):
+        GoogleAPI.__init__(self, 'people', 'v1', SCOPES,
+                           pathlib.Path('~/.config/google_contact_api.yaml').expanduser())
 
     def get_contact_list(self, fields, limit=0):
         next_token = None
