@@ -2,7 +2,7 @@
 alias success_sound='if [ $? -eq 0 ]; then aplay /home/dlu/Sounds/smw_power-up.wav 2> /dev/null; true; else aplay /home/dlu/Sounds/smw_pipe.wav 2> /dev/null; false; fi'
 
 alias qwe='catkin build --this --no-deps --catkin-make-args run_tests; success_sound'
-alias qwer='ros_test; success_sound'
+alias qwer='rostest; success_sound'
 alias list_plugins='rospack plugins --attrib=plugin '
 alias subup='git submodule update --recursive'
 
@@ -15,6 +15,7 @@ alias cpp_style_check="find -regextype egrep -regex '.*\.[ch](pp)?$' -exec rosru
 alias asdf='rosbuild -c --this'
 alias zxcv='rosbuild --this --no-deps'
 alias install_deps="rosdep_install"
+alias sros='source_ros'
 
 export RCUTILS_CONSOLE_OUTPUT_FORMAT="[{name}]: {message}"
 export RCUTILS_COLORIZED_OUTPUT=1

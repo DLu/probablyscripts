@@ -1,0 +1,15 @@
+#!/usr/bin/env python3
+
+import argparse
+import re
+import subprocess
+
+APT_PATTERN = re.compile(r'\n([^/]+)/[^\n]+\n')
+
+parser = argparse.ArgumentParser()
+parser.add_argument('needle')
+args = parser.parse_args()
+
+output = subprocess.check_output(['apt', 'search', args.needle]).decode()
+for k in APT_PATTERN.findall(output):
+    print(k.strip())

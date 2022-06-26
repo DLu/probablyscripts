@@ -8,6 +8,10 @@ parser.add_argument('needle')
 parser.add_argument('replacement', nargs='?')
 
 args = parser.parse_args()
+args.needle = args.needle.encode().decode('unicode_escape')
+if args.replacement:
+    args.replacement = args.replacement.encode().decode('unicode_escape')
+
 for path, folders, files in os.walk('.'):
     if '.git' in path:
         continue

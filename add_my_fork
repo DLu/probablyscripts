@@ -2,6 +2,7 @@
 
 import argparse
 import re
+import pathlib
 
 import click
 
@@ -9,12 +10,26 @@ import git
 
 GITHUB_PATTERN = re.compile(r'github.com[/:]([^/]+)/([^/\.]+)\.?')
 
+
+def get_repo_name(existing_remotes):
+    for key in ['upstream', 'origin'] + list(existing_remotes.keys()):
+        if key in existing_remotes:
+            return existing_remotes[key][1]
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('username', nargs='?', default='DLu')
     args = parser.parse_args()
 
-    repo = git.Repo('.')
+    git_root = pathlib.Path('.').resolve()
+    while git_root and not (git_root / '.git').exists():
+        if git_root == git_root.parent:
+            click.secho('Cannot find git folder from current directory!', fg='red')
+            exit(-1)
+        git_root = git_root.parent
+
+    repo = git.Repo(git_root)
     existing_remotes = {}
     for remote in repo.remotes:
         m = GITHUB_PATTERN.search(remote.url)
@@ -25,14 +40,20 @@ if __name__ == '__main__':
                 exit(0)
         existing_remotes[str(remote)] = value
 
-    if 'upstream' not in existing_remotes and 'origin' in existing_remotes:
-        repo.remotes.origin.rename('upstream')
-        click.secho('Renaming origin to upstream', fg='blue')
-        existing_remotes['upstream'] = existing_remotes['origin']
-        del existing_remotes['origin']
+    if args.username == 'DLu':
+        desired_remote = 'origin'
+    else:
+        desired_remote = args.username
 
-    if 'origin' not in existing_remotes:
-        repo_name = existing_remotes['upstream'][1]
+    if 'upstream' not in existing_remotes and desired_remote in existing_remotes:
+        # TODO
+        repo.remotes.origin.rename('upstream')
+        click.secho(f'Renaming {desired_remote} to upstream', fg='blue')
+        existing_remotes['upstream'] = existing_remotes[desired_remote]
+        del existing_remotes[desired_remote]
+
+    if desired_remote not in existing_remotes:
+        repo_name = get_repo_name(existing_remotes)
         new_url = f'git@github.com:{args.username}/{repo_name}.git'
-        click.secho(f'Creating new origin: {new_url}', fg='green')
-        repo.create_remote('origin', new_url)
+        click.secho(f'Creating new {desired_remote}: {new_url}', fg='green')
+        repo.create_remote(desired_remote, new_url)

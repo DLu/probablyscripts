@@ -1,0 +1,37 @@
+#!/usr/bin/python3
+
+import argparse
+import git
+import pathlib
+
+
+def branch_contains_path(branch, path):
+    path = str(path)
+    stack = [branch.commit.tree]
+    while len(stack) > 0:
+        tree = stack.pop()
+
+        for b in tree.blobs:
+            if path in b.path:
+                return True
+        for subtree in tree.trees:
+            stack.append(subtree)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('path', type=pathlib.Path)
+    args = parser.parse_args()
+
+    git_root = pathlib.Path('.').resolve()
+    while git_root and not (git_root / '.git').exists():
+        if git_root == git_root.parent:
+            click.secho('Cannot find git folder from current directory!', fg='red')
+            exit(-1)
+        args.path = git_root.name / args.path
+        git_root = git_root.parent
+
+    repo = git.Repo(git_root)
+    for branch in repo.branches:
+        if branch_contains_path(branch, args.path):
+            print(branch.name)
