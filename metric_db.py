@@ -17,12 +17,13 @@ def dict_factory(cursor, row):
 class MetricDB:
     """Custom wrapper around an sqlite database with a plausibly easier-to-use API."""
 
-    def __init__(self, key, folder='.', structure_filepath=None, structure_key=None):
+    def __init__(self, key, folder='.', structure_filepath=None, structure_key=None, extension='db'):
         data_folder = pathlib.Path(folder)
-        filepath = data_folder / f'{key}.db'
+        filepath = data_folder / f'{key}.{extension}'
         self.raw_db = sqlite3.connect(str(filepath), detect_types=sqlite3.PARSE_DECLTYPES)
-        sqlite3.register_adapter(bool, int)
-        sqlite3.register_converter('bool', lambda v: bool(int(v)))
+        self.adapters = {}
+        self.converters = {}
+        self.register_custom_types()
         self.raw_db.row_factory = dict_factory
 
         if structure_filepath is None:
@@ -32,6 +33,15 @@ class MetricDB:
             structure_filepath = data_folder / f'{structure_key}.yaml'
         self.db_structure = yaml.safe_load(open(str(structure_filepath)))
         self._update_database_structure()
+
+    def register_custom_types(self):
+        self.register_custom_type('bool', bool, int, lambda v: bool(int(v)))
+
+    def register_custom_type(self, name, type_, adapter_fn, converter_fn):
+        self.adapters[name] = adapter_fn
+        self.converters[name] = converter_fn
+        sqlite3.register_adapter(type_, adapter_fn)
+        sqlite3.register_converter(name, converter_fn)
 
     def query(self, query):
         """Run the specified query and return all the rows (as dictionaries)."""
@@ -52,6 +62,7 @@ class MetricDB:
                 cur.execute(command)
             else:
                 cur.execute(command, params)
+            return cur
         except sqlite3.Error as e:
             print(e)
             print(command)
@@ -143,7 +154,8 @@ class MetricDB:
         key_s = ', '.join(keys)
         q_s = ', '.join(['?'] * len(values))
 
-        self.execute(f'INSERT INTO {table} ({key_s}) VALUES({q_s})', values)
+        cur = self.execute(f'INSERT INTO {table} ({key_s}) VALUES({q_s})', values)
+        return cur.lastrowid
 
     def update(self, table, row_dict, replace_key='id'):
         """If there's a row where the key value matches the row_dict's value, update it. Otherwise, insert it."""
@@ -156,7 +168,7 @@ class MetricDB:
                                                      for key in replace_key]))
         if self.count(table, clause) == 0:
             # If no matches, just insert
-            self.insert(table, row_dict)
+            return self.insert(table, row_dict)
 
         v_query = []
         values = []
@@ -167,7 +179,8 @@ class MetricDB:
             v_query.append(f'{k}=?')
         value_str = ', '.join(v_query)
         query = f'UPDATE {table} SET {value_str} ' + clause
-        self.execute(query, values)
+        cur = self.execute(query, values)
+        return cur.lastrowid
 
     def get_next_id(self, table, start_id=0):
         """Return an id that is not yet in the table."""
@@ -197,7 +210,8 @@ class MetricDB:
 
     def format_value(self, field, value):
         """If the field's type is text, surround with quotes."""
-        if self.get_field_type(field) == 'text':
+        ft = self.get_field_type(field)
+        if ft == 'text':
             if not isinstance(value, str):
                 value = str(value)
             if '"' in value:
@@ -207,6 +221,8 @@ class MetricDB:
                     return f"'{value}'"
             else:
                 return f'"{value}"'
+        elif ft in self.adapters:
+            return self.adapters[ft](value)
         else:
             return value
 
@@ -220,7 +236,7 @@ class MetricDB:
         for key in self.db_structure['tables'][table]:
             tt = self.get_field_type(key)
             if key == 'id':
-                tt += ' PRIMARY KEY'
+                tt += ' AUTO_INCREMENT PRIMARY KEY'
             types.append(f'{key} {tt}')
         type_s = ', '.join(types)
         self.execute(f'CREATE TABLE {table} ({type_s})')
