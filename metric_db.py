@@ -79,9 +79,7 @@ class MetricDB:
         self.execute(f'ALTER TABLE {table} RENAME TO {table}_x')
         types = []
         for key in cols:
-            tt = self.get_field_type(key)
-            if key == 'id':
-                tt += ' PRIMARY KEY'
+            tt = self.get_field_type(key, full=True)
             types.append(f'{key} {tt}')
         type_s = ', '.join(types)
         self.execute(f'CREATE TABLE {table} ({type_s})')
@@ -204,9 +202,13 @@ class MetricDB:
         return entry_id
 
     # DB Structure Operations
-    def get_field_type(self, field):
+    def get_field_type(self, field, full=False):
         """Return the type of a given field, based on the db_structure."""
-        return self.db_structure['special_types'].get(field, self.db_structure.get('default_type', 'text'))
+        base = self.db_structure['special_types'].get(field, self.db_structure.get('default_type', 'text'))
+        if not full or field != 'id':
+            return base
+        else:
+            return base + ' PRIMARY KEY'
 
     def format_value(self, field, value):
         """If the field's type is text, surround with quotes."""
@@ -234,9 +236,7 @@ class MetricDB:
         """Create the table based on the db_structure."""
         types = []
         for key in self.db_structure['tables'][table]:
-            tt = self.get_field_type(key)
-            if key == 'id':
-                tt += ' AUTO_INCREMENT PRIMARY KEY'
+            tt = self.get_field_type(key, full=True)
             types.append(f'{key} {tt}')
         type_s = ', '.join(types)
         self.execute(f'CREATE TABLE {table} ({type_s})')
