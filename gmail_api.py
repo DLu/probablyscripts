@@ -1,5 +1,6 @@
 import pathlib
 import base64
+import mimetypes
 from google_api import GoogleAPI
 from email.message import EmailMessage
 from email.utils import COMMASPACE
@@ -23,9 +24,9 @@ class GMailAPI(GoogleAPI):
             return
 
         message = EmailMessage()
-        message.make_alternative()
+        message.make_mixed()
 
-        message['To'] = COMMASPACE.join(send_to),
+        message['To'] = COMMASPACE.join(send_to)
         message['Subject'] = subject
         if bcc:
             message['BCC'] = COMMASPACE.join(bcc)
@@ -33,7 +34,7 @@ class GMailAPI(GoogleAPI):
             message['From'] = send_from
 
         if html:
-            message.add_alternative(text.encode('utf-8'), maintype='text', subtype='html')
+            message.add_attachment(text, subtype='html')
         else:
             message.set_content(text)
 
@@ -43,21 +44,21 @@ class GMailAPI(GoogleAPI):
                 raise RuntimeError(f'Cannot find file: {fn}')
 
             with open(fn, 'rb') as fil:
-                message.add_alternative(fil.read(), maintype='application', subtype='octet-stream',
-                                        filename=fn.name)
+                message.add_attachment(fil.read(), maintype='application', subtype='octet-stream',
+                                       filename=fn.name)
 
         for cid, fn in images.items():
-            raise NotImplementedError("Inline images currently don't work.")
             fn = pathlib.Path(fn)
             if not fn.exists():
                 raise RuntimeError(f'Cannot find image: {fn}')
 
+            the_type = mimetypes.guess_type(fn)[0].split('/')
             with open(fn, 'rb') as im_f:
-                message.add_alternative(im_f.read(),
-                                        maintype='application',
-                                        subtype='octet-stream',
-                                        cid=f'<{cid}>',
-                                        disposition='inline')
+                message.add_attachment(im_f.read(),
+                                       maintype=the_type[0],
+                                       subtype=the_type[1],
+                                       cid=f'<{cid}>',
+                                       disposition='inline')
         self.send_email_message(message)
 
     def send_email_message(self, message, debug=False):
