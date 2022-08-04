@@ -20,3 +20,4 @@ youtube_rss/.private
 __pycache__
 node_modules
 credentials.json
+.vscode

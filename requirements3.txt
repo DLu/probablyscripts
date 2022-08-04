@@ -1,6 +1,7 @@
 bidict
 cson
 dbus_next
+face-recognition
 feedgen
 git+https://github.com/DLu/PocketPy
 gitpython
