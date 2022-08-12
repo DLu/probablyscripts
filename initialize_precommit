@@ -1,0 +1,157 @@
+#!/usr/bin/python3
+
+import argparse
+import configparser
+import click
+import pathlib
+import subprocess
+from ruamel.yaml import YAML
+
+
+MY_REPOS = {
+    'standard': ('https://github.com/pre-commit/pre-commit-hooks', 'v4.3.0'),
+    'spelling': ('https://github.com/codespell-project/codespell', 'v2.1.0'),
+    'autopep8': ('https://github.com/pre-commit/mirrors-autopep8', 'v1.7.0'),
+    'flake8': ('https://github.com/PyCQA/flake8', '5.0.4'),
+    'local': ('local', None),
+}
+
+
+MY_CONFIGS = {
+    'standard': [
+        ('standard', ['end-of-file-fixer', 'trailing-whitespace', 'check-merge-conflict', 'mixed-line-ending',
+                      'check-executables-have-shebangs', 'check-shebang-scripts-are-executable', 'detect-private-key',
+                      'destroyed-symlinks', 'check-symlinks', 'check-case-conflict']),
+        ('spelling', ['codespell']),
+    ],
+    'python': [
+        ('standard', ['check-ast', 'double-quote-string-fixer',
+                      'requirements-txt-fixer']),
+        ('autopep8', ['autopep8']),
+        ('flake8', ['flake8']),
+    ],
+    'c++': [
+        ('local', ['clang-format']),
+    ],
+    'yaml': [
+        ('standard', ['check-yaml']),
+    ],
+    'xml': [
+        ('standard', ['check-xml']),
+    ],
+    'json': [
+        ('standard', ['check-json', 'pretty-format-json']),
+    ],
+}
+
+OTHER_FIELDS = {
+    'codespell': {'args': ['--write-changes']},
+    'clang-format': {
+        'args': ['-i'],
+        'entry': 'clang-format-12',
+    },
+}
+
+FILE_TYPE_MATCHES = {
+    '.py': 'python',
+    '.yaml': 'yaml',
+    '.json': 'json',
+    '.hpp': 'c++',
+    '.cpp': 'c++',
+    '.h': 'c++',
+    '.xml': 'xml',
+}
+
+
+def find_git_directory():
+    p = pathlib.Path().resolve()
+    while not (p / '.git').exists():
+        p = p.parent
+    return p
+
+
+def find(list_of_dicts, key, value):
+    for entry in list_of_dicts:
+        if isinstance(entry, dict) and entry.get(key) == value:
+            return entry
+
+
+def check_configuration(config, config_key):
+    for repo_key, hooks in MY_CONFIGS[config_key]:
+        url, version = MY_REPOS[repo_key]
+        entry = find(config['repos'], 'repo', url)
+        if not entry:
+            entry = {'repo': url, 'hooks': []}
+            click.secho(f'Adding {repo_key} repo...', fg='blue')
+            config['repos'].append(entry)
+        if version:
+            entry['rev'] = version
+        for hook_name in hooks:
+            hook = find(entry['hooks'], 'id', hook_name)
+            if not hook:
+                hook = {'id': hook_name}
+                entry['hooks'].append(hook)
+                click.secho(f'Adding {hook_name} hook', fg='green')
+            hook.update(OTHER_FIELDS.get(hook_name, {}))
+
+
+def find_file_types(folder):
+    ft = set()
+    for path in folder.iterdir():
+        if path.is_dir() and path.name != '.git':
+            ft = ft.union(find_file_types(path))
+        else:
+            if path.suffix in FILE_TYPE_MATCHES:
+                ft.add(FILE_TYPE_MATCHES[path.suffix])
+
+    return ft
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    args = parser.parse_args()
+
+    root = find_git_directory()
+    precommit_file = root / '.pre-commit-config.yaml'
+    hook_file = root / '.git' / 'hooks' / 'pre-commit'
+
+    yaml = YAML()
+
+    if precommit_file.exists():
+        config = yaml.load(open(precommit_file))
+    else:
+        config = {'repos': []}
+
+    check_configuration(config, 'standard')
+
+    file_types = find_file_types(root)
+    for filetype in file_types:
+        check_configuration(config, filetype)
+
+    if 'python' in file_types:
+        cfg = configparser.ConfigParser()
+        cfg_path = root / 'setup.cfg'
+        if cfg_path.exists():
+            cfg.read(cfg_path)
+        else:
+            click.secho('Writing setup.cfg', fg='blue')
+
+        section_name = 'flake8'
+        key = 'max_line_length'
+        value = '120'
+
+        if not cfg.has_section(section_name):
+            cfg.add_section(section_name)
+
+        old_val = cfg[section_name].get(key)
+        if old_val != value:
+            cfg.set(section_name, key, value)
+
+        with open(cfg_path, 'w') as f:
+            cfg.write(f, space_around_delimiters=False)
+
+    yaml.dump(config, open(precommit_file, 'w'))
+
+    if not hook_file.exists():
+        click.secho('Running pre-commit install', fg='bright_blue')
+        subprocess.call(['pre-commit', 'install'], cwd=root)
