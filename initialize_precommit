@@ -4,6 +4,7 @@ import argparse
 import configparser
 import click
 import pathlib
+import shutil
 import subprocess
 from ruamel.yaml import YAML
 
@@ -13,7 +14,7 @@ MY_REPOS = {
     'spelling': ('https://github.com/codespell-project/codespell', 'v2.1.0'),
     'autopep8': ('https://github.com/pre-commit/mirrors-autopep8', 'v1.7.0'),
     'flake8': ('https://github.com/PyCQA/flake8', '5.0.4'),
-    'local': ('local', None),
+    'clang': ('https://github.com/pre-commit/mirrors-clang-format', 'v13.0.1'),
 }
 
 
@@ -31,7 +32,7 @@ MY_CONFIGS = {
         ('flake8', ['flake8']),
     ],
     'c++': [
-        ('local', ['clang-format']),
+        ('clang', ['clang-format']),
     ],
     'yaml': [
         ('standard', ['check-yaml']),
@@ -46,10 +47,6 @@ MY_CONFIGS = {
 
 OTHER_FIELDS = {
     'codespell': {'args': ['--write-changes']},
-    'clang-format': {
-        'args': ['-i'],
-        'entry': 'clang-format-12',
-    },
 }
 
 FILE_TYPE_MATCHES = {
@@ -149,6 +146,13 @@ if __name__ == '__main__':
 
         with open(cfg_path, 'w') as f:
             cfg.write(f, space_around_delimiters=False)
+
+    if 'c++' in file_types:
+        clang_config_path = root / '.clang-format'
+        default_config = pathlib.Path(__file__).parent / clang_config_path.stem
+        shutil.copy(default_config, clang_config_path)
+        if not cfg_path.exists():
+            click.secho('Writing .clang-format', fg='blue')
 
     yaml.dump(config, open(precommit_file, 'w'))
 
