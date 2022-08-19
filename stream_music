@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import argparse
 import asyncio
+import configparser
 import pathlib
 import time
 
@@ -11,6 +12,8 @@ from mpris_controls import MprisControls, PlaybackStatus
 from subsonic_connection import SubsonicConnection
 
 from subsonic_vlc_player import VlcPlayer
+
+from notification_whiz import NotificationWhiz
 
 from tqdm import tqdm
 
@@ -107,12 +110,21 @@ class MusicStreamer:
 
 async def main(ms, query, write_freq=10):
     controls = await MprisControls.create('Empress', 'subso', ms.control)
+    whiz = await NotificationWhiz.create('Empress')
+
+    cfg = configparser.ConfigParser()
+    cfg.read('subso.desktop')
+    icon = cfg['Desktop Entry']['Icon']
 
     songs = ms.db.query(query)
     controls.set_playback_status(PlaybackStatus.PLAYING)
     c = 0
+    notification_id = 0
     for song in songs:
         controls.set_metadata(song['title'], song['id'], song['artist'], song['album'])
+        notification_txt = '{artist}\n<i>{album}</i>'.format(**song)
+        notification_id = await whiz.send_notification(song['title'], notification_txt,
+                                                       replaces_id=notification_id, icon=icon)
         await ms.play(song)
 
         c += 1

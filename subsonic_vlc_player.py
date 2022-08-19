@@ -66,6 +66,6 @@ class VlcPlayer:
 
     def on_press(self, key):
         if key == Key.pause:
-            self.play_pause()
+            self.player.pause()
         elif isinstance(key, KeyCode) and key.vk in [UNKNOWN_SKIP]:
             self.skip()
