@@ -3,6 +3,6 @@ Version=1.0
 Name=Subso
 GenericName=Media player
 Comment=Stream Some Tunes
-Icon=/usr/share/icons/Numix-Circle-Light/48/apps/gmpc.svg
+Icon=/usr/share/icons/Adwaita/512x512/devices/audio-headphones.png
 Type=Application
 Categories=AudioVideo;Player;Recorder;

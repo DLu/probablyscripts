@@ -55,7 +55,7 @@ class VlcPlayer:
         self.player.set_mrl(url)
         return await self.play()
 
-    def play_pause(self):
+    async def play_pause(self):
         self.player.pause()
 
     async def skip(self):

@@ -195,6 +195,15 @@ class MprisPlayerInterface(ServiceInterface):
         return True
 
 
+class MprisPlaylistInterface(ServiceInterface):
+    def __init__(self):
+        super().__init__('org.mpris.MediaPlayer2.Playlists')
+
+    @dbus_property(PropertyAccess.READ)
+    def PlaylistCount(self) -> 'u':
+        return 0
+
+
 class MprisControls:
     @classmethod
     async def create(cls, nice_name, identifier, callback):
@@ -202,9 +211,11 @@ class MprisControls:
         self.bus = await MessageBus().connect()
         self.mp = MprisMediaPlayer2Interface(nice_name, identifier)
         self.player = MprisPlayerInterface(callback)
+        self.playlist = MprisPlaylistInterface()
 
         self.bus.export('/org/mpris/MediaPlayer2', self.mp)
         self.bus.export('/org/mpris/MediaPlayer2', self.player)
+        self.bus.export('/org/mpris/MediaPlayer2', self.playlist)
         await self.bus.request_name(f'org.mpris.MediaPlayer2.{identifier}')
         return self
 
@@ -215,7 +226,7 @@ class MprisControls:
         self.player.set_metadata(title, trackid, artist, album, art_url)
 
 
-def control_button(s):
+async def control_button(s):
     print(f'---> {s}')
 
 
