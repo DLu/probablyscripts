@@ -18,6 +18,7 @@ from notification_whiz import NotificationWhiz
 from tqdm import tqdm
 
 ignore_keys = {'coverArt'}
+current_folder = pathlib.Path(__file__).parent.resolve()
 
 
 def clean_title(s):
@@ -46,7 +47,6 @@ class MusicStreamer:
     def __init__(self):
         self.subsonic = SubsonicConnection(ignore=ignore_keys)
         self.folder = pathlib.Path('~/.subsonic_stream/').expanduser()
-        current_folder = pathlib.Path(__file__).parent.resolve()
         self.db = MetricDB('songs', self.folder, current_folder / 'subsonic_db.yaml')
         self.loop = asyncio.get_event_loop()
         self.stopped = False
@@ -113,7 +113,7 @@ async def main(ms, query, write_freq=10):
     whiz = await NotificationWhiz.create('Empress')
 
     cfg = configparser.ConfigParser()
-    cfg.read('subso.desktop')
+    cfg.read(current_folder / 'subso.desktop')
     icon = cfg['Desktop Entry']['Icon']
 
     songs = ms.db.query(query)
@@ -124,7 +124,7 @@ async def main(ms, query, write_freq=10):
         controls.set_metadata(song['title'], song['id'], song['artist'], song['album'])
         notification_txt = '{artist}\n<i>{album}</i>'.format(**song)
         notification_id = await whiz.send_notification(song['title'], notification_txt,
-                                                       replaces_id=notification_id, icon=icon)
+                                                       replaces_id=notification_id, icon=icon, timeout=10)
         await ms.play(song)
 
         c += 1
