@@ -1,5 +1,6 @@
 import pathlib
 import sqlite3
+from enum import Enum
 
 import yaml
 
@@ -12,6 +13,10 @@ def dict_factory(cursor, row):
     for idx, col in enumerate(cursor.description):
         d[col[0]] = row[idx]
     return d
+
+
+class IntEnum(int, Enum):
+    """Enum where members must be ints."""
 
 
 class MetricDB:
@@ -42,6 +47,12 @@ class MetricDB:
         self.converters[name] = converter_fn
         sqlite3.register_adapter(type_, adapter_fn)
         sqlite3.register_converter(name, converter_fn)
+
+    def register_custom_enum(self, custom_enum_class):
+        self.register_custom_type(custom_enum_class.__name__,
+                                  custom_enum_class,
+                                  lambda d: d.value,
+                                  lambda v: custom_enum_class(int(v)))
 
     def query(self, query):
         """Run the specified query and return all the rows (as dictionaries)."""
@@ -208,6 +219,8 @@ class MetricDB:
         if not full or field != 'id':
             return base
         else:
+            if base == 'int':
+                base = 'INTEGER'
             return base + ' PRIMARY KEY'
 
     def format_value(self, field, value):
