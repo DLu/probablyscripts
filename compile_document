@@ -3,6 +3,7 @@ import argparse
 import os
 import pathlib
 import re
+import shutil
 import subprocess
 import tempfile
 
@@ -17,43 +18,48 @@ PDF_PATTERN = re.compile(r'\.pdf(\[\d+\])?')
 
 
 def get_size(path):
-    return humanize.naturalsize(os.stat(path.name).st_size)
+    return humanize.naturalsize(os.stat(str(path)).st_size)
 
 
-def pdf_convert(input_filename, ratio):
-    temp_pdf = tempfile.NamedTemporaryFile(suffix='.pdf')
-    subprocess.call(['convert', '-density', '300', str(input_filename),
+def get_modification_time(path):
+    file_stats = os.stat(path)
+    return int(file_stats.st_mtime)
+
+
+def should_generate(input_path, output_path):
+    if not output_path.exists():
+        return True
+    if get_modification_time(input_path) > get_modification_time(output_path):
+        return True
+    return False
+
+
+def pdf_convert(input_path, output_filename, ratio):
+    subprocess.call(['convert', '-density', '300', str(input_path),
                      '-gravity', 'center', '-extent', ratio,
-                     temp_pdf.name])
-
-    return [temp_pdf]
+                     str(output_filename)])
 
 
-def xcf_convert(input_filename, ratio):
-    temp_pdf = tempfile.NamedTemporaryFile(suffix='.pdf')
+def xcf_convert(input_path, output_path, ratio):
     with tempfile.NamedTemporaryFile(suffix='.png') as temp_png:
-        subprocess.call(['xcf2png', str(input_filename), '-o', temp_png.name])  # xcftools
-        subprocess.call(['convert', temp_png.name, '-page', ratio, temp_pdf.name])
-
-    return temp_pdf
+        subprocess.call(['xcf2png', str(input_path), '-o', temp_png.name])  # xcftools
+        subprocess.call(['convert', temp_png.name, '-page', ratio, str(output_path)])
 
 
-def png_convert(input_filename, ratio):
-    temp_pdf = tempfile.NamedTemporaryFile(suffix='.pdf')
-    subprocess.call(['convert', str(input_filename), '-gravity', 'center', '-extent', ratio, temp_pdf.name])
-    return temp_pdf
+def image_convert(input_path, output_path, ratio):
+    subprocess.call(['convert', str(input_path), '-gravity', 'center', '-extent', ratio, str(output_path)])
 
 
-def tex_convert(input_filename):
-    pdf_filename = pathlib.Path(input_filename.stem + '.pdf')
-    subprocess.call(['xelatex', str(input_filename)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+def tex_convert(input_path, output_path):
+    pdf_filename = pathlib.Path(input_path.stem + '.pdf')
+    subprocess.call(['xelatex', str(input_path)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     for suffix in ['.aux', '.log']:
         junk = pdf_filename.with_suffix(suffix)
         if junk.exists():
             junk.unlink()
 
-    return pdf_filename
+    shutil.move(pdf_filename, output_path)
 
 
 parser = argparse.ArgumentParser()
@@ -62,50 +68,55 @@ parser.add_argument('output', nargs='?', type=pathlib.Path)
 parser.add_argument('-w', '--width', default=5.5, type=float)
 parser.add_argument('--height', default=8.5, type=float)
 parser.add_argument('-n', '--no_compression', action='store_true')
+parser.add_argument('-f', '--force', action='store_true')
 args = parser.parse_args()
 
 layout = yaml.safe_load(open(args.folder / 'layout.yaml'))
-files = []
-to_delete = []
+working_dir = args.folder / '.compile_doc_working'
+working_dir.mkdir(exist_ok=True)
+output_path_strings = []
 
 points_ratio = f'{int(args.width * POINTS_PER_INCH)}x{int(args.height * POINTS_PER_INCH)}'
 pixels_ratio = f'{int(args.width * PIXELS_PER_INCH)}x{int(args.height * PIXELS_PER_INCH)}'
+generated = False
 
 for section in layout:
     if isinstance(section, str):
-        filename = section
+        input_path = args.folder / section
     else:
-        filename = section['file']
+        input_path = args.folder / section['file']
 
-    fp = args.folder / filename
-    new_files = []
-    if fp.suffix == '.xcf':
-        new_files.append(xcf_convert(fp, points_ratio))
-    elif PDF_PATTERN.match(fp.suffix):
-        new_files += pdf_convert(fp, pixels_ratio)
-    elif fp.suffix == '.tex':
-        pdf = tex_convert(fp)
-        to_delete.append(pdf)
-        new_files.append(pdf)
-    elif fp.suffix == '.png' or fp.suffix == '.jpg':
-        new_files.append(png_convert(fp, pixels_ratio))
-    else:
-        print(f'unknown suffix {fp.suffix}')
-        continue
-    print('{:28} {}'.format(str(fp), ', '.join(map(get_size, new_files))))
+    output_path = working_dir / (input_path.stem + '.pdf')
+    if args.force or should_generate(input_path, output_path):
+        generated = True
+        if input_path.suffix == '.xcf':
+            xcf_convert(input_path, output_path, points_ratio)
+        elif PDF_PATTERN.match(input_path.suffix):
+            pdf_convert(input_path, output_path, pixels_ratio)
+        elif input_path.suffix == '.tex':
+            tex_convert(input_path, output_path)
+        elif input_path.suffix == '.png' or input_path.suffix == '.jpg':
+            image_convert(input_path, output_path, pixels_ratio)
+        else:
+            print(f'unknown suffix {input_path.suffix}')
+            continue
+    output_path_strings.append(str(output_path))
 
-    files += new_files
+    print('{:28} {:>10}'.format(str(input_path.name), get_size(output_path)))
 
 if args.output is None:
     args.output = args.folder / 'output.pdf'
 
+if not generated and args.output.exists():
+    exit(0)
+
 if args.no_compression:
-    subprocess.call(['pdftk'] + [x.name for x in files] + ['cat', 'output', str(args.output)])
+    print('Concatenating...')
+    subprocess.call(['pdftk'] + output_path_strings + ['cat', 'output', str(args.output)])
 else:
     with tempfile.NamedTemporaryFile(suffix='.pdf') as temp_pdf:
-        subprocess.call(['pdftk'] + [x.name for x in files] + ['cat', 'output', temp_pdf.name])
+        print('Concatenating...')
+        subprocess.call(['pdftk'] + output_path_strings + ['cat', 'output', temp_pdf.name])
+        print('Compresssing...')
         subprocess.call(['convert', '-density', '300x300', '-quality', '60', '-compress', 'jpeg',
                          str(temp_pdf.name), str(args.output)])
-
-for fn in to_delete:
-    fn.unlink()
