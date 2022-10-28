@@ -1,0 +1,342 @@
+#!/usr/bin/python3
+import argparse
+import copy
+from flask import Flask, send_from_directory, jsonify, request
+import pathlib
+import yaml
+
+from image_edit_tools import METADATA, get_center, get_box, get_box_size, get_max_size
+
+app = Flask(__name__)
+
+
+@app.route('/')
+def index():
+    return """
+<html>
+<head>
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<script type="text/javascript" src="image.js"></script>
+<link rel="stylesheet" type="text/css" href="image.css">
+</head>
+<body onLoad="init()">
+<div id="images"></div>
+<div id="edit">
+    <div>
+        <div id="image_edit"></div>
+    </div>
+    <div style="height: 100%">
+        <div id="src_container">
+            <img id="src_image"/>
+            <div id="highlight"></div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+    """
+
+
+@app.route('/image.js')
+def image_js():
+    aspect = app.config['aspect']
+    return f'aspect = {aspect}\n\n' + """
+function getScaling(target, actual_size, min_val, max_val)
+{
+    display_size = max_val - min_val;
+    scale_size = target * actual_size / display_size;
+    offset = min_val * target / display_size;
+    return [parseInt(scale_size), parseInt(offset)];
+}
+
+
+function setImageProperties(img, meta, width)
+{
+    [scale_width, x_offset] = getScaling(width, meta['width'], meta['box'][0], meta['box'][2]);
+    [scale_height, y_offset] = getScaling(width * aspect, meta['height'], meta['box'][1], meta['box'][3]);
+    img.style['background-size'] = scale_width + 'px ' + scale_height + 'px';
+    img.style['background-position-x'] = (-x_offset) + 'px';
+    img.style['background-position-y'] = (-y_offset) + 'px';
+}
+
+function zoom(event)
+{
+    var direction = event.deltaY / Math.abs(event.deltaY);
+    var key = event.srcElement.getAttribute("data-key");
+    $.getJSON('/zoom', {'key': key, 'direction': direction}, function(data) {
+        updateBoth(key, data);
+        updateHighlight(data);
+    });
+}
+
+var moving = false;
+
+function startMove(event)
+{
+    moving = true;
+    img = event.target;
+    var x = parseInt(img.style['background-position-x'].slice(0, -2));
+    var y = parseInt(img.style['background-position-y'].slice(0, -2));
+    event.target.setAttribute('data-xo', x);
+    event.target.setAttribute('data-yo', y);
+    event.target.setAttribute('data-ox', x);
+    event.target.setAttribute('data-oy', y);
+}
+
+function inverseScaling(img, dim)
+{
+    var original = parseInt(img.getAttribute('data-' + dim + 'o'));
+    var updated = parseInt(img.getAttribute('data-o' + dim));
+    var diff = original - updated;
+    return diff / 500;
+}
+
+function updateOffset(img, dim, offset)
+{
+    var pos = parseInt(img.getAttribute('data-o' + dim));
+    img.style['background-position-' + dim] = (pos + offset) + 'px';
+    img.setAttribute('data-o' + dim, pos + offset);
+}
+
+function inMove(event)
+{
+    if (!moving) return;
+    var img = event.target;
+    updateOffset(img, 'x', event.movementX);
+    updateOffset(img, 'y', event.movementY);
+}
+
+function endMove(event)
+{
+    if (!moving) return;
+    moving = false;
+    var img = event.target;
+    var key = img.getAttribute("data-key");
+    var x = inverseScaling(img, 'x');
+    var y = inverseScaling(img, 'y');
+
+    $.getJSON('/move', {'key': key, 'x': x, 'y': y}, function(data) {
+        updateBoth(key, data);
+        updateHighlight(data);
+    });
+}
+
+function updateBoth(key, data)
+{
+    setImageProperties(document.getElementById("image_edit"), data, 500);
+    setImageProperties(document.getElementById(key), data, 100);
+}
+
+function getInverseScaling(target, actual_size, min_val, max_val)
+{
+    display_size = max_val - min_val;
+    scale_size = target * display_size / actual_size;
+    offset = min_val * target / actual_size;
+    return [parseInt(scale_size), parseInt(offset)];
+}
+
+function updateHighlight(meta)
+{
+    var src_img = document.getElementById("src_image");
+    var width = parseInt(src_img.getAttribute('width').slice(0, -2));
+    var height = parseInt(src_img.getAttribute('height').slice(0, -2));
+    [scale_width, x_offset] = getInverseScaling(width, meta['width'], meta['box'][0], meta['box'][2]);
+    [scale_height, y_offset] = getInverseScaling(height, meta['height'], meta['box'][1], meta['box'][3]);
+
+    var highlight = document.getElementById("highlight");
+    highlight.style['left'] = x_offset + "px";
+    highlight.style['width'] = scale_width + "px";
+    highlight.style['top'] = y_offset + "px";
+    highlight.style['height'] = scale_height + "px";
+}
+
+function focusImage(img)
+{
+    var edit = document.getElementById("image_edit");
+    var key = img.getAttribute('id');
+    edit.style['background-image'] = 'url("' + key + '")';
+    edit.setAttribute("data-key", key);
+    $.getJSON('/props', {'key': key}, function(data) {
+        var src_aspect = data["height"] / data["width"];
+
+        var src_container = document.getElementById("src_container");
+        var src_img = document.getElementById("src_image");
+        var proj_height = src_container.offsetWidth * src_aspect;
+        var proj_width = src_container.offsetHeight / src_aspect;
+
+        if (data["width"] < src_container.offsetWidth && data["height"] < src_container.offsetHeight)
+        {
+            src_img.setAttribute("width", data["width"] + "px");
+            src_img.setAttribute("height", data["height"] + "px");
+        }
+        else if (proj_width > src_container.offsetWidth)
+        {
+            src_img.setAttribute("width", src_container.offsetWidth + "px");
+            src_img.setAttribute("height", proj_height + "px");
+        }
+        else
+        {
+            src_img.setAttribute("width", proj_width + "px");
+            src_img.setAttribute("height", src_container.offsetHeight + "px");
+        }
+        src_img.setAttribute("src", key);
+        setImageProperties(edit, data, 500);
+        updateHighlight(data);
+    });
+    edit.addEventListener("wheel", event => zoom(event));
+    edit.addEventListener("mousemove", event => inMove(event));
+    edit.addEventListener("mousedown", event => startMove(event));
+    edit.addEventListener("mouseup", event => endMove(event));
+    edit.addEventListener("mouseout", event => endMove(event));
+}
+
+function init()
+{
+    $.getJSON('/images', {}, function(data) {
+        var container = document.getElementById("images");
+        for (var key in data)
+        {
+            var meta = data[key];
+            var img = document.createElement("div");
+            img.setAttribute("class", "library_img");
+            img.setAttribute("id", key);
+            img.setAttribute("onclick", "focusImage(this);");
+            img.style['background-image'] = 'url("' + key + '")';
+            setImageProperties(img, meta, 100);
+            container.appendChild(img);
+        }
+      });
+}
+"""
+
+
+@app.route('/image.css')
+def image_css():
+    aspect = app.config['aspect']
+    return f"""
+#images {{
+    width: 100%;
+    overflow-x: auto;
+    white-space: nowrap;
+}}
+
+div.library_img {{
+    width: 100px;
+    height: {int(100 * aspect)}px;
+    display: inline-block;
+}}
+
+#edit {{
+    display: flex;
+    height: 90%;
+}}
+
+#edit, div {{
+    flex: 1;
+}}
+
+#image_edit {{
+    width: 500px;
+    height: {int(500 * aspect)}px;
+}}
+
+#src_container {{
+    position:relative;
+    border-left: 5px dashed blue;
+    height: 95%;
+}}
+
+#highlight {{
+    position:absolute;
+    width:0px;
+    height:0px;
+    top:0px;
+    left:0px;
+    background: rgba(255, 255 , 0, 0.4);
+}}
+"""
+
+
+@app.route('/images')
+def images():
+    return jsonify(app.config['image_data'])
+
+
+@app.route('/props')
+def get_props():
+    # Save here when switching images
+    outpath = pathlib.Path(app.config['folder']) / METADATA
+    yaml.safe_dump(app.config['image_data'], open(outpath, 'w'))
+
+    key = request.args.get('key')
+    return jsonify(app.config['image_data'][key])
+
+
+@app.route('/zoom')
+def zoom():
+    key = request.args.get('key')
+    direction = int(request.args.get('direction'))
+    im_meta = app.config['image_data'][key]
+    aspect = app.config['aspect']
+    crop_width, crop_height = get_box_size(im_meta, im_meta['center'], aspect)
+    if direction < 0:
+        new_crop_width = crop_width * 95 // 100
+        new_crop_height = crop_height * 95 // 100
+        if new_crop_width < 10:
+            new_crop_width = 10
+    else:
+        new_crop_width = crop_width * 11 // 10
+        new_crop_height = crop_height * 11 // 10
+        mw, mh = get_max_size(im_meta, im_meta['center'], aspect)
+        if new_crop_width > mw or new_crop_height > mh:
+            new_crop_width = mw
+    # print(f'{crop_size} => {new_crop_size}')
+
+    # check for max size
+    im_meta['zoom'] = new_crop_width
+    im_meta['box'] = get_box(im_meta, im_meta['center'], aspect)
+    return jsonify(im_meta)
+
+
+@app.route('/move')
+def move():
+    key = request.args.get('key')
+    xr = float(request.args.get('x'))
+    yr = float(request.args.get('y'))
+    im_meta = app.config['image_data'][key]
+    aspect = app.config['aspect']
+    crop_width, crop_height = get_box_size(im_meta, im_meta['center'], aspect)
+    for ratio, dim, att, crop_size in [(xr, 'x', 'width', crop_width),
+                                       (yr, 'y', 'height', crop_height)]:
+        new_val = im_meta['center'][dim] + 2 * ratio * crop_size
+        if new_val < crop_size:
+            new_val = crop_size
+        elif new_val > im_meta[att] - crop_size:
+            new_val = im_meta[att] - crop_size
+        im_meta['center'][dim] = new_val
+    im_meta['box'] = get_box(im_meta, im_meta['center'], aspect)
+    return jsonify(im_meta)
+
+
+@app.route('/<path:path>')
+def send_static(path):
+    return send_from_directory(app.config['folder'], path)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('input_directory', type=pathlib.Path)
+    parser.add_argument('-a', '--aspect', nargs='?', type=float, default=1.0)
+    args = parser.parse_args()
+
+    app.config['folder'] = str(args.input_directory.resolve())
+    app.config['aspect'] = args.aspect
+    app.config['metadata'] = yaml.safe_load(open(args.input_directory / METADATA))
+
+    image_data = copy.deepcopy(app.config['metadata'])
+    for key, value in image_data.items():
+        value['center'] = get_center(value)
+        value['box'] = get_box(value, value['center'], args.aspect)
+    app.config['image_data'] = image_data
+
+    app.run(debug=True)

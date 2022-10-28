@@ -8,40 +8,23 @@ import face_recognition
 import numpy
 import yaml
 
-IMAGE_EXTENSIONS = ['.jpg', '.png', '.jpeg']
-METADATA = '.image_metadata.yaml'
-
-# TODO: Flask app to set center and zoom
-# TODO: Auto-levels
+from image_edit_tools import METADATA, get_images, get_center, get_box, auto_level
 
 
-def get_images(input_directory):
-    images = {}
-    for filename in input_directory.glob('*.*'):
-        if filename.name == METADATA:
-            continue
-        ext = filename.suffix.lower()
-        if ext not in IMAGE_EXTENSIONS:
-            print('Skipping ' + str(filename))
-            continue
-        images[filename.name] = filename
-    return images
-
-
-def get_rounded_mask(size, round_ratio, scale_factor=3):
-    large_size = size * scale_factor
-    diameter = int(round_ratio * large_size)
+def get_rounded_mask(size, round_ratio, aspect, scale_factor=3):
+    large_size = size * scale_factor, int(size * scale_factor * aspect)
+    diameter = int(round_ratio * large_size[0])
     radius = diameter / 2
-    offset = large_size - diameter
-    r_offset = large_size - radius
+    offset = large_size[0] - diameter, large_size[1] - diameter
+    r_offset = large_size[0] - radius, large_size[1] - radius
 
-    mask = Image.new('L', (large_size, large_size), 0)
+    mask = Image.new('L', large_size, 0)
     draw = ImageDraw.Draw(mask)
-    for x, y in [(0, 0), (0, offset), (offset, 0), (offset, offset)]:
+    for x, y in [(0, 0), (0, offset[1]), (offset[0], 0), offset]:
         draw.ellipse((x, y, x + diameter, y + diameter), fill=255)
-    draw.rectangle((radius, 0, r_offset, large_size), fill=255)
-    draw.rectangle((0, radius, large_size, r_offset), fill=255)
-    return mask.resize((size, size), Image.ANTIALIAS)
+    draw.rectangle((radius, 0, r_offset[0], large_size[1]), fill=255)
+    draw.rectangle((0, radius, large_size[0], r_offset[1]), fill=255)
+    return mask.resize((size, int(size * aspect)), Image.ANTIALIAS)
 
 
 def get_modification_time(filepath):
@@ -55,10 +38,16 @@ if __name__ == '__main__':
     parser.add_argument('-s', '--size', type=int, default=1000)
     parser.add_argument('-r', '--round_ratio', type=float, default=0.25)
     parser.add_argument('-f', '--face', action='store_true')
-    parser.add_argument('output_directory', type=pathlib.Path, nargs='?')
+    parser.add_argument('-t', '--transparent-background', action='store_true')
+    parser.add_argument('-l', '--levels', nargs='?', type=float, const=0.01)
+    parser.add_argument('-a', '--aspect', nargs='?', type=float, default=1.0)
+    parser.add_argument('-n', '--number', nargs='?', type=int)
+    parser.add_argument('output_directory', type=pathlib.Path)
     args = parser.parse_args()
 
-    mask = get_rounded_mask(args.size, args.round_ratio)
+    arg_string = f'{args.size}/{args.round_ratio}/{args.levels}/{args.aspect}'
+
+    mask = get_rounded_mask(args.size, args.round_ratio, args.aspect)
 
     image_dict = get_images(args.input_directory)
 
@@ -70,53 +59,65 @@ if __name__ == '__main__':
         metadata = {}
 
     try:
-        for name, filepath in sorted(image_dict.items()):
+        items = sorted(image_dict.items())
+        if args.number:
+            items = items[:args.number]
+        for name, filepath in items:
             print(name)
-            if name not in metadata:
-                metadata[name] = {}
+            last_update = get_modification_time(filepath)
+            if name not in metadata or last_update != metadata[name].get('read_time'):
+                metadata[name] = {'read_time': last_update}
             im_meta = metadata[name]
 
-            last_update = get_modification_time(filepath)
-            im_meta['time'] = last_update
+            if args.transparent_background:
+                ext = '.png'
+            else:
+                ext = '.jpg'
+            outpath = args.output_directory / (filepath.stem + ext)
+
+            if outpath.exists():
+                write_time = get_modification_time(outpath)
+                if write_time == im_meta.get('write_time') and arg_string == im_meta.get('args'):
+                    continue
 
             im = Image.open(filepath).convert('RGB')
-            im_array = numpy.array(im)
 
             width, height = im.size
+            im_meta['width'] = width
+            im_meta['height'] = height
 
             if args.face and 'faces' not in im_meta and 'center' not in im_meta:
                 faces = []
-                for top, right, bottom, left in face_recognition.face_locations(im_array):
-                    faces.append({'x0': left, 'y0': top, 'x1': right, 'y1': bottom})
+                im_array = numpy.array(im)
+                for top, left, bottom, right in face_recognition.face_locations(im_array):
+                    faces.append({'x0': min(left, right),
+                                  'y0': min(top, bottom),
+                                  'x1': max(left, right),
+                                  'y1': max(top, bottom)
+                                  })
                 im_meta['faces'] = faces
                 print(f'\t{len(faces)} face(s)')
 
-            if 'center' in im_meta:
-                center = im_meta['center']
-            elif im_meta.get('faces'):
-                face = im_meta['faces'][0]
-                center = {}
-                for d in 'xy':
-                    center[d] = (face[f'{d}0'] + face[f'{d}1']) // 2
-            else:
-                center = {'x': width // 2, 'y': height // 2}
+            center = get_center(im_meta)
+            box = get_box(im_meta, center, args.aspect)
 
-            crop_width = min(center['x'], width - center['x'])
-            crop_height = min(center['y'], height - center['y'])
-            crop_size = min(crop_width, crop_height)
-            box = (center['x'] - crop_size, center['y'] - crop_size, center['x'] + crop_size, center['y'] + crop_size)
             im = im.crop(box)
-            im = im.resize((args.size, args.size))
+            im = im.resize((args.size, int(args.size * args.aspect)))
+
+            if args.levels is not None:
+                im = auto_level(im, args.levels)
 
             # Apply mask
             im.putalpha(mask)
 
-            # Put on white background
-            background = Image.new('RGBA', im.size, (255, 255, 255))
-            im = Image.alpha_composite(background, im).convert('RGB')
+            if not args.transparent_background:
+                # Put on white background
+                background = Image.new('RGBA', im.size, (255, 255, 255))
+                im = Image.alpha_composite(background, im).convert('RGB')
 
-            # Save as jpg
-            if args.output_directory:
-                im.save(args.output_directory / (filepath.stem + '.jpg'))
+            # Save file
+            im.save(outpath)
+            im_meta['write_time'] = get_modification_time(outpath)
+            im_meta['args'] = arg_string
     finally:
         yaml.dump(metadata, open(metadata_path, 'w'))
