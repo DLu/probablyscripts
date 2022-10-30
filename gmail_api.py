@@ -12,9 +12,9 @@ SCOPES = ['https://www.googleapis.com/auth/gmail.send']
 class GMailAPI(GoogleAPI):
     # https://developers.google.com/gmail/api
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         GoogleAPI.__init__(self, 'gmail', 'v1', SCOPES,
-                           pathlib.Path('~/.config/gmail_api.yaml').expanduser())
+                           pathlib.Path('~/.config/gmail_api.yaml').expanduser(), **kwargs)
 
     def send_email(self, subject='', text='', send_to=[], bcc=[], send_from=None, html=False, files=[], images={}):
         assert isinstance(send_to, list)
