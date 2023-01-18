@@ -1,5 +1,4 @@
 import pathlib
-import yaml
 
 from google_api import GoogleAPI
 
@@ -26,8 +25,3 @@ class SheetAPI(GoogleAPI):
                 continue
             rows.append(dict(zip(labels, row)))
         return rows
-
-
-s = SheetAPI()
-s.set_sheet_id('116bnk0vRaIAU1jKQ54bDLLCuGMJGL6lQ5N8RfU5g-AM')
-print(yaml.dump(s.get_dictionaries('Master!A1:G30')))

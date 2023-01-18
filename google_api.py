@@ -25,7 +25,7 @@ class GoogleAPI:
                 creds.refresh(Request())
             else:
                 flow = InstalledAppFlow.from_client_secrets_file(secrets_file_path, scopes)
-                creds = flow.run_console()
+                creds = flow.run_local_server()
             yaml.dump(credentials_to_dictionary(creds), open(credentials_path, 'w'))
 
         self.service = build(name, version, credentials=creds)
