@@ -21,6 +21,7 @@ alias ack='ack --sort-files'
 
 alias atom_root='atom `git rev-parse --show-toplevel`'
 alias rip_mp3='youtube-dl -x --audio-format mp3 -o "%(title)s.%(ext)s" '
+alias rip_movie='youtube-dl -o "%(title)s.%(ext)s" '
 
 #PS1="! \W/ > "
 

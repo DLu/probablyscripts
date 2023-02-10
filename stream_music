@@ -142,9 +142,13 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.genre == 'Soundtrack':
-        TS = 1629823146
+        TS = 1659885157
     elif args.genre == 'Video Game':
         TS = 1622749901
+    elif args.genre == 'Holiday':
+        TS = 1671720617
+    elif args.genre == 'Mashup':
+        TS = 1676054387
     else:
         TS = 1604946876
 

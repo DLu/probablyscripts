@@ -19,7 +19,7 @@ for path, folders, files in os.walk('.'):
         full_path = os.path.join(path, file)
         try:
             s = open(full_path).read()
-        except UnicodeDecodeError:
+        except (UnicodeDecodeError, FileNotFoundError):
             continue
         if args.needle in s:
             print(f'{full_path}: {s.count(args.needle)}')

@@ -10,11 +10,13 @@ from ruamel.yaml import YAML
 
 
 MY_REPOS = {
-    'standard': ('https://github.com/pre-commit/pre-commit-hooks', 'v4.3.0'),
-    'spelling': ('https://github.com/codespell-project/codespell', 'v2.1.0'),
-    'autopep8': ('https://github.com/pre-commit/mirrors-autopep8', 'v1.7.0'),
-    'flake8': ('https://github.com/PyCQA/flake8', '5.0.4'),
+    'standard': ('https://github.com/pre-commit/pre-commit-hooks', 'v4.4.0'),
+    'spelling': ('https://github.com/codespell-project/codespell', 'v2.2.2'),
+    'autopep8': ('https://github.com/pre-commit/mirrors-autopep8', 'v2.0.0'),
+    'flake8': ('https://github.com/PyCQA/flake8', '6.0.0'),
     'clang': ('https://github.com/pre-commit/mirrors-clang-format', 'v13.0.1'),
+    'lxml': ('https://github.com/Lucas-C/pre-commit-hooks-lxml', 'v1.1.0'),
+    'prettier': ('https://github.com/pre-commit/mirrors-prettier', 'v2.7.1'),
 }
 
 
@@ -43,6 +45,12 @@ MY_CONFIGS = {
     'json': [
         ('standard', ['check-json', 'pretty-format-json']),
     ],
+    'html': [
+        ('lxml', ['forbid-html-img-without-alt-text', 'forbid-non-std-html-attributes',
+                  'html-tags-blacklist', 'html-attributes-blacklist']),
+        ('prettier', ['prettier']),
+
+    ]
 }
 
 OTHER_FIELDS = {
@@ -57,6 +65,7 @@ FILE_TYPE_MATCHES = {
     '.cpp': 'c++',
     '.h': 'c++',
     '.xml': 'xml',
+    '.html': 'html',
 }
 
 
@@ -92,14 +101,25 @@ def check_configuration(config, config_key):
             hook.update(OTHER_FIELDS.get(hook_name, {}))
 
 
+def get_unignored_files(folder):
+    """Return all files that are tracked/untracked by git, but not the ignored files"""
+    my_files = []
+    commands = [
+        'git ls-files',
+        'git ls-files . --exclude-standard --others',
+    ]
+    for cmd in commands:
+        for file_s in subprocess.check_output(cmd, shell=True).decode().splitlines():
+            my_files.append(pathlib.Path(file_s))
+
+    return my_files
+
+
 def find_file_types(folder):
     ft = set()
-    for path in folder.iterdir():
-        if path.is_dir() and path.name != '.git':
-            ft = ft.union(find_file_types(path))
-        else:
-            if path.suffix in FILE_TYPE_MATCHES:
-                ft.add(FILE_TYPE_MATCHES[path.suffix])
+    for path in get_unignored_files(folder):
+        if path.suffix in FILE_TYPE_MATCHES:
+            ft.add(FILE_TYPE_MATCHES[path.suffix])
 
     return ft
 
