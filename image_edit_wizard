@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import argparse
+import click
 import os
 import pathlib
 from PIL import Image, ImageDraw
@@ -63,7 +64,6 @@ if __name__ == '__main__':
         if args.number:
             items = items[:args.number]
         for name, filepath in items:
-            print(name)
             last_update = get_modification_time(filepath)
             if name not in metadata or last_update != metadata[name].get('read_time'):
                 metadata[name] = {'read_time': last_update}
@@ -71,14 +71,19 @@ if __name__ == '__main__':
 
             if args.transparent_background:
                 ext = '.png'
+                other_ext = '.jpg'
             else:
                 ext = '.jpg'
+                other_ext = '.png'
             outpath = args.output_directory / (filepath.stem + ext)
+            other_outpath = args.output_directory / (filepath.stem + other_ext)
 
             if outpath.exists():
                 write_time = get_modification_time(outpath)
                 if write_time == im_meta.get('write_time') and arg_string == im_meta.get('args'):
+                    click.secho(f'[{name}]', fg='bright_black')
                     continue
+            click.secho(name, fg='bright_blue')
 
             im = Image.open(filepath).convert('RGB')
 
@@ -116,6 +121,8 @@ if __name__ == '__main__':
                 im = Image.alpha_composite(background, im).convert('RGB')
 
             # Save file
+            if other_outpath.exists():
+                other_outpath.unlink()
             im.save(outpath)
             im_meta['write_time'] = get_modification_time(outpath)
             im_meta['args'] = arg_string

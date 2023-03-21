@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-alias hosts_timeout.py='sudo env PATH=$PATH hosts_timeout.py'
 alias latex-mk='latex-mk --pdflatex'
 alias gitst='git status .'
 alias gitdiff='git difftool -g -d'
@@ -20,8 +19,11 @@ alias ackc='ack -c -l --sort-files'
 alias ack='ack --sort-files'
 
 alias atom_root='atom `git rev-parse --show-toplevel`'
-alias rip_mp3='youtube-dl -x --audio-format mp3 -o "%(title)s.%(ext)s" '
-alias rip_movie='youtube-dl -o "%(title)s.%(ext)s" '
+alias youtube_dl='yt-dlp'
+alias rip_mp3='yt-dlp -x --audio-format mp3 -o "%(title)s.%(ext)s" '
+alias rip_movie='yt-dlp -o "%(title)s.%(ext)s" '
+
+alias serve_this='python3 -m http.server'
 
 #PS1="! \W/ > "
 

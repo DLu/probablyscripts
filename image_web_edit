@@ -295,6 +295,7 @@ def zoom():
     # check for max size
     im_meta['zoom'] = new_crop_width
     im_meta['box'] = get_box(im_meta, im_meta['center'], aspect)
+    im_meta.pop('write_time', None)
     return jsonify(im_meta)
 
 
@@ -315,6 +316,7 @@ def move():
             new_val = im_meta[att] - crop_size
         im_meta['center'][dim] = new_val
     im_meta['box'] = get_box(im_meta, im_meta['center'], aspect)
+    im_meta.pop('write_time', None)
     return jsonify(im_meta)
 
 

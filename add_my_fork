@@ -38,7 +38,7 @@ if __name__ == '__main__':
             if m.group(1) == args.username:
                 click.secho(f'Remote already exists: {remote}: {remote.url}', fg='yellow')
                 exit(0)
-        existing_remotes[str(remote)] = value
+            existing_remotes[str(remote)] = value
 
     if args.username == 'DLu':
         desired_remote = 'origin'

@@ -170,9 +170,9 @@ if __name__ == '__main__':
     if 'c++' in file_types:
         clang_config_path = root / '.clang-format'
         default_config = pathlib.Path(__file__).parent / clang_config_path.stem
-        shutil.copy(default_config, clang_config_path)
-        if not cfg_path.exists():
+        if not clang_config_path.exists():
             click.secho('Writing .clang-format', fg='blue')
+            shutil.copy(default_config, clang_config_path)
 
     yaml.dump(config, open(precommit_file, 'w'))
 
