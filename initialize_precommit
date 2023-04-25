@@ -139,6 +139,10 @@ if __name__ == '__main__':
     else:
         config = {'repos': []}
 
+    if 'autoupdate_schedule' not in config:
+        click.secho('Setting autoupdate_schedule to quarterly', fg='blue')
+        config['autoupdate_schedule'] = 'quarterly'
+
     check_configuration(config, 'standard')
 
     file_types = find_file_types(root)
