@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import argparse
 import asyncio
+import collections
 import configparser
 import pathlib
 import time
@@ -116,7 +117,30 @@ async def main(ms, query, write_freq=10):
     cfg.read(current_folder / 'subso.desktop')
     icon = cfg['Desktop Entry']['Icon']
 
-    songs = ms.db.query(query)
+    songs = list(ms.db.query(query))
+
+    if len(songs) == 0:
+        total_duration = collections.Counter()
+        total_counts = collections.Counter()
+        for row in ms.db.query('SELECT genre, duration FROM songs LEFT JOIN plays ON songs.id=plays.id '
+                               'WHERE count IS NULL AND folder = 0'):
+            genre = row['genre']
+            total_duration[genre] += row.get('duration') or 0
+            total_counts[genre] += 1
+
+        def format_d(s):
+            m = s // 60
+            s -= m * 60
+            h = m // 60
+            if not h:
+                return f'{m}:{s:02d}'
+            m -= h * 60
+            return f'{h}:{m:02d}:{s:02d}'
+
+        for k, v in total_counts.most_common():
+            print(f'{v:4d} {k} ({format_d(total_duration[k])})')
+        return
+
     controls.set_playback_status(PlaybackStatus.PLAYING)
     c = 0
     notification_id = 0
@@ -142,9 +166,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.genre == 'Soundtrack':
-        TS = 1659885157
+        TS = 1681139741
     elif args.genre == 'Video Game':
-        TS = 1622749901
+        TS = 1681139741
     elif args.genre == 'Holiday':
         TS = 1671720617
     elif args.genre == 'Mashup':

@@ -40,7 +40,7 @@ if __name__ == '__main__':
                 exit(0)
             existing_remotes[str(remote)] = value
 
-    if args.username == 'DLu':
+    if args.username == 'DLu' or args.username == 'MetroRobots':
         desired_remote = 'origin'
     else:
         desired_remote = args.username

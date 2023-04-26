@@ -11,10 +11,10 @@ from ruamel.yaml import YAML
 
 MY_REPOS = {
     'standard': ('https://github.com/pre-commit/pre-commit-hooks', 'v4.4.0'),
-    'spelling': ('https://github.com/codespell-project/codespell', 'v2.2.2'),
-    'autopep8': ('https://github.com/pre-commit/mirrors-autopep8', 'v2.0.0'),
+    'spelling': ('https://github.com/codespell-project/codespell', 'v2.2.4'),
+    'autopep8': ('https://github.com/pre-commit/mirrors-autopep8', 'v2.0.2'),
     'flake8': ('https://github.com/PyCQA/flake8', '6.0.0'),
-    'clang': ('https://github.com/pre-commit/mirrors-clang-format', 'v13.0.1'),
+    'clang': ('https://github.com/pre-commit/mirrors-clang-format', 'v16.0.2'),
     'lxml': ('https://github.com/Lucas-C/pre-commit-hooks-lxml', 'v1.1.0'),
     'prettier': ('https://github.com/pre-commit/mirrors-prettier', 'v2.7.1'),
 }
@@ -101,6 +101,14 @@ def check_configuration(config, config_key):
             hook.update(OTHER_FIELDS.get(hook_name, {}))
 
 
+def check_configuration_file(filename):
+    config_path = root / filename
+    default_config = pathlib.Path(__file__).parent / filename
+    if not config_path.exists():
+        click.secho(f'Writing {filename}', fg='blue')
+        shutil.copy(default_config, config_path)
+
+
 def get_unignored_files(folder):
     """Return all files that are tracked/untracked by git, but not the ignored files"""
     my_files = []
@@ -172,11 +180,10 @@ if __name__ == '__main__':
             cfg.write(f, space_around_delimiters=False)
 
     if 'c++' in file_types:
-        clang_config_path = root / '.clang-format'
-        default_config = pathlib.Path(__file__).parent / clang_config_path.stem
-        if not clang_config_path.exists():
-            click.secho('Writing .clang-format', fg='blue')
-            shutil.copy(default_config, clang_config_path)
+        check_configuration_file('.clang-format')
+
+    if 'html' in file_types:
+        check_configuration_file('.prettierrc.yaml')
 
     yaml.dump(config, open(precommit_file, 'w'))
 
