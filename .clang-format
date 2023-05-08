@@ -1,22 +1,21 @@
----
 Language: Cpp
 Standard: Cpp11
-ColumnLimit:    120
+ColumnLimit: 120
 
 # Braces (Breaks for all, EXCEPT enum)
 BreakBeforeBraces: Custom
 BraceWrapping:
-    AfterCaseLabel: true
-    AfterClass: true
-    AfterControlStatement: true
-    AfterEnum: false
-    AfterFunction: true
-    AfterNamespace: true
-    AfterStruct: true
-    AfterUnion: true
-    BeforeCatch: true
-    BeforeElse: true
-    IndentBraces: false
+  AfterCaseLabel: true
+  AfterClass: true
+  AfterControlStatement: true
+  AfterEnum: false
+  AfterFunction: true
+  AfterNamespace: true
+  AfterStruct: true
+  AfterUnion: true
+  BeforeCatch: true
+  BeforeElse: true
+  IndentBraces: false
 
 # Whitespace
 AllowShortBlocksOnASingleLine: false
@@ -37,4 +36,3 @@ KeepEmptyLinesAtTheStartOfBlocks: true
 ReflowComments: false
 SortIncludes: false
 SortUsingDeclarations: false
-...

@@ -8,6 +8,8 @@ import shutil
 import subprocess
 from ruamel.yaml import YAML
 
+SCRIPT_FOLDER = pathlib.Path(__file__).parent
+
 
 MY_REPOS = {
     'standard': ('https://github.com/pre-commit/pre-commit-hooks', 'v4.4.0'),
@@ -17,6 +19,8 @@ MY_REPOS = {
     'clang': ('https://github.com/pre-commit/mirrors-clang-format', 'v16.0.2'),
     'lxml': ('https://github.com/Lucas-C/pre-commit-hooks-lxml', 'v1.1.0'),
     'prettier': ('https://github.com/pre-commit/mirrors-prettier', 'v2.7.1'),
+    'yamllint': ('https://github.com/adrienverge/yamllint', 'v1.31.0'),
+    'yamlfmt': ('https://github.com/jumanjihouse/pre-commit-hook-yamlfmt', '0.2.3'),
 }
 
 
@@ -38,6 +42,8 @@ MY_CONFIGS = {
     ],
     'yaml': [
         ('standard', ['check-yaml']),
+        ('yamllint', ['yamllint']),
+        ('yamlfmt', ['yamlfmt']),
     ],
     'xml': [
         ('standard', ['check-xml']),
@@ -53,8 +59,20 @@ MY_CONFIGS = {
     ]
 }
 
+YAML_FORMAT_OPTIONS = {
+    'mapping': 2,
+    'sequence': 2,
+    'offset': 0,
+}
+YAML_ARGS = ['--width', '120', '--implicit_start', '--implicit_end']
+for k, v in YAML_FORMAT_OPTIONS.items():
+    YAML_ARGS += [f'--{k}', f'{v}']
+
+
 OTHER_FIELDS = {
     'codespell': {'args': ['--write-changes']},
+    'yamllint': {'args': ['--format', 'parsable', '--strict']},
+    'yamlfmt': {'args': YAML_ARGS},
 }
 
 FILE_TYPE_MATCHES = {
@@ -103,7 +121,7 @@ def check_configuration(config, config_key):
 
 def check_configuration_file(filename):
     config_path = root / filename
-    default_config = pathlib.Path(__file__).parent / filename
+    default_config = SCRIPT_FOLDER / filename
     if not config_path.exists():
         click.secho(f'Writing {filename}', fg='blue')
         shutil.copy(default_config, config_path)
@@ -141,6 +159,7 @@ if __name__ == '__main__':
     hook_file = root / '.git' / 'hooks' / 'pre-commit'
 
     yaml = YAML()
+    yaml.indent(**YAML_FORMAT_OPTIONS)
 
     if precommit_file.exists():
         config = yaml.load(open(precommit_file))
@@ -162,8 +181,10 @@ if __name__ == '__main__':
         cfg_path = root / 'setup.cfg'
         if cfg_path.exists():
             cfg.read(cfg_path)
+            changed = False
         else:
             click.secho('Writing setup.cfg', fg='blue')
+            changed = True
 
         section_name = 'flake8'
         key = 'max_line_length'
@@ -171,13 +192,16 @@ if __name__ == '__main__':
 
         if not cfg.has_section(section_name):
             cfg.add_section(section_name)
+            changed = True
 
         old_val = cfg[section_name].get(key)
         if old_val != value:
             cfg.set(section_name, key, value)
+            changed = True
 
-        with open(cfg_path, 'w') as f:
-            cfg.write(f, space_around_delimiters=False)
+        if changed:
+            with open(cfg_path, 'w') as f:
+                cfg.write(f, space_around_delimiters=False)
 
     if 'c++' in file_types:
         check_configuration_file('.clang-format')
