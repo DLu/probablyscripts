@@ -209,6 +209,9 @@ if __name__ == '__main__':
     if 'html' in file_types:
         check_configuration_file('.prettierrc.yaml')
 
+    if 'yaml' in file_types:
+        check_configuration_file('.yamllint.yaml')
+
     yaml.dump(config, open(precommit_file, 'w'))
 
     if not hook_file.exists():

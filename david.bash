@@ -2,7 +2,7 @@
 
 alias latex-mk='latex-mk --pdflatex'
 alias gitst='git status .'
-alias gitdiff='git difftool -g -d'
+eval "$(register-python-argcomplete3 gitdiff)"
 alias gitundo="git reset --soft 'HEAD^'"
 alias gitredo='git commit -c ORIG_HEAD'
 alias gitrecent='git for-each-ref --sort=-committerdate refs/heads/ | tac'

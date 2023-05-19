@@ -1,0 +1,25 @@
+#!/usr/bin/python3
+
+import argcomplete
+import argparse
+import git
+import subprocess
+
+
+def get_branches(prefix, parsed_args, **kwargs):
+    repo = git.Repo()
+    branches = []
+    for branch in repo.refs:
+        branches.append(str(branch))
+    return branches
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument('branch', nargs='?').completer = get_branches
+argcomplete.autocomplete(parser)
+args = parser.parse_args()
+
+cmd = ['git', 'difftool', '-g', '-d']
+if args.branch:
+    cmd.append(args.branch)
+subprocess.call(cmd)
