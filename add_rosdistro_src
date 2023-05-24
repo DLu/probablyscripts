@@ -1,0 +1,236 @@
+#!/usr/bin/python3
+
+import argparse
+import git
+from github import Github
+import json
+import os
+import pathlib
+from ruamel.yaml import YAML
+import tempfile
+import re
+
+STD_HEADER = """%YAML 1.1
+# ROS distribution file
+# see REP 143: http://ros.org/reps/rep-0143.html
+---"""
+
+BAD_HEADER = """%YAML 1.1
+---"""
+
+PR_BODY_TEMPLATE = """# Please Add This Package to be indexed in the rosdistro.
+
+{args.name}
+
+# The source is here:
+
+{args.src_repo_url}
+
+# Checks
+ - [ ] All packages have a declared license in the package.xml
+ - [ ] This repository has a LICENSE file
+ - [ ] This package is expected to build on the submitted rosdistro
+"""
+
+SSH_PATTERN = re.compile(r'git@github.com:([^/]+)/(.*).git')
+
+
+def find_git_root(path):
+    path = path.resolve()
+    while not (path / '.git').exists():
+        parent = path.parent
+        if path == parent:
+            return None
+        path = parent
+    return path
+
+
+def process_src_repo(args):
+    if args.src_repo_url and args.src_branch:
+        return
+
+    folder = find_git_root(args.src_repo_folder)
+    if folder is None:
+        raise RuntimeError('Did not specify source repo url and could not find local git repo.')
+    src_repo = git.Repo(folder)
+    url = src_repo.remotes.origin.url
+
+    if args.src_repo_url is None:
+        m = SSH_PATTERN.match(url)
+        if m:
+            args.src_repo_url = 'https://github.com/{}/{}.git'.format(*m.groups())
+        elif not url.endswith('.git'):
+            args.src_repo_url = url + '.git'
+        else:
+            args.src_repo_url = url
+
+    if not args.name:
+        args.name = url.split('/')[-1].replace('.git', '')
+
+    if not args.src_branch:
+        args.src_branch = src_repo.active_branch.name
+
+
+def process_rosdistro_branch(args):
+    if args.rosdistro_branch:
+        return
+
+    existing_branches = set()
+
+    g = Github()
+    repo = g.get_repo(f'{args.github_user}/rosdistro')
+    for branch in repo.get_branches():
+        existing_branches.add(branch.name)
+
+    if args.local_rosdistro_repo:
+        repo = git.Repo(args.local_rosdistro_repo)
+        for branch in repo.branches:
+            existing_branches.add(branch.name)
+
+    c = 0
+    while (new_branch_name := f'{args.name}-{c}') in existing_branches:
+        c += 1
+    args.rosdistro_branch = new_branch_name
+
+
+def prepare_rosdistro_repo(args):
+    if args.local_rosdistro_repo:
+        if args.local_rosdistro_repo.exists():
+            temp_dir = None
+            repo = git.Repo(args.local_rosdistro_repo)
+            upstream = None
+        else:
+            raise RuntimeError('Specified path for local_rosdistro_repo does not exist!')
+    else:
+        temp_dir = tempfile.TemporaryDirectory()
+        repo = git.Repo(temp_dir)
+        upstream = repo.create_remote('upstream', 'https://github.com/ros/rosdistro.git')
+
+    # Search for user's fork (and maybe upstream)
+    fork = None
+    for remote in repo.remotes:
+        if 'ros/rosdistro.git' in remote.url:
+            upstream = remote
+        elif args.github_user in remote.url:
+            fork = remote
+
+    if fork is None:
+        fork = repo.create_remote('origin', f'https://github.com/{args.github_user}/rosdistro.git')
+
+    upstream.fetch()
+
+    return repo, upstream, fork, temp_dir
+
+
+def make_changes(args):
+    distribution_path = pathlib.Path(args.local_rosdistro_repo) / args.ros_distro / 'distribution.yaml'
+
+    # Load the old version
+    yaml = YAML()
+    D = yaml.load(open(distribution_path))
+    repos = D['repositories']
+
+    if args.name in repos:
+        raise RuntimeError(f'{args.name} already exists in {args.ros_distro}/distribution.yaml')
+
+    entry = {'type': 'git'}
+    entry['url'] = args.src_repo_url
+    entry['version'] = args.src_branch
+    if args.test_pull_requests:
+        entry['test_pull_requests'] = True
+    repos[args.name] = {'source': entry, 'status': 'developed'}
+    D['repositories'] = {k: v for k, v in sorted(repos.items())}
+    contents = yaml.dump(D, open(distribution_path, 'w'))
+
+    # HACK
+    contents = open(distribution_path).read()
+    if BAD_HEADER in contents:
+        contents = contents.replace(BAD_HEADER, STD_HEADER)
+        with open(distribution_path, 'w') as f:
+            f.write(contents)
+    # ENDHACK
+
+    return distribution_path
+
+
+def make_pull_request(args, bloom_config):
+    gh = Github(bloom_config['oauth_token'])
+
+    upstream_gh = gh.get_repo('ros/rosdistro')
+
+    body = PR_BODY_TEMPLATE.format(args=args)
+    head = f'{args.github_user}:{args.rosdistro_branch}'
+
+    pr = upstream_gh.create_pull(title='Add {args.name} source repo to {args.ros_distro}',
+                                 body=body,
+                                 base='master',
+                                 head=head)
+    print(f'Created PR: {pr.html_url}')
+
+
+if __name__ == '__main__':
+    default_rosdistro_repo = os.environ.get('ROSDISTRO_REPO')
+    default_distro = os.environ.get('ROS_DISTRO')
+
+    bloom_config_path = pathlib.Path.home() / '.config/bloom'
+    if bloom_config_path.exists():
+        bloom_config = json.load(open(bloom_config_path))
+    else:
+        bloom_config = {}
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('name', nargs='?',
+                        help='The name for the repo to be used in the rosdistro listing. '
+                             'Defaults to the git repo name.')
+    parser.add_argument('-r', '--ros-distro',
+                        choices=['foxy', 'humble', 'iron', 'rolling', 'noetic'],
+                        default=default_distro,
+                        help=f'The ROS distro to add to. Defaults to $ROS_DISTRO, aka {default_distro}')
+    parser.add_argument('-u', '--src-repo-url',
+                        help='The url of the source repo. Determined by src repo folder if not specified.')
+    parser.add_argument('-f', '--src-repo-folder', default='.', type=pathlib.Path,
+                        help='The folder containing a local clone of the src repo.')
+    parser.add_argument('-b', '--src-branch',
+                        help='The branch to use of the src repo. Defaults to default/current branch.')
+    parser.add_argument('-l', '--local_rosdistro_repo', nargs='?', default=default_rosdistro_repo, type=pathlib.Path,
+                        help=f'The path to a local clone of the ros/rosdistro repo. '
+                             f'Defaults to $ROSDISTRO_REPO, aka "{default_rosdistro_repo}"')
+    parser.add_argument('--rosdistro-branch',
+                        help='The branch to make the pull request from on GitHub. Usually determined automatically.')
+    parser.add_argument('-t', '--test-pull-requests', action='store_true')
+    parser.add_argument('-g', '--github-user', default=bloom_config.get('github_user'))
+    parser.add_argument('-s', '--simulate', action='store_true')
+    args = parser.parse_args()
+
+    process_src_repo(args)
+
+    process_rosdistro_branch(args)
+
+    if args.simulate:
+        for section_name, argnames in [('Key Features', ['name', 'ros_distro', 'github_user']),
+                                       ('Source Repo', ['src_repo_url', 'src_repo_folder',
+                                                        'src_branch', 'test_pull_requests']),
+                                       ('ROS Distro Repo', ['local_rosdistro_repo', 'rosdistro_branch']),
+                                       ]:
+            print(section_name)
+            for argname in argnames:
+                print(f'\t{argname:40s} {getattr(args, argname)}')
+            print()
+        exit(0)
+
+    rosdistro_repo, upstream_rosdistro, fork_rosdistro, temp_dir = prepare_rosdistro_repo(args)
+
+    try:
+        branch = rosdistro_repo.create_head(args.rosdistro_branch, upstream_rosdistro.refs.master)
+        branch.checkout()
+
+        changed_filepath = make_changes(args)
+
+        rosdistro_repo.index.add(str(changed_filepath))
+        rosdistro_repo.index.commit(f'Add source entry for {args.name}')
+        rosdistro_repo.git.push('--set-upstream', fork_rosdistro.name, args.rosdistro_branch)
+
+        make_pull_request(args, bloom_config)
+    finally:
+        if temp_dir:
+            temp_dir.cleanup()
