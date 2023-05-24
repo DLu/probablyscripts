@@ -58,4 +58,5 @@ repos:
     - --offset
     - '0'
   rev: 0.2.3
-autoupdate_schedule: quarterly
+ci:
+  autoupdate_schedule: quarterly
