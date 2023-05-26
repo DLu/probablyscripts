@@ -161,7 +161,7 @@ def make_pull_request(args, bloom_config):
     body = PR_BODY_TEMPLATE.format(args=args)
     head = f'{args.github_user}:{args.rosdistro_branch}'
 
-    pr = upstream_gh.create_pull(title='Add {args.name} source repo to {args.ros_distro}',
+    pr = upstream_gh.create_pull(title=f'Add {args.name} source repo to {args.ros_distro}',
                                  body=body,
                                  base='master',
                                  head=head)
