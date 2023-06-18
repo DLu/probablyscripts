@@ -18,26 +18,24 @@ def wesa_podcast(yaml_filename, url):
     req = requests.get(base_url + url, verify=False)
     soup = BeautifulSoup(req.text, 'html.parser')
 
-    for x in soup.find_all(class_='node'):
-        title_el = x.find(attrs={'property': 'dc:title'})
+    for x in soup.find_all(class_='ListE-items-item'):
+        title_el = x.find(class_='PromoA-title')
         if not title_el:
             continue
-        title = title_el.text
-        audio = x.find('audio')
+        title = title_el.text.strip()
+
+        audio = x.find('ps-stream-url')
         if audio:
-            mp3 = audio['src']
+            mp3 = audio['data-stream-url']
             print(mp3)
         else:
-            div = x.find(class_='jp-play')
-            if not div:
-                continue
-            mp3 = div['href']
+            continue
 
-        dd = x.find(attrs={'property': 'dc:date dc:created'})
-        date = parse(dd['content'])
-        cap = x.find(class_='audio-caption')
+        dd = x.find(class_='PromoA-timestamp')
+        date = parse(dd['data-date'])
+        cap = x.find(class_='PromoA-description')
         if cap:
-            caption = cap.text
+            caption = cap.text.strip()
         else:
             caption = 'generic'
         podcast.add_episode(title, mp3, caption, date)
