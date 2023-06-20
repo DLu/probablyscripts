@@ -14,7 +14,9 @@ def credentials_to_dictionary(credentials):
 
 
 class GoogleAPI:
-    def __init__(self, name, version, scopes, credentials_path, secrets_file_path=pathlib.Path('credentials.json')):
+    def __init__(self, name, version, scopes, credentials_path,
+                 secrets_file_path=pathlib.Path('credentials.json'),
+                 **kwargs):
         creds = None
         if credentials_path.exists():
             creds_d = yaml.safe_load(open(credentials_path))
@@ -28,7 +30,7 @@ class GoogleAPI:
                 creds = flow.run_local_server()
             yaml.dump(credentials_to_dictionary(creds), open(credentials_path, 'w'))
 
-        self.service = build(name, version, credentials=creds)
+        self.service = build(name, version, credentials=creds, **kwargs)
 
     def get_paged_result(self, api_method, result_keyword, max_results=0, max_results_param_name='pageSize', **kwargs):
         next_token = None
