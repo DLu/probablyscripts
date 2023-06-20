@@ -91,12 +91,15 @@ class YamlPodcast(Podcast):
             response = requests.head(full_filename)
             size = response.headers['content-length']
 
-        print(full_filename)
         ep = {'title': title, 'filename': filename,
               'length': size, 'date': date, 'description': description}
         self.data['episodes'].append(ep)
+        self.data['episodes'].sort(
+            key=lambda ep: datetime.datetime.strptime(ep['date'], DATE_FORMAT)
+        )
         yaml.safe_dump(self.data, open(self.filename, 'w'), allow_unicode=True)
         self.add_yaml_episode(ep)
+        return True
 
     # def check_files(self):
     #     for item in self.data.get('episodes', []):
