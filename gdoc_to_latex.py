@@ -43,7 +43,7 @@ args = parser.parse_args()
 
 with zipfile.ZipFile(args.zipfile, mode='r') as archive:
     for path in archive.namelist():
-        soup = BeautifulSoup(open(path), 'lxml')
+        soup = BeautifulSoup(archive.read(path), 'lxml')
         css_rules = {}
         for style in soup.find_all('style'):
             sheet = cssutils.parseString(style.getText())

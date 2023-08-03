@@ -15,7 +15,7 @@ MY_REPOS = {
     'standard': ('https://github.com/pre-commit/pre-commit-hooks', 'v4.4.0'),
     'spelling': ('https://github.com/codespell-project/codespell', 'v2.2.5'),
     'autopep8': ('https://github.com/pre-commit/mirrors-autopep8', 'v2.0.2'),
-    'flake8': ('https://github.com/PyCQA/flake8', '6.0.0'),
+    'flake8': ('https://github.com/PyCQA/flake8', '6.1.0'),
     'clang': ('https://github.com/pre-commit/mirrors-clang-format', 'v16.0.6'),
     'lxml': ('https://github.com/Lucas-C/pre-commit-hooks-lxml', 'v1.1.0'),
     'prettier': ('https://github.com/pre-commit/mirrors-prettier', 'v2.7.1'),
