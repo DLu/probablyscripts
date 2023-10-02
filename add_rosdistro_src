@@ -200,6 +200,8 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--test-pull-requests', action='store_true')
     parser.add_argument('-g', '--github-user', default=bloom_config.get('github_user'))
     parser.add_argument('-s', '--simulate', action='store_true')
+    parser.add_argument('-n', '--no-new-branch', action='store_true')
+    parser.add_argument('-p', '--no-pull-request', action='store_true')
     args = parser.parse_args()
 
     process_src_repo(args)
@@ -221,16 +223,19 @@ if __name__ == '__main__':
     rosdistro_repo, upstream_rosdistro, fork_rosdistro, temp_dir = prepare_rosdistro_repo(args)
 
     try:
-        branch = rosdistro_repo.create_head(args.rosdistro_branch, upstream_rosdistro.refs.master)
-        branch.checkout()
+        if not args.no_new_branch:
+            branch = rosdistro_repo.create_head(args.rosdistro_branch, upstream_rosdistro.refs.master)
+            branch.checkout()
 
         changed_filepath = make_changes(args)
 
         rosdistro_repo.index.add(str(changed_filepath))
         rosdistro_repo.index.commit(f'Add source entry for {args.name}')
-        rosdistro_repo.git.push('--set-upstream', fork_rosdistro.name, args.rosdistro_branch)
+        if not args.no_new_branch:
+            rosdistro_repo.git.push('--set-upstream', fork_rosdistro.name, args.rosdistro_branch)
 
-        make_pull_request(args, bloom_config)
+        if not args.no_pull_request:
+            make_pull_request(args, bloom_config)
     finally:
         if temp_dir:
             temp_dir.cleanup()

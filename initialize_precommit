@@ -9,16 +9,16 @@ import subprocess
 from ruamel.yaml import YAML
 
 SCRIPT_FOLDER = pathlib.Path(__file__).parent
-
+PRECOMMIT_FILENAME = '.pre-commit-config.yaml'
 
 MY_REPOS = {
     'standard': ('https://github.com/pre-commit/pre-commit-hooks', 'v4.4.0'),
     'spelling': ('https://github.com/codespell-project/codespell', 'v2.2.5'),
-    'autopep8': ('https://github.com/pre-commit/mirrors-autopep8', 'v2.0.2'),
+    'autopep8': ('https://github.com/hhatto/autopep8', 'v2.0.4'),
     'flake8': ('https://github.com/PyCQA/flake8', '6.1.0'),
     'clang': ('https://github.com/pre-commit/mirrors-clang-format', 'v16.0.6'),
     'lxml': ('https://github.com/Lucas-C/pre-commit-hooks-lxml', 'v1.1.0'),
-    'prettier': ('https://github.com/pre-commit/mirrors-prettier', 'v2.7.1'),
+    'prettier': ('https://github.com/pre-commit/mirrors-prettier', 'v3.0.3'),
     'yamllint': ('https://github.com/adrienverge/yamllint', 'v1.32.0'),
     'yamlfmt': ('https://github.com/jumanjihouse/pre-commit-hook-yamlfmt', '0.2.3'),
 }
@@ -141,9 +141,11 @@ def get_unignored_files(folder):
     return my_files
 
 
-def find_file_types(folder):
+def find_file_types(folder, include_precommit_file=False):
     ft = set()
     for path in get_unignored_files(folder):
+        if path.stem == PRECOMMIT_FILENAME and not include_precommit_file:
+            continue
         if path.suffix in FILE_TYPE_MATCHES:
             ft.add(FILE_TYPE_MATCHES[path.suffix])
 
@@ -152,10 +154,11 @@ def find_file_types(folder):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    parser.add_argument('-p', '--include-precommit-file', action='store_true')
     args = parser.parse_args()
 
     root = find_git_directory()
-    precommit_file = root / '.pre-commit-config.yaml'
+    precommit_file = root / PRECOMMIT_FILENAME
     hook_file = root / '.git' / 'hooks' / 'pre-commit'
 
     yaml = YAML()
@@ -176,7 +179,7 @@ if __name__ == '__main__':
 
     check_configuration(config, 'standard')
 
-    file_types = find_file_types(root)
+    file_types = find_file_types(root, args.include_precommit_file)
     for filetype in file_types:
         check_configuration(config, filetype)
 

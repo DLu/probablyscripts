@@ -16,6 +16,7 @@ alias asdf='rosbuild -c --this'
 alias zxcv='rosbuild --this --no-deps'
 alias install_deps="rosdep_install"
 alias sros='source_ros'
+alias roscompile='rosrun roscompile roscompile -i'
 
 export RCUTILS_CONSOLE_OUTPUT_FORMAT="[{name}]: {message}"
 export RCUTILS_COLORIZED_OUTPUT=1
