@@ -3,6 +3,7 @@
 import argparse
 import configparser
 import click
+from identify import identify
 import pathlib
 import shutil
 import subprocess
@@ -21,6 +22,7 @@ MY_REPOS = {
     'prettier': ('https://github.com/pre-commit/mirrors-prettier', 'v3.0.3'),
     'yamllint': ('https://github.com/adrienverge/yamllint', 'v1.32.0'),
     'yamlfmt': ('https://github.com/jumanjihouse/pre-commit-hook-yamlfmt', '0.2.3'),
+    'ros': ('https://github.com/tier4/pre-commit-hooks-ros', 'v0.7.0'),
 }
 
 
@@ -55,8 +57,13 @@ MY_CONFIGS = {
         ('lxml', ['forbid-html-img-without-alt-text', 'forbid-non-std-html-attributes',
                   'html-tags-blacklist', 'html-attributes-blacklist']),
         ('prettier', ['prettier']),
-
-    ]
+    ],
+    'xacro': [
+        ('ros', ['prettier-xacro']),
+    ],
+    'package.xml': [
+        ('ros', ['prettier-package-xml']),
+    ],
 }
 
 YAML_FORMAT_OPTIONS = {
@@ -75,17 +82,6 @@ OTHER_FIELDS = {
     'yamlfmt': {'args': YAML_ARGS},
 }
 
-FILE_TYPE_MATCHES = {
-    '.py': 'python',
-    '.yaml': 'yaml',
-    '.json': 'json',
-    '.hpp': 'c++',
-    '.cpp': 'c++',
-    '.h': 'c++',
-    '.xml': 'xml',
-    '.html': 'html',
-}
-
 
 def find_git_directory():
     p = pathlib.Path().resolve()
@@ -101,6 +97,8 @@ def find(list_of_dicts, key, value):
 
 
 def check_configuration(config, config_key):
+    if config_key not in MY_CONFIGS:
+        return
     for repo_key, hooks in MY_CONFIGS[config_key]:
         url, version = MY_REPOS[repo_key]
         entry = find(config['repos'], 'repo', url)
@@ -146,8 +144,12 @@ def find_file_types(folder, include_precommit_file=False):
     for path in get_unignored_files(folder):
         if path.stem == PRECOMMIT_FILENAME and not include_precommit_file:
             continue
-        if path.suffix in FILE_TYPE_MATCHES:
-            ft.add(FILE_TYPE_MATCHES[path.suffix])
+        for tag in identify.tags_from_path(path):
+            ft.add(tag)
+        if path.suffix == '.xacro':
+            ft.add('xacro')
+        if path.stem == 'package.xml':
+            ft.add('package.xml')
 
     return ft
 
