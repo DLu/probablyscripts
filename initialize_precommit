@@ -15,12 +15,12 @@ PRECOMMIT_FILENAME = '.pre-commit-config.yaml'
 MY_REPOS = {
     'standard': ('https://github.com/pre-commit/pre-commit-hooks', 'v4.5.0'),
     'spelling': ('https://github.com/codespell-project/codespell', 'v2.2.6'),
-    'autopep8': ('https://github.com/hhatto/autopep8', 'v2.0.4'),
-    'flake8': ('https://github.com/PyCQA/flake8', '6.1.0'),
-    'clang': ('https://github.com/pre-commit/mirrors-clang-format', 'v17.0.6'),
+    'autopep8': ('https://github.com/hhatto/autopep8', 'v2.1.0'),
+    'flake8': ('https://github.com/PyCQA/flake8', '7.0.0'),
+    'clang': ('https://github.com/pre-commit/mirrors-clang-format', 'v18.1.2'),
     'lxml': ('https://github.com/Lucas-C/pre-commit-hooks-lxml', 'v1.1.0'),
     'prettier': ('https://github.com/pre-commit/mirrors-prettier', 'v4.0.0-alpha.8'),
-    'yamllint': ('https://github.com/adrienverge/yamllint', 'v1.33.0'),
+    'yamllint': ('https://github.com/adrienverge/yamllint', 'v1.35.1'),
     'yamlfmt': ('https://github.com/jumanjihouse/pre-commit-hook-yamlfmt', '0.2.3'),
     'ros': ('https://github.com/tier4/pre-commit-hooks-ros', 'v0.7.0'),
 }
