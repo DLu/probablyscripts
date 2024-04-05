@@ -1,0 +1,232 @@
+#!/usr/bin/python3
+
+import pathlib
+import click
+import git
+import re
+
+import ruamel.yaml
+
+yaml = ruamel.yaml.YAML()
+
+SSH_PATTERN = re.compile(r'git@github.com:([^/]+)/(.*).git')
+
+BASE_FILES = {
+    '.git_archival.txt': """node: $Format:%H$
+node-date: $Format:%cI$
+describe-name: $Format:%(describe:tags=true,match=*[0-9]*)$
+ref-names: $Format:%D$
+""",
+
+    '.gitattributes': """.git_archival.txt export-subst
+""",
+
+    '.github/workflows/publish_pip.yaml': """name: Publish package on pip
+
+on:
+  workflow_dispatch:
+  release:
+    types:
+    - published
+
+jobs:
+  dist:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Build SDist and wheel
+      run: pipx run build
+
+    - uses: actions/upload-artifact@v3
+      with:
+        path: dist/*
+
+    - name: Check metadata
+      run: pipx run twine check dist/*
+
+  publish:
+    needs: [dist]
+    environment: pypi
+    permissions:
+      id-token: write
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release' && github.event.action == 'published'
+
+    steps:
+    - uses: actions/download-artifact@v3
+      with:
+        name: artifact
+        path: dist
+
+    - uses: pypa/gh-action-pypi-publish@release/v1
+""",
+}
+
+TEMPLATES = {
+    '.github/workflows/main.yaml': """name: CI
+
+on:
+  pull_request:
+    branches:
+    - main
+  push:
+    branches:
+    - main
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+        - '3.8'
+        - '3.9'
+        - '3.10'
+        - '3.11'
+        - '3.12'
+    name: Check Python ${{ matrix.python-version }}
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        allow-prereleases: true
+
+    - name: Install package
+      run: python -m pip install -e .[test]
+
+    - name: Test package
+      run: python -m pytest --cov=%s
+
+    - name: Upload coverage report
+      uses: codecov/codecov-action@v3.1.4
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+""",
+    'pyproject.toml': """[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[project]
+name = "%s"
+description = "TODO"%s
+authors = [
+  { name = "David V. Lu!!", email = "davidvlu@gmail.com" },
+]
+maintainers = [
+  { name = "David V. Lu!!", email = "davidvlu@gmail.com" },
+]
+
+dependencies = [
+]
+
+requires-python = ">=3.8"
+
+dynamic = ["version"]
+
+classifiers = [
+]
+
+[project.scripts]
+
+[project.optional-dependencies]
+test = [
+  "pytest>=4",
+  "pytest-cov>=2",
+]
+
+[project.urls]
+Homepage = "%s"
+"Bug Tracker" = "%s/issues"
+
+[tool.hatch]
+version.source = "vcs"
+build.hooks.vcs.version-file = "%s/_version.py"
+""",
+}
+
+root = pathlib.Path('.')
+package_name = root.resolve().name
+if (root / package_name).exists():
+    pkg_folder = package_name
+elif (root / 'src' / package_name).exists():
+    pkg_folder = f'src/{package_name}'
+else:
+    click.secho('Cannot determine package folder.', fg='red')
+    exit(-1)
+
+src_repo = git.Repo(root)
+url = src_repo.remotes.origin.url
+m = SSH_PATTERN.match(url)
+if m:
+    url = 'https://github.com/{}/{}'.format(*m.groups())
+elif url.endswith('.git'):
+    url = url[:-4]
+
+files = dict(BASE_FILES)
+for base_name, template in TEMPLATES.items():
+    name = pathlib.Path(base_name).name
+    if name == 'main.yaml':
+        contents = template % package_name
+    elif name == 'pyproject.toml':
+        if (root / 'README.md').exists():
+            readme = '\nreadme = "README.md"'
+        else:
+            readme = ''
+        contents = template % (package_name, readme, url, url, pkg_folder)
+    else:
+        click.secho(f'Skipping {base_name}...', fg='yellow')
+        continue
+    files[base_name] = contents
+
+ignore_file = root / '.gitignore'
+ignore_line = f'{pkg_folder}/_version.py'
+if ignore_file.exists():
+    lines = open(ignore_file).read().split('\n')
+    if ignore_line not in lines:
+        lines.append(ignore_line)
+        click.secho(f'Adding to {ignore_file.name}', fg='green')
+        with open(ignore_file, 'w') as f:
+            f.write('\n'.join(lines))
+else:
+    files[ignore_file.name] = ignore_line + '\n'
+
+cov_config = root / '.coveragerc'
+cov_contents = """[report]
+omit =
+    *_version.py
+"""
+if cov_config.exists():
+    s = open(cov_config).read()
+    if s != cov_contents:
+        cov_config.unlink()
+        files[cov_config.name] = cov_contents
+
+trav_config = root / '.travis.yml'
+if trav_config.exists():
+    click.secho(f'Removing {trav_config.name}', fg='green')
+    trav_config.unlink()
+
+for base_name, contents in files.items():
+    new_path = root / base_name
+    if new_path.exists():
+        click.secho(f'{base_name} already exists', fg='blue')
+        continue
+
+    new_path.parent.mkdir(parents=True, exist_ok=True)
+
+    with open(new_path, 'w') as f:
+        click.secho(f'Writing {base_name}', fg='green')
+        f.write(contents)
+
+lint_path = root / '.yamllint.yaml'
+if lint_path.exists():
+    lint_config = yaml.load(lint_path)
+    if lint_config['rules'].get('truthy') != 'disable':
+        click.secho(f'Modifying {lint_path.name}...', fg='green')
+        lint_config['rules']['truthy'] = 'disable'
+        yaml.dump(lint_config, open(lint_path, 'w'))
