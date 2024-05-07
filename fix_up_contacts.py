@@ -1,12 +1,12 @@
 import re
 import dateutil.parser
 
-from google_contact_api import GoogleContactAPI
+from googly import PeopleAPI
 
 CANON = re.compile(r'\+1(\d\d\d)(\d\d\d)(\d\d\d\d)')
 COMMA = re.compile(r'(.*), (.*)')
 
-api = GoogleContactAPI()
+api = PeopleAPI()
 
 # TODO: Remove exclamation points
 # TODO: Reclassify email types
@@ -14,7 +14,6 @@ api = GoogleContactAPI()
 # TODO: Merge
 
 for contact in api.get_contact_list(['names', 'phoneNumbers', 'emailAddresses', 'birthdays']):
-
     changed = set()
     names = contact.get('names', [])
     if names:
@@ -81,9 +80,9 @@ for contact in api.get_contact_list(['names', 'phoneNumbers', 'emailAddresses', 
         changed.add('birthdays')
 
     if changed:
-        new_value = {'etag': contact['etag']}
+        new_value = {}
         for key in changed:
             new_value[key] = contact[key]
         keys = ', '.join(changed)
         print(f'Rewriting {name}\'s {keys}')
-        api.update_contact(contact['resourceName'], new_value)
+        api.update_contact(contact['resourceName'], contact['etag'], **new_value)
