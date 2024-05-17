@@ -15,3 +15,7 @@
   insteadOf = git://github.com/
 [init]
 	defaultBranch = main
+[diff]
+	algorithm = histogram
+[help]
+	autocorrect = 15
