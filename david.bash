@@ -29,6 +29,7 @@ alias serve_this='python3 -m http.server'
 
 alias cmdf='history | grep '
 alias please='sudo'
-source /home/dlu/Projects/probablyscripts/ros.bash
+source /home/dlu/Projects/probablyscripts/programming/ros.bash
 
 export PYTHONPATH=$PYTHONPATH:/home/dlu/Projects/probablyscripts/
+export PATH=/home/dlu/Projects/probablyscripts:/home/dlu/Projects/probablyscripts/programming:$PATH
