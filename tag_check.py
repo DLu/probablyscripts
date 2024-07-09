@@ -9,10 +9,10 @@ import mutagen
 music_types = ['.mp3', '.ogg', '.flac', '.m4a']
 needs_work = ['.wav', '.opus', '.mp4', '.aiff']
 CANONICAL_GENRES = ['Showtunes', 'Soundtrack', 'Video Game', 'Comedy', 'Classical', 'Rock', 'Muppets', 'Jazz',
-                    'Holiday', 'Disney', 'A Cappella', 'Movie Song', 'Childrens', 'Mashup', 'Brass', 'Pop', 'Funk',
+                    'Holiday', 'Disney', 'A cappella', 'Movie Song', 'Childrens', 'Mashup', 'Brass', 'Pop', 'Funk',
                     'Trombone', 'Television', 'Chiptune', 'Dialog', 'Band Music', 'Vocal', 'Oldies', 'Indie', 'Rap',
                     'Choir', 'Disco', 'Techno', 'Karaoke', 'Country', 'Sound Effects', 'Miscellaneous',
-                    'Alternative', 'Nerdcore Hip-Hop', 'Ragtime', 'Electronic']
+                    'Alternative', 'Nerdcore Hip-Hop', 'Ragtime', 'Electronic', 'Folk']
 
 
 def recursive_glob(folder):

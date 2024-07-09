@@ -17,7 +17,7 @@ alias check_size='du -hs'
 
 alias ackc='ack -c -l --sort-files'
 alias ack='ack --sort-files'
-
+alias plex_client='flatpak run tv.plex.PlexDesktop'
 alias atom_root='atom `git rev-parse --show-toplevel`'
 alias youtube_dl='yt-dlp'
 alias rip_mp3='yt-dlp -x --audio-format mp3 -o "%(title)s.%(ext)s" '

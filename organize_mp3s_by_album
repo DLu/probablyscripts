@@ -1,0 +1,39 @@
+#!/usr/bin/python3
+import pathlib
+import shutil
+
+files = []
+
+for path in pathlib.Path('.').iterdir():
+    if not path.is_dir():
+        continue
+    for subpath in path.iterdir():
+        if not subpath.is_dir():
+            continue
+        for filename in subpath.iterdir():
+            if not filename.is_file():
+                continue
+            if filename.suffix in ['.mp3']:
+                files.append(filename)
+
+subfolders = set()
+artist_folders = set()
+
+
+for filename in sorted(files):
+    album_name = filename.parent.name
+    album_folder = pathlib.Path(album_name)
+    album_folder.mkdir(exist_ok=True)
+    shutil.move(filename, album_folder)
+    subfolders.add(filename.parent)
+    artist_folders.add(filename.parent.parent)
+
+for subfolder in subfolders:
+    if len(list(subfolder.iterdir())) == 0:
+        print(f'Removing {subfolder}')
+        shutil.rmtree(subfolder)
+
+for subfolder in artist_folders:
+    if len(list(subfolder.iterdir())) == 0:
+        print(f'Removing {subfolder}')
+        shutil.rmtree(subfolder)

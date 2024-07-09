@@ -80,6 +80,18 @@ for key, entry in retrieve(config, verbose=True).items():
                 title = m.group(1)
             podcast.add_episode(title, fn, '')
             add_tags(config, [key], 'podcast')
+        if 'cbc.ca' in url:
+            page = requests.get(url).text
+            start = 'window.__PRELOADED_STATE__ = '
+            end = '</script>'
+
+            index = page.index(start)
+            index2 = page.index(end, index)
+            sub_s = page[index + len(start):index2]
+            sub_s = sub_s.replace('\\x3c', '<')
+            d = json.loads(sub_s)['dialog']['dialogStack'][0]['componentProps']['clip']
+            fn = download_base_file(d['src'])
+            podcast.add_episode(d['title'], fn, d['description'])
     except Exception:
         raise
 

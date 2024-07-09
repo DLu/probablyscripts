@@ -1,0 +1,14 @@
+#!/usr/bin/python3
+import subprocess
+import click
+
+out = subprocess.check_output(['snap', 'list', '--all']).decode()
+for line in out.split('\n')[1:]:
+    fields = list(filter(None, line.split()))
+    if not fields:
+        continue
+    if 'disabled' not in fields[-1]:
+        click.secho(f'Keeping {fields[0]} @{fields[2]}', fg='blue')
+        continue
+    click.secho(f'Removing {fields[0]} @{fields[2]}', fg='green')
+    subprocess.call(['snap', 'remove', fields[0], f'--revision={fields[2]}'])

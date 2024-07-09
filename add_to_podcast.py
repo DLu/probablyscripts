@@ -6,10 +6,11 @@ import youtube_dl
 from youtube_dl.postprocessor.ffmpeg import FFmpegExtractAudioPP
 from mutagen.easyid3 import EasyID3
 import argparse
-import glob
-import os
 import pathlib
-import shutil
+from urllib.parse import urlsplit
+import requests
+
+FOLDER = pathlib.Path('/home/dlu/public_html/podcast/')
 
 
 def download_file(url, out_folder):
@@ -29,50 +30,43 @@ def download_file(url, out_folder):
 
 
 def download_base_file(url, out_folder='.'):
-    split = urllib2.urlparse.urlsplit(url)
-    base = os.path.basename(split.path)
+    split = urlsplit(url)
+    fn = pathlib.Path(split.path)
+    outfile = pathlib.Path(out_folder) / fn.name
+    response = requests.get(url)
+    with open(outfile, 'wb') as f:
+        f.write(response.content)
 
-    response = urllib2.urlopen(url)
-    contents = response.read()
-
-    outfile = '%s/%s' % (out_folder, base)
-    f = open(outfile, 'w')
-    f.write(contents)
-    f.close()
-
-    return base, ''
+    return fn.name, ''
 
 
 STATIC_PATTERNS = [
-    '/home/dlu/Desktop/*Disney Dish*mp3',
-    '/home/dlu/Dropbox/Podcasts/*mp3'
+    (pathlib.Path('/home/dlu/Dropbox/Podcasts/'), '*.mp3'),
 ]
 
 
 def static_files():
     files = []
-    for pattern in STATIC_PATTERNS:
-        for filename in glob.glob(pattern):
-            base = os.path.basename(filename)
-            shutil.move(filename, '/home/dlu/public_html/podcast/' + base)
-            files.append(base)
+    for folder, g_pattern in STATIC_PATTERNS:
+        for subpath in folder.glob(g_pattern):
+            subpath.rename(FOLDER / subpath.name)
+            files.append(subpath.name)
     return files
 
 
-yaml = '/home/dlu/public_html/podcast/david_misc.yaml'
+yaml = FOLDER / 'david_misc.yaml'
 files = []
 
 parser = argparse.ArgumentParser()
-parser.add_argument('filenames', metavar='filename', nargs='*', type=pathlib.Path)
+parser.add_argument('filenames', metavar='filename', nargs='*')
 parser.add_argument('-p', '--prompt', action='store_true')
 args = parser.parse_args()
 
 for filename in args.filenames:
-    if filename.suffix == '.yaml':
-        yaml = str(filename)
+    if filename.endswith('.yaml'):
+        yaml = filename
     else:
-        files.append(str(filename))
-
+        files.append(filename)
 
 podcast = YamlPodcast(yaml)
 
@@ -100,7 +94,8 @@ for arg in files:
     if len(title) == 0 and args.prompt:
         title = input(filename + '? ')
     if len(title) <= 1:
-        title = os.path.splitext(filename)[0]
+        path = pathlib.Path(filename)
+        title = path.stem
     if args.prompt:
         description = input('Description for %s? ' % title)
 
