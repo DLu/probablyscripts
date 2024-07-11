@@ -20,6 +20,7 @@ pynput
 PyPDF2
 python-magic
 python-vlc
+ruamel.yaml
 tabulate
 tqdm
 youtube_dl

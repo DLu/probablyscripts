@@ -7,10 +7,10 @@ from identify import identify
 import pathlib
 import shutil
 import subprocess
-from ruamel.yaml import YAML
+from precomm_lib import PRECOMMIT_FILENAME, YAML_ARGS, PrecommitConfig, find_git_directory
+
 
 SCRIPT_FOLDER = pathlib.Path(__file__).parent
-PRECOMMIT_FILENAME = '.pre-commit-config.yaml'
 
 MY_REPOS = {
     'standard': ('https://github.com/pre-commit/pre-commit-hooks', 'v4.6.0'),
@@ -66,28 +66,11 @@ MY_CONFIGS = {
     ],
 }
 
-YAML_FORMAT_OPTIONS = {
-    'mapping': 2,
-    'sequence': 2,
-    'offset': 0,
-}
-YAML_ARGS = ['--width', '120', '--implicit_start', '--implicit_end']
-for k, v in YAML_FORMAT_OPTIONS.items():
-    YAML_ARGS += [f'--{k}', f'{v}']
-
-
 OTHER_FIELDS = {
     'codespell': {'args': ['--write-changes']},
     'yamllint': {'args': ['--format', 'parsable', '--strict']},
     'yamlfmt': {'args': YAML_ARGS},
 }
-
-
-def find_git_directory():
-    p = pathlib.Path().resolve()
-    while not (p / '.git').exists():
-        p = p.parent
-    return p
 
 
 def find(list_of_dicts, key, value):
@@ -160,16 +143,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     root = find_git_directory()
-    precommit_file = root / PRECOMMIT_FILENAME
     hook_file = root / '.git' / 'hooks' / 'pre-commit'
 
-    yaml = YAML()
-    yaml.indent(**YAML_FORMAT_OPTIONS)
-
-    if precommit_file.exists():
-        config = yaml.load(open(precommit_file))
-    else:
-        config = {'repos': []}
+    config = PrecommitConfig(root)
 
     if 'autoupdate_schedule' in config:
         del config['autoupdate_schedule']
@@ -221,7 +197,7 @@ if __name__ == '__main__':
     if 'yaml' in file_types:
         check_configuration_file('.yamllint.yaml')
 
-    yaml.dump(config, open(precommit_file, 'w'))
+    config.write()
 
     if not hook_file.exists():
         click.secho('Running pre-commit install', fg='bright_blue')
