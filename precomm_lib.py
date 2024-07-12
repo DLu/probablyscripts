@@ -32,5 +32,11 @@ class PrecommitConfig(dict):
         else:
             self['repos'] = []
 
+    def get_hooks(self, search_key=''):
+        for repo in self['repos']:
+            for hook in repo.get('hooks', []):
+                if search_key in hook['id']:
+                    yield hook
+
     def write(self):
         self.yaml.dump(dict(self), open(self.precommit_file, 'w'))

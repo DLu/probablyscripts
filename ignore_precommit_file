@@ -1,0 +1,43 @@
+#!/usr/bin/python3
+from precomm_lib import PrecommitConfig, find_git_directory
+import argparse
+import click
+import pathlib
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('rule')
+    parser.add_argument('files', metavar='file', nargs='+', type=pathlib.Path)
+    args = parser.parse_args()
+
+    root = find_git_directory()
+    config = PrecommitConfig(root)
+
+    matches = list(config.get_hooks(args.rule))
+    if not matches:
+        click.secho(f'No matching rules for {args.rule}.', fg='red')
+        exit(-1)
+    elif len(matches) == 1:
+        match = matches[0]
+    else:
+        for i, match in enumerate(matches):
+            click.secho(f'{i + 1}) {match["id"]}', fg='cyan')
+        res = click.prompt('?', type=int)
+        match = matches[res - 1]
+
+    if 'exclude' not in match:
+        exclusions = []
+    else:
+        exclusions = match['exclude'].split('|')
+
+    for filepath in args.files:
+        s = str(filepath)
+        if s not in exclusions:
+            click.secho(f'Ignoring file {s}', fg='bright_green')
+            exclusions.append(s)
+        else:
+            click.secho(f'Already ignoring file {s}', fg='bright_black')
+
+    match['exclude'] = '|'.join(exclusions)
+
+    config.write()
