@@ -19,3 +19,5 @@
 	algorithm = histogram
 [help]
 	autocorrect = 15
+[pull]
+	rebase = true

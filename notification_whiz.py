@@ -1,5 +1,6 @@
 import asyncio
-from dbus_next import Variant
+import click
+from dbus_next import Variant, DBusError
 from dbus_next.aio import MessageBus
 
 # https://specifications.freedesktop.org/notification-spec/notification-spec-latest.html
@@ -28,9 +29,13 @@ class NotificationWhiz:
     async def send_notification(self, title, contents, replaces_id=0, icon='', timeout=-1):
         actions = ['default', 'default']
         hints = {'urgency': Variant('y', 1)}
-        return await self.interface.call_notify(self.app_name, replaces_id, icon,
-                                                title, contents,
-                                                actions, hints, timeout)
+        try:
+            return await self.interface.call_notify(self.app_name, replaces_id, icon,
+                                                    title, contents,
+                                                    actions, hints, timeout)
+        except DBusError as e:
+            click.secho(f'Notification Failure: {e}', fg='black', bg='red')
+            return 0
 
 
 async def main():
