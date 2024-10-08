@@ -13,10 +13,10 @@ from precomm_lib import PRECOMMIT_FILENAME, YAML_ARGS, PrecommitConfig, find_git
 SCRIPT_FOLDER = pathlib.Path(__file__).parent
 
 MY_REPOS = {
-    'standard': ('https://github.com/pre-commit/pre-commit-hooks', 'v4.6.0'),
+    'standard': ('https://github.com/pre-commit/pre-commit-hooks', 'v5.0.0'),
     'spelling': ('https://github.com/codespell-project/codespell', 'v2.3.0'),
     'autopep8': ('https://github.com/hhatto/autopep8', 'v2.3.1'),
-    'flake8': ('https://github.com/PyCQA/flake8', '7.1.0'),
+    'flake8': ('https://github.com/PyCQA/flake8', '7.1.1'),
     'clang': ('https://github.com/pre-commit/mirrors-clang-format', 'v18.1.8'),
     'lxml': ('https://github.com/Lucas-C/pre-commit-hooks-lxml', 'v1.1.0'),
     'prettier': ('https://github.com/pre-commit/mirrors-prettier', 'v4.0.0-alpha.8'),
