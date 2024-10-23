@@ -4,6 +4,7 @@ import argparse
 import configparser
 import click
 from identify import identify
+from io import StringIO
 import pathlib
 import shutil
 import subprocess
@@ -185,8 +186,14 @@ if __name__ == '__main__':
             changed = True
 
         if changed:
+            string_file = StringIO()
+            cfg.write(string_file, space_around_delimiters=False)
+            string_file.seek(0)
+            contents = string_file.read()
+            if contents.endswith('\n\n'):
+                contents = contents[:-1]
             with open(cfg_path, 'w') as f:
-                cfg.write(f, space_around_delimiters=False)
+                f.write(contents)
 
     if 'c++' in file_types:
         check_configuration_file('.clang-format')
