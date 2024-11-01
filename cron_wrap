@@ -9,11 +9,6 @@ parser.add_argument('title')
 parser.add_argument('-e', '--error-only', action='store_true')
 parsed_args, cmd = parser.parse_known_args()
 
-cred_path = pathlib.Path('/home/dlu/Projects/probablyscripts/credentials.json')
-
-gmail = GMailAPI(
-    project_credentials_path=cred_path
-)
 
 p = subprocess.run(cmd, capture_output=True)
 out = p.stdout.decode()
@@ -37,6 +32,11 @@ body = f"""
 {err}
 </pre>
 """
+
+cred_path = pathlib.Path('/home/dlu/Projects/probablyscripts/credentials.json')
+gmail = GMailAPI(
+    project_credentials_path=cred_path
+)
 
 gmail.send_email(subject=parsed_args.title, body=body,
                  send_from='Monolith <davidvlu@gmail.com>',

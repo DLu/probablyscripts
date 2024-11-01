@@ -1,0 +1,59 @@
+#!/usr/bin/python3
+from googly import PeopleAPI
+from googly import GMailAPI
+from easy_jinja_render import easy_jinja_render
+import datetime
+import pathlib
+
+
+def get_birthday(birthdays):
+    date = {}
+    for birthday in birthdays:
+        bd = birthday.get('date', {})
+        for field, value in bd.items():
+            if field not in date:
+                date[field] = value
+            elif date[field] != value:
+                raise RuntimeError(f'Bad info for {field}: {date[field]} != {value}')
+    return date
+
+
+def get_birthdays(api):
+    for contact in api.get_contact_list(['names', 'emailAddresses', 'birthdays']):
+        names = contact.get('names', [])
+        if not names:
+            continue
+        name = names[0].get('displayName', '')
+        birthdays = contact.get('birthdays', [])
+        birthday = get_birthday(birthdays)
+        if not birthday:
+            continue
+        yield name, birthday
+
+
+def get_birthday_matches(api, date, match_day=True):
+    for name, birthday in get_birthdays(api):
+        if birthday['month'] != date.month:
+            continue
+        if match_day and birthday['day'] != date.day:
+            continue
+        yield name, birthday
+
+
+cred_path = pathlib.Path('/home/dlu/Projects/probablyscripts/credentials.json')
+gmail = GMailAPI(project_credentials_path=cred_path)
+api = PeopleAPI(project_credentials_path=cred_path)
+today = datetime.date.today()
+todays = list(get_birthday_matches(api, today))
+if today.day == 1:
+    this_months = sorted(get_birthday_matches(api, today, False), key=lambda pair: pair[1]['day'])
+else:
+    this_months = None
+
+
+body = easy_jinja_render('birthday_template.jinja2', todays=todays, this_months=this_months, year=today.year)
+gmail.send_email(subject='Birthdays!', body=body,
+                 send_from='Monolith <davidvlu@gmail.com>',
+                 send_to=['davidvlu@gmail.com'],
+                 html=True,
+                 )
