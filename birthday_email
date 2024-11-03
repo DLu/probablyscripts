@@ -5,6 +5,8 @@ from easy_jinja_render import easy_jinja_render
 import datetime
 import pathlib
 
+ROOT = pathlib.Path(__file__).parent
+
 
 def get_birthday(birthdays):
     date = {}
@@ -40,7 +42,7 @@ def get_birthday_matches(api, date, match_day=True):
         yield name, birthday
 
 
-cred_path = pathlib.Path('/home/dlu/Projects/probablyscripts/credentials.json')
+cred_path = pathlib.Path(ROOT / 'credentials.json')
 gmail = GMailAPI(project_credentials_path=cred_path)
 api = PeopleAPI(project_credentials_path=cred_path)
 today = datetime.date.today()
@@ -50,8 +52,10 @@ if today.day == 1:
 else:
     this_months = None
 
+if not todays and not this_months:
+    exit(0)
 
-body = easy_jinja_render('birthday_template.jinja2', todays=todays, this_months=this_months, year=today.year)
+body = easy_jinja_render(ROOT / 'birthday_template.jinja2', todays=todays, this_months=this_months, year=today.year)
 gmail.send_email(subject='Birthdays!', body=body,
                  send_from='Monolith <davidvlu@gmail.com>',
                  send_to=['davidvlu@gmail.com'],
