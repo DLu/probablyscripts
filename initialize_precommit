@@ -24,6 +24,7 @@ MY_REPOS = {
     'yamllint': ('https://github.com/adrienverge/yamllint', 'v1.35.1'),
     'yamlfmt': ('https://github.com/jumanjihouse/pre-commit-hook-yamlfmt', '0.2.3'),
     'ros': ('https://github.com/tier4/pre-commit-hooks-ros', 'v0.7.0'),
+    'djlint': ('https://github.com/djlint/djLint', 'v1.35.4'),
 }
 
 
@@ -64,6 +65,9 @@ MY_CONFIGS = {
     ],
     'package.xml': [
         ('ros', ['prettier-package-xml']),
+    ],
+    'jinja': [
+        ('djlint', ['djlint-jinja']),
     ],
 }
 
