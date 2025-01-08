@@ -18,12 +18,12 @@ MY_REPOS = {
     'spelling': ('https://github.com/codespell-project/codespell', 'v2.3.0'),
     'autopep8': ('https://github.com/hhatto/autopep8', 'v2.3.1'),
     'flake8': ('https://github.com/PyCQA/flake8', '7.1.1'),
-    'clang': ('https://github.com/pre-commit/mirrors-clang-format', 'v18.1.8'),
+    'clang': ('https://github.com/pre-commit/mirrors-clang-format', 'v19.1.6'),
     'lxml': ('https://github.com/Lucas-C/pre-commit-hooks-lxml', 'v1.1.0'),
     'prettier': ('https://github.com/pre-commit/mirrors-prettier', 'v4.0.0-alpha.8'),
     'yamllint': ('https://github.com/adrienverge/yamllint', 'v1.35.1'),
     'yamlfmt': ('https://github.com/jumanjihouse/pre-commit-hook-yamlfmt', '0.2.3'),
-    'ros': ('https://github.com/tier4/pre-commit-hooks-ros', 'v0.7.0'),
+    'ros': ('https://github.com/tier4/pre-commit-hooks-ros', 'v0.10.0'),
     'djlint': ('https://github.com/djlint/djLint', 'v1.35.4'),
 }
 
