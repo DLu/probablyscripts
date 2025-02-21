@@ -156,8 +156,13 @@ if (root / package_name).exists():
 elif (root / 'src' / package_name).exists():
     pkg_folder = f'src/{package_name}'
 else:
-    click.secho('Cannot determine package folder.', fg='red')
-    exit(-1)
+    packages = list((root / 'src').glob('*/__init__.py'))
+    if len(packages) == 1:
+        pkg_folder = packages[0].parent
+        package_name = pkg_folder.name
+    else:
+        click.secho('Cannot determine package folder.', fg='red')
+        exit(-1)
 
 src_repo = git.Repo(root)
 url = src_repo.remotes.origin.url

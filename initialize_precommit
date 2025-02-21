@@ -75,6 +75,7 @@ OTHER_FIELDS = {
     'codespell': {'args': ['--write-changes']},
     'yamllint': {'args': ['--format', 'parsable', '--strict']},
     'yamlfmt': {'args': YAML_ARGS},
+    'prettier': {'types_or': ['css', 'javascript', 'html']},
 }
 
 
