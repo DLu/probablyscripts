@@ -1,0 +1,18 @@
+#!/usr/bin/python3
+
+import argparse
+import subprocess
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument('filepath')
+parser.add_argument('speed', default=50, type=int, nargs='?')
+args = parser.parse_args()
+
+subprocess.call('clear')
+lines = subprocess.check_output(['tput', 'lines']).decode().strip()
+subprocess.call(['tput', 'cup', lines, '0'])
+
+ps = subprocess.Popen(['more', args.filepath], stdout=subprocess.PIPE)
+subprocess.call(['pv', '-qL', str(args.speed)], stdin=ps.stdout)
+ps.wait()
