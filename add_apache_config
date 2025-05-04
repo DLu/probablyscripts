@@ -1,0 +1,128 @@
+#!/usr/bin/python3
+
+import click
+import subprocess
+import argparse
+import re
+import os
+import sys
+import pathlib
+
+WSGI_FILE = """
+import sys
+sys.path.insert(0, '%s')
+from app import app as application
+"""
+
+APACHE_CONFIG_PATH = pathlib.Path('/etc/apache2/sites-available/')
+
+
+STATIC_CONF = """
+<virtualhost *:80>
+    ServerName {args.url}
+    ServerAlias {args.name}.local
+
+    DocumentRoot {main_dir}
+
+    <directory {main_dir}>
+        Require all granted
+    </directory>
+
+</virtualhost>
+"""
+
+
+FLASK_CONF = """
+<virtualhost *:80>
+    ServerName {args.url}
+    ServerAlias {args.name}.local
+
+    WSGIDaemonProcess {args.name} user=dlu group=dlu threads=5
+    WSGIScriptAlias / {wsgi_filename}
+
+    <directory {main_dir}>
+        WSGIProcessGroup {args.name}
+        WSGIApplicationGroup %{{GLOBAL}}
+        # WSGIScriptReloading On
+        #Order deny,allow
+        #Allow from all
+        Require all granted
+    </directory>
+</virtualhost>
+"""
+
+
+def get_next_config_number():
+    NUM_PATTERN = re.compile(r'^(\d+)-\w+')
+    numbers = set()
+    for filepath in APACHE_CONFIG_PATH.iterdir():
+        m = NUM_PATTERN.search(filepath.name)
+        if m:
+            numbers.add(m.group(1))
+
+    c = 0
+    while True:
+        c_s = f'{c:03d}'
+        if c_s not in numbers:
+            return c_s
+        c += 1
+    return c
+
+
+if __name__ == '__main__':
+    if os.geteuid() != 0:
+        click.secho('Requesting root permissions...', fg='yellow')
+        subprocess.call(['sudo', 'python3', *sys.argv])
+        sys.exit()
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('url', default='localhost', nargs='?')
+    parser.add_argument('-n', '--name')
+    parser.add_argument('-f', '--flask', action='store_true')
+    parser.add_argument('-s', '--simulate', action='store_true')
+    args = parser.parse_args()
+
+    if args.flask:
+        cmd = ['sudo', 'apt-get', 'install', '-y', 'libapache2-mod-wsgi-py3']
+        click.secho(' '.join(cmd), fg='green')
+        if not args.simulate:
+            subprocess.call(cmd)
+
+    main_dir = pathlib.Path('.').resolve()
+    if not args.name:
+        args.name = main_dir.name
+
+    if args.flask:
+        wsgi_path = main_dir / f'{args.name}.wsgi'
+        click.secho(f'Write wsgi to {wsgi_path}', fg='green')
+        if not args.simulate:
+            with open(wsgi_path, 'w') as f:
+                f.write(WSGI_FILE % main_dir)
+
+    c_s = get_next_config_number()
+    filename = f'{c_s}-{args.name}.conf'
+    if args.flask:
+        conf = FLASK_CONF.format(**locals())
+    else:
+        conf = STATIC_CONF.format(**locals())
+
+    click.secho(f'Write conf to {filename}', fg='green')
+    if args.simulate:
+        click.secho(conf, fg='bright_black')
+    else:
+        with open(APACHE_CONFIG_PATH / filename, 'w') as f:
+            f.write(conf)
+
+    cmds = [
+        ['sudo', 'a2ensite', filename],
+        ['sudo', 'service', 'apache2', 'reload']
+    ]
+    for sub_cmd in cmds:
+        click.secho(' '.join(sub_cmd), fg='green')
+        if not args.simulate:
+            subprocess.call(sub_cmd)
+
+
+#   230  sudo chmod +x /media/
+# 231  sudo chmod +x /media/bespin/
+#  232  sudo chmod +x /media/bespin/Projects/
