@@ -7,18 +7,28 @@ import subprocess
 
 THIS_FOLDER = pathlib.Path(__file__).parent
 CLANG_FILE = THIS_FOLDER / '.clang-format'
+SETUP_CFG = THIS_FOLDER / 'setup.cfg'
+
 
 def format_code(path):
+    cmds = []
     suffix = path.suffix
     if suffix in ['.h', '.hpp', '.cpp']:
         # Format c++
         assert CLANG_FILE.exists()
-        cmd = ['clang-format', str(path), '-i', f'--style=file:{CLANG_FILE}']
+        cmds.append(['clang-format', str(path), '-i', f'--style=file:{CLANG_FILE}'])
+    elif suffix == '.py':
+        # Format Python
+        assert SETUP_CFG.exists()
+        cmds.append(['autopep8', str(path), '--in-place', '--global-config', str(SETUP_CFG)])
+        cmds.append(['flake8', str(path), '--config', str(SETUP_CFG)])
     else:
         raise RuntimeError(f'Unable to format code with suffix {suffix}')
 
-    click.secho(' '.join(cmd), fg='blue')
-    subprocess.call(cmd)
+    for cmd in cmds:
+        click.secho(' '.join(cmd), fg='blue')
+        subprocess.call(cmd)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
