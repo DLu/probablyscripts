@@ -1,0 +1,38 @@
+#!/usr/bin/python3
+
+import argparse
+import click
+import pathlib
+import subprocess
+import json
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-l', '--latest', action='store_true')
+parser.add_argument('name', nargs='?')
+args = parser.parse_args()
+
+ps_cmd = ['docker', 'ps', '--format', 'json']
+if args.latest:
+    ps_cmd.append('-l')
+
+containers_bs = subprocess.check_output(ps_cmd)
+containers = []
+for line in containers_bs.decode().split('\n'):
+    if not line:
+        continue
+    container = json.loads(line)
+    container['image'], container['tag'] = container['Image'].split(':')
+    containers.append(container)
+
+if args.name:
+    containers = [container for container in containers if container['image'] == args.name]
+
+if len(containers) == 1:
+    container = containers[0]
+else:
+    raise RuntimeError('too many values')
+
+click.secho('Attaching to ', fg='blue', nl=False)
+click.secho(container['Image'], fg='bright_blue')
+
+subprocess.call(['docker', 'exec', '-it', container['ID'], 'bash'])

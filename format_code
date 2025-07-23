@@ -1,0 +1,29 @@
+#!/usr/bin/python3
+
+import argparse
+import click
+import pathlib
+import subprocess
+
+THIS_FOLDER = pathlib.Path(__file__).parent
+CLANG_FILE = THIS_FOLDER / '.clang-format'
+
+def format_code(path):
+    suffix = path.suffix
+    if suffix in ['.h', '.hpp', '.cpp']:
+        # Format c++
+        assert CLANG_FILE.exists()
+        cmd = ['clang-format', str(path), '-i', f'--style=file:{CLANG_FILE}']
+    else:
+        raise RuntimeError(f'Unable to format code with suffix {suffix}')
+
+    click.secho(' '.join(cmd), fg='blue')
+    subprocess.call(cmd)
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('paths', metavar='path', type=pathlib.Path, nargs='+')
+    args = parser.parse_args()
+
+    for path in args.paths:
+        format_code(path)
