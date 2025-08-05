@@ -1,0 +1,16 @@
+#!/usr/bin/python3
+
+import argparse
+import subprocess
+import sys
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument('speed', default=50, type=int, nargs='?')
+args = parser.parse_args()
+
+subprocess.call('clear')
+lines = subprocess.check_output(['tput', 'lines']).decode().strip()
+subprocess.call(['tput', 'cup', lines, '0'])
+
+subprocess.call(['pv', '-qL', str(args.speed)], stdin=sys.stdin)
