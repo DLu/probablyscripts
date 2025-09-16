@@ -1,0 +1,53 @@
+#!/usr/bin/python3
+from precomm_lib import PrecommitConfig, find_git_directory
+import argparse
+import re
+
+IGNORE_PATTERN = re.compile(r'--ignore-words=(.*)')
+
+
+def get_ignore_filename(args):
+    for arg in args:
+        m = IGNORE_PATTERN.match(arg)
+        if m:
+            return m.group(1)
+    return '.codespell_words'
+
+
+"""
+- repo: https://github.com/codespell-project/codespell
+    rev: v2.4.1
+    hooks:
+      - id: codespell
+        args: ['--write-changes', '--ignore-words=.codespell_words', '--skip="*.eps"']
+        exclude: CHANGELOG.rst
+
+"""
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('word', nargs='+')
+    args = parser.parse_args()
+
+    root = find_git_directory()
+    config = PrecommitConfig(root)
+
+    matches = list(config.get_hooks('codespell'))
+    assert len(matches) == 1, matches
+    rule = matches[0]
+
+    assert 'args' in rule
+
+    ignore_filename = get_ignore_filename(rule['args'])
+    arg = f'--ignore-words={ignore_filename}'
+    if arg not in rule['args']:
+        rule['args'].append(arg)
+
+    ignore_filepath = root / ignore_filename
+    with open(ignore_filepath, 'a') as f:
+        for word in args.word:
+            f.write(word)
+            f.write('\n')
+
+    config.write()
