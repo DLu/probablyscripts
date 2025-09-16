@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import click
 import re
 import subprocess
 
@@ -7,6 +8,12 @@ START = r'^\*?\s+([\w\d\-\./]+)\s+([a-f\d]{7,8})\s*'
 LINE_PATTERN0 = re.compile(START + r'\[([^:]+): (.*)\] (.*)$')
 LINE_PATTERN1 = re.compile(START + r'\[([^\]]+)\] (.*)$')
 LINE_PATTERN2 = re.compile(START + r'([^\[].*)$')
+
+COLOR_MAP = {
+    'bahleeted': 'yellow',
+    'unpushed': 'bright_black',
+    'remote': 'blue',
+}
 
 
 def classify_branches():
@@ -32,9 +39,7 @@ def classify_branches():
                 if m3:
                     branch_dict[m3.group(1)] = 'unpushed'
                 else:
-                    print(line)
-                    print('ERROR')
-                    exit(0)
+                    raise RuntimeError(f'Unable to parse line: {repr(line)}')
     return branch_dict
 
 
@@ -54,6 +59,8 @@ else:
         return (d[1], d[0])
 
 for branch, status in sorted(branches.items(), key=sort_key):
-    print('{:10s} {}'.format(status, branch))
+    color = COLOR_MAP.get(status)
     if args.delete and status == 'bahleeted':
         subprocess.call(['git', 'branch', '-D', branch])
+        color = 'red'
+    click.secho(f'{status:10s} {branch}', fg=color)
