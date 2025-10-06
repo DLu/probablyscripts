@@ -14,7 +14,7 @@ from precomm_lib import PRECOMMIT_FILENAME, YAML_ARGS, PrecommitConfig, find_git
 SCRIPT_FOLDER = pathlib.Path(__file__).parent
 
 MY_REPOS = {
-    'standard': ('https://github.com/pre-commit/pre-commit-hooks', 'v5.0.0'),
+    'standard': ('https://github.com/pre-commit/pre-commit-hooks', 'v6.0.0'),
     'spelling': ('https://github.com/codespell-project/codespell', 'v2.4.1'),
     'autopep8': ('https://github.com/hhatto/autopep8', 'v2.3.2'),
     'flake8': ('https://github.com/PyCQA/flake8', '7.3.0'),

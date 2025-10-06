@@ -2,7 +2,6 @@
 
 import argparse
 import click
-import pathlib
 import subprocess
 import json
 
@@ -22,6 +21,8 @@ for line in containers_bs.decode().split('\n'):
         continue
     container = json.loads(line)
     container['image'], container['tag'] = container['Image'].split(':')
+    if 'buildkit' in container['image']:
+        continue
     containers.append(container)
 
 if args.name:
@@ -30,7 +31,8 @@ if args.name:
 if len(containers) == 1:
     container = containers[0]
 else:
-    raise RuntimeError('too many values')
+    names = [container['image'] for container in containers]
+    raise RuntimeError('too many values: ' + ' '.join(names))
 
 click.secho('Attaching to ', fg='blue', nl=False)
 click.secho(container['Image'], fg='bright_blue')

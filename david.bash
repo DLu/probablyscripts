@@ -11,6 +11,10 @@ alias gitredo='git commit -c ORIG_HEAD'
 alias gitrecent='git for-each-ref --sort=-committerdate refs/heads/ | tac'
 alias superpush='git push -u origin `git rev-parse --abbrev-ref HEAD`'
 alias list_installed='dpkg --get-selections | grep -v deinstall | awk -F" " '"'"'{ print $1 }'"'"' | grep'
+
+
+# https://bash-prompt-generator.org/
+#
 PS1="\[\e]2;\h | \w \a\]! \W/ > "
 
 alias pip_v='pip show $1 '
