@@ -63,6 +63,13 @@ jobs:
 """,
 }
 
+URL_SECTION = """
+
+[project.urls]
+Homepage = "%s"
+"Bug Tracker" = "%s/issues"
+"""
+
 TEMPLATES = {
     '.github/workflows/main.yaml': """name: CI
 
@@ -139,11 +146,7 @@ test = [
   "pytest-cov>=2",
 ]
 
-[project.urls]
-Homepage = "%s"
-"Bug Tracker" = "%s/issues"
-
-[tool.hatch]
+%s[tool.hatch]
 version.source = "vcs"
 build.hooks.vcs.version-file = "%s/_version.py"
 """,
@@ -164,13 +167,19 @@ else:
         click.secho('Cannot determine package folder.', fg='red')
         exit(-1)
 
-src_repo = git.Repo(root)
-url = src_repo.remotes.origin.url
-m = SSH_PATTERN.match(url)
-if m:
-    url = 'https://github.com/{}/{}'.format(*m.groups())
-elif url.endswith('.git'):
-    url = url[:-4]
+try:
+    src_repo = git.Repo(root)
+    url = src_repo.remotes.origin.url
+    m = SSH_PATTERN.match(url)
+    if m:
+        url = 'https://github.com/{}/{}'.format(*m.groups())
+    elif url.endswith('.git'):
+        url = url[:-4]
+    else:
+        url = None
+except Exception:
+    click.secho('Cannot read url for repo.', fg='yellow')
+    url = None
 
 files = dict(BASE_FILES)
 for base_name, template in TEMPLATES.items():
@@ -182,7 +191,12 @@ for base_name, template in TEMPLATES.items():
             readme = '\nreadme = "README.md"'
         else:
             readme = ''
-        contents = template % (package_name, readme, url, url, pkg_folder)
+
+        if url:
+            url_section = URL_SECTION % (url, url)
+        else:
+            url_section = ''
+        contents = template % (package_name, readme, url_section, pkg_folder)
     else:
         click.secho(f'Skipping {base_name}...', fg='yellow')
         continue

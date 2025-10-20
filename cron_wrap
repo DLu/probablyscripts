@@ -3,6 +3,7 @@ from googly import GMailAPI
 import argparse
 import pathlib
 import subprocess
+import socket
 
 parser = argparse.ArgumentParser()
 parser.add_argument('title')
@@ -38,8 +39,10 @@ gmail = GMailAPI(
     project_credentials_path=cred_path
 )
 
+hostname = socket.gethostname().title()
+
 gmail.send_email(subject=parsed_args.title, body=body,
-                 send_from='Monolith <davidvlu@gmail.com>',
+                 send_from=f'{hostname} <davidvlu@gmail.com>',
                  send_to=['davidvlu@gmail.com'],
                  html=True,
                  )
