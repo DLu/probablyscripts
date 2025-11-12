@@ -1,0 +1,41 @@
+#!/usr/bin/python3
+import click
+import sys
+import subprocess
+import pathlib
+
+
+if len(sys.argv) <= 2:
+    click.secho('Not enough arguments', fg='red')
+    exit(-1)
+
+input_paths = []
+page_spec = []
+output_path = sys.argv[-1]
+mode = 0
+
+for arg in sys.argv[1:-1]:  # Skip program name and output_path
+    if mode == 0:
+        path = pathlib.Path(arg)
+        if path.exists():
+            input_paths.append(arg)
+        else:
+            page_spec.append(arg)
+            mode = 1
+    else:
+        page_spec.append(arg)
+
+command = ['pdftk']
+if any(spec.startswith('A') for spec in page_spec):
+    for i, path in enumerate(input_paths):
+        char = chr(ord('A') + int(i))
+        command.append(f'{char}={path}')
+else:
+    command += input_paths
+
+command.append('cat')
+command += page_spec
+command.append('output')
+command.append(output_path)
+
+subprocess.call(command)
