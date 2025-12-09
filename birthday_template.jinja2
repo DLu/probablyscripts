@@ -1,9 +1,9 @@
 {% if todays %}
 <h2>Today's Birthdays</h2>
 {% for name, birthday in todays %}
-{{name}}
+{{ name }}
 {% if 'year' in birthday %}
-    ({{year - birthday['year']}})
+    ({{ year - birthday['year'] }})
 {% endif %}
 <br />
 {% endfor %}
@@ -13,11 +13,12 @@
 <h2>This Month</h2>
 <table>
     {% for name, birthday in this_months %}
-    <tr><td>{{name}}
-        <td>{{birthday['month']}}/{{birthday['day']}}
+    <tr><td>{{ name }}</td>
+        <td>{{ birthday['month'] }}/{{ birthday['day'] }}</td>
         {% if 'year' in birthday %}
-        <td>({{year - birthday['year']}})
+        <td>({{ year - birthday['year'] }})</td>
         {% endif %}
+    </tr>
     {% endfor %}
 </table>
 {% endif %}

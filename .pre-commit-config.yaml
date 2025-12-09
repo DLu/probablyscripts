@@ -1,7 +1,7 @@
 exclude: ^archive/
 repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v5.0.0
+  rev: v6.0.0
   hooks:
   - id: check-yaml
   - id: end-of-file-fixer
@@ -56,5 +56,9 @@ repos:
     - --offset
     - '0'
   rev: 0.2.3
+- repo: https://github.com/djlint/djLint
+  hooks:
+  - id: djlint-jinja
+  rev: v1.35.4
 ci:
   autoupdate_schedule: quarterly
