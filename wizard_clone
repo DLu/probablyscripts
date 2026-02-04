@@ -56,7 +56,7 @@ if __name__ == '__main__':
                 repo.remotes.origin.pull()
 
         distribution_file = ROSDISTRO_PATH / os.environ['ROS_DISTRO'] / 'distribution.yaml'
-        distro = yaml.load(open(distribution_file))
+        distro = yaml.safe_load(open(distribution_file))
 
         distro_entry = distro['repositories'].get(args.repo_name, {})
         url = distro_entry.get('source', {}).get('url') or distro_entry.get('doc', {}).get('url')
