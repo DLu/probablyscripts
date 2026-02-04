@@ -1,14 +1,12 @@
 #!/usr/bin/python3
 
 import argparse
-import configparser
 import click
 from identify import identify
-from io import StringIO
 import pathlib
 import shutil
 import subprocess
-from precomm_lib import PRECOMMIT_FILENAME, YAML_ARGS, PrecommitConfig, find_git_directory
+from precomm_lib import PRECOMMIT_FILENAME, YAML_ARGS, PrecommitConfig, find_git_directory, SetupConfig
 
 
 SCRIPT_FOLDER = pathlib.Path(__file__).parent
@@ -168,37 +166,9 @@ if __name__ == '__main__':
         check_configuration(config, filetype)
 
     if 'python' in file_types:
-        cfg = configparser.ConfigParser()
-        cfg_path = root / 'setup.cfg'
-        if cfg_path.exists():
-            cfg.read(cfg_path)
-            changed = False
-        else:
-            click.secho('Writing setup.cfg', fg='blue')
-            changed = True
-
-        section_name = 'flake8'
-        key = 'max_line_length'
-        value = '120'
-
-        if not cfg.has_section(section_name):
-            cfg.add_section(section_name)
-            changed = True
-
-        old_val = cfg[section_name].get(key)
-        if old_val != value:
-            cfg.set(section_name, key, value)
-            changed = True
-
-        if changed:
-            string_file = StringIO()
-            cfg.write(string_file, space_around_delimiters=False)
-            string_file.seek(0)
-            contents = string_file.read()
-            if contents.endswith('\n\n'):
-                contents = contents[:-1]
-            with open(cfg_path, 'w') as f:
-                f.write(contents)
+        cfg = SetupConfig(root)
+        cfg.set_value('flake8', 'max_line_length', '120')
+        cfg.save()
 
     if 'c++' in file_types:
         check_configuration_file('.clang-format')

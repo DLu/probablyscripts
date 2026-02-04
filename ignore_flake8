@@ -1,0 +1,29 @@
+#!/usr/bin/python3
+from precomm_lib import PrecommitConfig, find_git_directory, SetupConfig
+import argparse
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('rule', nargs='+')
+    args = parser.parse_args()
+
+    root = find_git_directory()
+    config = PrecommitConfig(root)
+
+    matches = list(config.get_hooks('flake8'))
+    assert len(matches) == 1, matches
+    rule = matches[0]
+
+    cfg = SetupConfig(root)
+    existing = cfg.get_value('flake8', 'extend-ignore')
+    if existing:
+        rules = set(existing.split(','))
+    else:
+        rules = set()
+
+    for rule in args.rule:
+        rules.add(rule)
+
+    cfg.set_value('flake8', 'extend-ignore', ','.join(sorted(rules)))
+    cfg.save()
