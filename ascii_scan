@@ -2,6 +2,14 @@
 import argparse
 import click
 import collections
+import chardet
+
+
+def detect_file_encoding(filename):
+    with open(filename, 'rb') as file:
+        raw_data = file.read()
+        return chardet.detect(raw_data)['encoding']
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument('filepath')
@@ -9,8 +17,10 @@ parser.add_argument('-l', '--limit', action='store_true')
 args = parser.parse_args()
 
 counts = collections.Counter()
+encoding = detect_file_encoding(args.filepath)
+click.secho(f'Reading {args.filepath} with encoding {encoding}', fg='bright_white')
 
-for line in open(args.filepath).readlines():
+for line in open(args.filepath, encoding=encoding).readlines():
     for c in line:
         counts[c] += 1
 
