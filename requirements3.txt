@@ -15,4 +15,4 @@ python-magic
 ruamel.yaml
 tabulate
 tqdm
-yt-dlp
+yt-dlp[default]

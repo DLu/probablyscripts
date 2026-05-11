@@ -38,7 +38,7 @@ FLASK_CONF = """
     ServerAlias {args.name}.local
 
     WSGIDaemonProcess {args.name} user=dlu group=dlu threads=5
-    WSGIScriptAlias / {wsgi_filename}
+    WSGIScriptAlias / {wsgi_path}
 
     <directory {main_dir}>
         WSGIProcessGroup {args.name}
@@ -70,17 +70,17 @@ def get_next_config_number():
 
 
 if __name__ == '__main__':
-    if os.geteuid() != 0:
-        click.secho('Requesting root permissions...', fg='yellow')
-        subprocess.call(['sudo', 'python3', *sys.argv])
-        sys.exit()
-
     parser = argparse.ArgumentParser()
     parser.add_argument('url', default='localhost', nargs='?')
     parser.add_argument('-n', '--name')
     parser.add_argument('-f', '--flask', action='store_true')
     parser.add_argument('-s', '--simulate', action='store_true')
     args = parser.parse_args()
+
+    if os.geteuid() != 0:
+        click.secho('Requesting root permissions...', fg='yellow')
+        subprocess.call(['sudo', 'python3', *sys.argv])
+        sys.exit()
 
     if args.flask:
         cmd = ['sudo', 'apt-get', 'install', '-y', 'libapache2-mod-wsgi-py3']
@@ -93,11 +93,17 @@ if __name__ == '__main__':
         args.name = main_dir.name
 
     if args.flask:
-        wsgi_path = main_dir / f'{args.name}.wsgi'
-        click.secho(f'Write wsgi to {wsgi_path}', fg='green')
-        if not args.simulate:
-            with open(wsgi_path, 'w') as f:
-                f.write(WSGI_FILE % main_dir)
+        matches = list(main_dir.glob('*.wsgi'))
+        if len(matches) == 1:
+            wsgi_path = matches[0]
+        elif matches:
+            raise RuntimeError('Multiple wsgi files present')
+        else:
+            wsgi_path = main_dir / f'{args.name}.wsgi'
+            click.secho(f'Write wsgi to {wsgi_path}', fg='green')
+            if not args.simulate:
+                with open(wsgi_path, 'w') as f:
+                    f.write(WSGI_FILE % main_dir)
 
     c_s = get_next_config_number()
     filename = f'{c_s}-{args.name}.conf'

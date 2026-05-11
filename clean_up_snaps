@@ -1,6 +1,13 @@
 #!/usr/bin/python3
 import subprocess
 import click
+import os
+import sys
+
+if os.geteuid() != 0:
+    click.secho('Requesting root permissions...', fg='yellow')
+    subprocess.call(['sudo', 'python3', *sys.argv])
+    sys.exit()
 
 out = subprocess.check_output(['snap', 'list', '--all']).decode()
 for line in out.split('\n')[1:]:
