@@ -1,8 +1,7 @@
 import collections
 import sys
 import subprocess
-from PyPDF2 import PdfFileWriter, PdfFileReader
-from PyPDF2.generic import NameObject, createStringObject
+from PyPDF2 import PdfWriter, PdfReader
 import tempfile
 
 JUMP = 2
@@ -29,13 +28,17 @@ class SplitPage:
         return self.page.w, self.page.h
 
     def is_row_white(self, y, start=None, end=None):
+        return self.get_row_intensity(y, start, end) < .01
+
+    def get_row_intensity(self, y, start=None, end=None):
         if start is None:
             start = self.left
         if end is None:
             end = self.page.w
-        intensity = self.page.get_average_intensity(start, y, end - 1, y)
+        return self.page.get_average_intensity(start, y, end - 1, y)
 
-        return intensity < .01
+    def row_heights(self, vjump=JUMP):
+        yield from range(0, self.page.h, vjump)
 
     def get_row_pattern(self, white_limit=WHITE_LIMIT, vjump=JUMP):
         mode = None
@@ -43,7 +46,7 @@ class SplitPage:
         start = 0
         sections = []
 
-        for y in range(0, self.page.h, vjump):
+        for y in self.row_heights(vjump):
             white = self.is_row_white(y)
 
             if mode is None:
@@ -272,17 +275,16 @@ class Splitter:
         for f in sections:
             f.close()
 
-        output = PdfFileWriter()
-        infoDict = output._info.getObject()
+        output = PdfWriter()
+        output.add_metadata({
 
-        infoDict.update({
-            NameObject('/Title'): createStringObject(self.document.info.get('title', 'david')),
-            NameObject('/Author'): createStringObject(self.document.info.get('author', ''))
+            '/Title': self.document.info.title or 'Kindle Split Paper',
+            '/Author': self.document.info.author or 'David!!',
         })
 
-        input1 = PdfFileReader(open(midfile.name, 'rb'))
-        for pn in range(input1.getNumPages()):
-            output.addPage(input1.getPage(pn))
+        input1 = PdfReader(open(midfile.name, 'rb'))
+        for pn in range(len(input1.pages)):
+            output.add_page(input1.pages[pn])
         outputStream = open(outfile, 'wb')
         output.write(outputStream)
         outputStream.close()

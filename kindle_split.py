@@ -22,6 +22,7 @@ if __name__ == '__main__':
                         help='Manually select regions to include')
     parser.add_argument('-s', '--scan_res', type=int, default=72)
     parser.add_argument('-o', '--output_res', type=int, default=300)
+    parser.add_argument('-a', '--use-alpha', action='store_true')
     parser.add_argument('-d', '--debug', action='store_true')
 
     args = parser.parse_args()
@@ -31,7 +32,7 @@ if __name__ == '__main__':
     elif args.outfile.is_dir():
         args.outfile /= args.infile.name
 
-    d = Document(args.infile, args.pages, args.scan_res)
+    d = Document(args.infile, args.pages, args.scan_res, args.use_alpha)
     splitter = Splitter(d, args.manual, args.debug)
 
     if args.gui:

@@ -1,4 +1,4 @@
-from PyPDF2 import PdfFileReader
+from PyPDF2 import PdfReader
 from PythonMagick import Image  # python3-pythonmagick
 import subprocess
 import tempfile
@@ -6,8 +6,9 @@ from tqdm import tqdm
 
 
 class Page:
-    def __init__(self, filename, density):
+    def __init__(self, filename, density, use_alpha):
         self.base_filename = filename
+        self.use_alpha = use_alpha
 
         self.image = Image()
         self.image.density('%d' % density)
@@ -20,7 +21,11 @@ class Page:
         self.calculate_addition_matrix()
 
     def get_intensity(self, x, y, dn=pow(2, 16) - 1):
-        return self.image.pixelColor(x, y).intensity() / dn
+        pixel = self.image.pixelColor(x, y)
+        if self.use_alpha:
+            return pixel.alpha()
+        else:
+            return pixel.intensity() / dn
 
     def subimage_to_file(self, x, y, w, h, new_density=300):
         subimage = tempfile.NamedTemporaryFile(suffix='.png')
@@ -82,18 +87,18 @@ class Page:
 
 
 class Document:
-    def __init__(self, filename, pages=None, density=72):
+    def __init__(self, filename, pages=None, density=72, use_alpha=False):
         self.original = filename
 
         if filename.suffix == '.pdf':
-            self.read(filename, pages, density)
+            self.read(filename, pages, density, use_alpha)
         else:
             self.read_image(filename, density)
 
-    def read(self, filename, pages, density):
-        input1 = PdfFileReader(str(filename))
-        self.info = input1.getDocumentInfo()
-        n = input1.getNumPages()
+    def read(self, filename, pages, density, use_alpha):
+        input1 = PdfReader(str(filename))
+        self.info = input1.metadata
+        n = len(input1.pages)
         self.pages = []
         if pages is None:
             self.mypages = range(n)
@@ -103,7 +108,7 @@ class Document:
         bar = tqdm(self.mypages)
         for i in bar:
             bar.set_description('Reading page %d of %d' % (i + 1, n))
-            self.pages.append(Page('%s[%d]' % (filename, i), density))
+            self.pages.append(Page('%s[%d]' % (filename, i), density, use_alpha))
 
     def read_image(self, filename, density):
         self.info = {}

@@ -4,9 +4,7 @@ import time
 import tempfile
 import collections
 
-W = 850
-H = 1100
-ModeDef = collections.namedtuple('ModeDef', ['doc', 'mode'], verbose=False)
+ModeDef = collections.namedtuple('ModeDef', ['doc', 'mode'])
 
 KEYMAP = {
     keys.K_1: ModeDef('Delete white mode', 1),
@@ -22,10 +20,12 @@ KEYMAP = {
 
 class Viewer:
 
-    def __init__(self, splitter):
+    def __init__(self, splitter, W=850, H=1100, scale=0.7):
         self.splitter = splitter
         pygame.init()
-        self.screen = pygame.display.set_mode((W, H))
+        self.w = int(W * scale)
+        self.h = int(H * scale)
+        self.screen = pygame.display.set_mode((self.w, self.h))
         self.page_no = 0
         self.mode = 0
         self.save_coords = None
@@ -36,7 +36,7 @@ class Viewer:
         return self.splitter.pages[self.page_no]
 
     def reload_page(self):
-        pygame.draw.rect(self.screen, (255, 255, 255), (0, 0, W, H), 0)
+        pygame.draw.rect(self.screen, (255, 255, 255), (0, 0, self.w, self.h), 0)
         page = self.get_current_page()
         if self.page_no not in self.saved_images:
             try:
@@ -51,12 +51,17 @@ class Viewer:
                 temp.close()
 
         image = self.saved_images[self.page_no]
-        scaled = pygame.transform.scale(image, (W, H))
+        scaled = pygame.transform.scale(image, (self.w, self.h))
         self.screen.blit(scaled, (0, 0))
         for section in page.get_sections():
             pygame.draw.rect(
                 self.screen, (255, 0, 0), self.resize(
                     page.size(), section), 1)
+
+        for y in page.row_heights():
+            _, yy = self.to_viewer(page.size(), 0, y)
+            intensity = page.get_row_intensity(y)
+            pygame.draw.line(self.screen, (0, 255, 0), (0, yy), (50 * intensity, yy))
         pygame.display.flip()
 
     def resize(self, size, dims):
@@ -67,7 +72,7 @@ class Viewer:
 
     def to_viewer(self, dims, x, y):
         w, h = dims
-        return x * W / w, y * H / h
+        return x * self.w / w, y * self.h / h
 
     def update_mode(self, key):
         self.mode = KEYMAP[key].mode
@@ -100,8 +105,8 @@ class Viewer:
                     (x, y) = event.pos
                     page = self.get_current_page()
                     (w, h) = page.size()
-                    x = x * w // W
-                    y = y * h // H
+                    x = x * w // self.w
+                    y = y * h // self.h
                     if event.button == 1:
                         if self.mode == 1:
                             page.delete_white_row(y)
@@ -122,8 +127,8 @@ class Viewer:
                     (x, y) = event.pos
                     page = self.get_current_page()
                     (w, h) = page.size()
-                    x = x * w / W
-                    y = y * h / H
+                    x = x * w / self.w
+                    y = y * h / self.h
                     if event.button == 1 and self.mode == 7:
                         if self.save_coords is not None:
                             page.add_region(self.save_coords, (x, y))

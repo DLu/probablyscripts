@@ -9,6 +9,7 @@ import argparse
 import pathlib
 from urllib.parse import urlsplit
 import requests
+import shutil
 
 FOLDER = pathlib.Path('/home/dlu/public_html/podcast/')
 
@@ -41,7 +42,7 @@ def download_base_file(url, out_folder='.'):
 
 
 STATIC_PATTERNS = [
-    (pathlib.Path('/home/dlu/Dropbox/Podcasts/'), '*.mp3'),
+    (pathlib.Path('/media/bespin/Sync/Podcasts/'), '*.mp3'),
 ]
 
 
@@ -49,8 +50,9 @@ def static_files():
     files = []
     for folder, g_pattern in STATIC_PATTERNS:
         for subpath in folder.glob(g_pattern):
-            subpath.rename(FOLDER / subpath.name)
-            files.append(subpath.name)
+            dest = FOLDER / subpath.name
+            shutil.move(subpath, dest)
+            files.append(dest.name)
     return files
 
 

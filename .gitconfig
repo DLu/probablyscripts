@@ -13,6 +13,13 @@
 
 [url "git@github.com:"]
   insteadOf = git://github.com/
+
+[url "git@codeberg.org:"]
+  insteadOf = https://codeberg.org/
+
+[url "git@codeberg.org:"]
+  insteadOf = git://codeberg.org/
+
 [init]
 	defaultBranch = main
 [diff]
